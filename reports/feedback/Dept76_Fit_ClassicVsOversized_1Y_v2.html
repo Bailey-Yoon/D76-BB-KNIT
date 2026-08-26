@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
+<title>Dept 76 Classic vs Oversized — Fit 전용 피드백 (1Y, v2)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f8fa;color:#222;line-height:1.5;padding-bottom:60px}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{background:linear-gradient(135deg,#5e35b1 0%,#311b92 100%);color:white;padding:30px 24px;border-radius:12px;margin-bottom:24px}
+header h1{font-size:1.6rem;margin-bottom:8px}
+header .meta{font-size:.92rem;opacity:.9;line-height:1.7}
+.mode-note{background:#fff3cd;color:#856404;padding:8px 14px;border-radius:6px;font-size:.82rem;margin-top:10px;display:inline-block}
+.v2-note{background:#e3f2fd;color:#1565c0;padding:8px 14px;border-radius:6px;font-size:.82rem;margin-top:6px;display:inline-block;margin-left:6px}
+section{background:white;padding:20px 24px;border-radius:10px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+section h2{font-size:1.15rem;margin-bottom:12px;color:#311b92}
+section .sub{font-size:.86rem;color:#666;margin-bottom:10px}
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.overview-box{padding:22px 20px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.overview-box.classic{background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-left:4px solid #1976d2}
+.overview-box.oversized{background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-left:4px solid #ef6c00}
+.ov-title{font-size:1rem;font-weight:700;margin-bottom:10px;color:#311b92}
+.ov-styles{font-family:"SF Mono",Consolas,monospace;color:#555;font-size:.86rem;margin-bottom:12px}
+.ov-kpi{display:flex;gap:14px;flex-wrap:wrap}
+.ov-kpi-item{background:white;padding:8px 12px;border-radius:8px;font-size:.88rem}
+.ov-kpi-value{font-weight:700;font-size:1.15rem}
+.compare-table{width:100%;border-collapse:collapse;font-size:.9rem}
+.compare-table th,.compare-table td{padding:10px;text-align:left;border-bottom:1px solid #eee}
+.compare-table th{background:#f3eaff;color:#311b92;font-weight:600;font-size:.82rem}
+.compare-table .diff.up{color:#1976d2;font-weight:600}
+.compare-table .diff.down{color:#ef6c00;font-weight:600}
+.pct{color:#888;font-size:.82rem}
+.exclude-note{background:#f5f5f5;border-left:3px solid #999;padding:10px 14px;font-size:.85rem;color:#555;margin-bottom:14px;border-radius:4px}
+.exclude-note b{color:#333}
+.style-block{background:white;padding:20px;border-radius:10px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.05);border-left:5px solid #ccc}
+.style-block.classic{border-left-color:#1976d2}
+.style-block.oversized{border-left-color:#ef6c00}
+.style-block.empty{opacity:.7;background:#fafafa}
+.sb-header{display:flex;align-items:center;gap:14px;padding-bottom:12px;border-bottom:1px solid #eee;margin-bottom:12px;flex-wrap:wrap}
+.sb-thumb{width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #ddd}
+.sb-info{flex:1;min-width:200px}
+.sb-sno{font-family:"SF Mono",Consolas,monospace;font-weight:700;font-size:1.2rem;color:#311b92}
+.sb-fit{display:inline-block;background:#ede7f6;color:#4527a0;padding:2px 10px;border-radius:12px;font-size:.78rem;font-weight:600;margin-top:2px}
+.sb-meta{font-size:.85rem;color:#555;margin-top:4px}
+.sb-stats{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.chip{padding:3px 10px;border-radius:12px;font-size:.8rem;font-weight:600}
+.chip-avg{background:#fff8e1;color:#bf360c}
+.chip-pos{background:#ddedea;color:#0a6e57}
+.chip-neg{background:#fbe4e4;color:#b1130b}
+.chip-total{background:#ede7f6;color:#4527a0}
+.chip.empty{background:#e0e0e0;color:#666}
+.empty-note{color:#999;font-size:.86rem;font-style:italic}
+.tag-summary{background:#fafafa;padding:12px 16px;border-radius:8px;margin-bottom:12px}
+.tag-title{font-size:.9rem;font-weight:600;margin-bottom:8px;color:#311b92}
+.tag-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:.86rem}
+.tag-name{width:220px;font-size:.85rem}
+.tag-bar{height:14px;background:linear-gradient(90deg,#7e57c2,#5e35b1);border-radius:3px;min-width:2px}
+.tag-count{font-size:.78rem;color:#666}
+details{margin-top:10px}
+summary{cursor:pointer;font-weight:600;color:#311b92;padding:6px 0;font-size:.9rem}
+.cards{display:flex;flex-direction:column;gap:8px;margin-top:8px;max-height:600px;overflow-y:auto}
+.card{padding:10px 12px;border-radius:6px;border-left:3px solid;font-size:.86rem}
+.card.pos{background:#f7fbf7;border-left-color:#2e7d32}
+.card.neg{background:#fef7f7;border-left-color:#c62828}
+.card.neu{background:#f8f9fa;border-left-color:#888}
+.card-head{display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
+.date{font-size:.78rem;color:#666;font-weight:600}
+.badge{color:white;padding:1px 7px;border-radius:9px;font-size:.68rem;font-weight:700}
+.cat{background:#f0f0f0;color:#555;padding:1px 7px;border-radius:9px;font-size:.72rem}
+.stars{color:#fb8c00;font-size:.85rem}
+.card-title{font-weight:700;margin-bottom:2px}
+.body{color:#333}
+footer{text-align:center;color:#999;font-size:.82rem;margin-top:20px;padding:16px}
+</style></head><body><div class="container">
+<header>
+  <h1>👕 Classic Fit vs Oversized Graphic Tee — Fit 전용 피드백 (D76, 1Y)</h1>
+  <div class="meta">
+    기간: 최근 1년 (2025-07-13 ~ 2026-07-13)<br>
+    Classic Fit: ELP7Z3, X0E248 · Oversized: 2MYY30, 0L20WW<br>
+    수집일: 2026-07-13 · 출처: salest.sae-a.com/target/feedback
+  </div>
+  <div class="mode-note">🔎 <b>Spot 리포트</b> — Fit 관련 코멘트만</div>
+  <div class="v2-note">✏️ <b>v2 개정</b> — Soft/Comfort 등 원단·촉감 태그 제외, Fit 방향성 태그만 카운트</div>
+</header>
+
+<div class="exclude-note">
+  <b>제외한 항목</b>: 🧶 Soft/Comfort (원단·촉감), Fabric quality (원단 품질). <b>이유</b>: Fit(사이즈감·실루엣)과 별개 축이며, Fabric 축과 섞이면 비교가 왜곡됨.<br>
+  <b>포함한 Fit 태그</b>: True to size / Runs Big·Small / Oversized 언급 / Husky / Size Up·Down 권장 / Loose·Baggy / Snug·Tight / 세탁 후 줄어듦
+</div>
+
+<section>
+  <h2>📊 그룹 비교 요약 (Fit 전용)</h2>
+  <div class="overview-grid">
+    <div class="overview-box classic">
+      <div class="ov-title">📘 Classic Fit</div>
+      <div class="ov-styles">ELP7Z3 · X0E248</div>
+      <div class="ov-kpi">
+        <div class="ov-kpi-item"><div>Fit 리뷰</div><div class="ov-kpi-value">91건</div></div>
+        <div class="ov-kpi-item"><div>평균 평점</div><div class="ov-kpi-value" style="color:#2e7d32">4.75★</div></div>
+        <div class="ov-kpi-item"><div>POS/NEG</div><div class="ov-kpi-value"><span style="color:#2e7d32">84</span><span style="color:#888">/</span><span style="color:#c62828">7</span></div></div>
+        <div class="ov-kpi-item"><div>POS 비중</div><div class="ov-kpi-value">92%</div></div>
+      </div>
+    </div>
+    <div class="overview-box oversized">
+      <div class="ov-title">📙 Oversized</div>
+      <div class="ov-styles">2MYY30 · 0L20WW</div>
+      <div class="ov-kpi">
+        <div class="ov-kpi-item"><div>Fit 리뷰</div><div class="ov-kpi-value">11건</div></div>
+        <div class="ov-kpi-item"><div>평균 평점</div><div class="ov-kpi-value" style="color:#c62828">3.0★</div></div>
+        <div class="ov-kpi-item"><div>POS/NEG</div><div class="ov-kpi-value"><span style="color:#2e7d32">6</span><span style="color:#888">/</span><span style="color:#c62828">5</span></div></div>
+        <div class="ov-kpi-item"><div>POS 비중</div><div class="ov-kpi-value">55%</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>🏷️ Fit 태그별 비교 (Classic vs Oversized)</h2>
+  <p class="sub">각 그룹의 Fit 리뷰에서 특정 태그가 몇 % 언급됐는지 비교. Fit 방향성만 카운트 (원단·촉감 제외)</p>
+  <table class="compare-table">
+    <thead><tr><th>Fit 방향 태그</th><th>Classic Fit</th><th>Oversized</th><th>차이 (pp)</th></tr></thead>
+    <tbody><tr><td><b>✅ True to size</b></td><td>35건 <span class="pct">(38%)</span></td><td>0건 <span class="pct">(0%)</span></td><td class="diff up">▲ 38pp</td></tr><tr><td><b>📏 Runs Big</b></td><td>7건 <span class="pct">(8%)</span></td><td>2건 <span class="pct">(18%)</span></td><td class="diff down">▼ 10pp</td></tr><tr><td><b>🌀 세탁 후 줄어듦</b></td><td>7건 <span class="pct">(8%)</span></td><td>1건 <span class="pct">(9%)</span></td><td class="diff down">▼ 1pp</td></tr><tr><td><b>📐 Runs Small</b></td><td>5건 <span class="pct">(5%)</span></td><td>0건 <span class="pct">(0%)</span></td><td class="diff up">▲ 5pp</td></tr><tr><td><b>⬆️ Size Up 권장</b></td><td>4건 <span class="pct">(4%)</span></td><td>0건 <span class="pct">(0%)</span></td><td class="diff up">▲ 4pp</td></tr><tr><td><b>🎯 Oversized 언급</b></td><td>1건 <span class="pct">(1%)</span></td><td>3건 <span class="pct">(27%)</span></td><td class="diff down">▼ 26pp</td></tr><tr><td><b>👶 Husky 사이즈</b></td><td>3건 <span class="pct">(3%)</span></td><td>0건 <span class="pct">(0%)</span></td><td class="diff up">▲ 3pp</td></tr><tr><td><b>👕 Loose/Baggy</b></td><td>2건 <span class="pct">(2%)</span></td><td>1건 <span class="pct">(9%)</span></td><td class="diff down">▼ 7pp</td></tr><tr><td><b>✂️ Snug/Tight</b></td><td>2건 <span class="pct">(2%)</span></td><td>0건 <span class="pct">(0%)</span></td><td class="diff up">▲ 2pp</td></tr><tr><td><b>⬇️ Size Down 권장</b></td><td>1건 <span class="pct">(1%)</span></td><td>0건 <span class="pct">(0%)</span></td><td class="diff up">▲ 1pp</td></tr></tbody>
+  </table>
+  <p class="sub" style="margin-top:8px;font-size:.78rem">
+    💡 <b>pp</b> = percentage points (절대 % 차이). 예: 38% - 0% = <b>38pp</b> (▲ 언급 비중이 38%p 더 많음)
+  </p>
+</section>
+
+<section>
+  <h2>💡 핵심 인사이트 (Fit 전용)</h2>
+  <div style="background:#fff8e1;padding:16px 20px;border-radius:8px;border-left:4px solid #ef6c00;line-height:1.8">
+    <p><b>1. Fit 평점 격차 유지</b> — Classic <b>4.75★</b> vs Oversized <b>3.0★</b>. POS 비중 <b>92% vs 55%</b> = <b>37pp 격차</b>. Fit 축만 봐도 Classic 우세.</p>
+    <p style="margin-top:8px"><b>2. Classic 강점 = "True to size" 38%</b> — Fit 리뷰 3분의 1이 "사이즈감 예상대로" 확인. 예측 가능한 사이즈감이 재구매 신뢰로 축적.</p>
+    <p style="margin-top:8px"><b>3. Oversized 리스크 = 컨셉 인지 실패</b> — "Oversized 언급" 27% (3/11), "Runs Big" 18% (2/11). <em>"Kids don't wear oversized tees IMO"</em> 같은 NEG는 <b>컨셉 이해 실패</b>가 사이즈 실수처럼 표출된 사례.</p>
+    <p style="margin-top:8px"><b>4. Classic도 사이즈 이슈 있음</b> — Runs Big 7 + Runs Small 5 + 세탁 후 줄어듦 7 = 19건 (fit 리뷰의 21%). 다만 True to size 35건이 압도.</p>
+    <p style="margin-top:8px"><b>5. 데이터 부재</b> — X0E248, 0L20WW 각각 1Y·2Y 리뷰 0건. 마스터엔 7 variant 등록. 실 판매 여부 TCOM 크로스체크 필요.</p>
+    <p style="margin-top:8px"><b>6. 표본 편중</b> — 91 vs 11 (8배 차이). 통계 유의성 낮으니 Oversized 결론은 신중히.</p>
+  </div>
+</section>
+
+<section>
+  <h2>📝 스타일별 상세 (대표 Fit 코멘트)</h2>
+  <p class="sub">ELP7Z3는 91건 중 태그별 대표 코멘트 20건 선별. 2MYY30은 11건 전체.</p>
+</section>
+
+<div class="style-block classic">
+<div class="sb-header">
+  <img class="sb-thumb" src="https://target.scene7.com/is/image/Target/GUEST_fd68a6f5-0c20-4176-9a5b-3757383caded" onerror="this.style.display='none'">
+  <div class="sb-info">
+    <div class="sb-sno">ELP7Z3</div>
+    <div class="sb-fit">Classic Fit</div>
+    <div class="sb-meta">$6.00 · 총 169건 리뷰 (1Y)</div>
+  </div>
+  <div class="sb-stats">
+    <span class="chip chip-avg">Fit 평균 4.75★</span>
+    <span class="chip chip-pos">POS 84건</span>
+    <span class="chip chip-neg">NEG 7건</span>
+    <span class="chip chip-total">Fit 91건</span>
+  </div>
+</div>
+<div class="tag-summary">
+  <div class="tag-title">🏷️ Fit 전용 태그 분포 (원단·촉감 제외)</div>
+  <div class="tag-row"><span class="tag-name">✅ True to size</span><span class="tag-bar" style="width:280px"></span><span class="tag-count">35건</span></div><div class="tag-row"><span class="tag-name">📏 Runs Big</span><span class="tag-bar" style="width:56px"></span><span class="tag-count">7건</span></div><div class="tag-row"><span class="tag-name">🌀 세탁 후 줄어듦</span><span class="tag-bar" style="width:56px"></span><span class="tag-count">7건</span></div><div class="tag-row"><span class="tag-name">📐 Runs Small</span><span class="tag-bar" style="width:40px"></span><span class="tag-count">5건</span></div><div class="tag-row"><span class="tag-name">⬆️ Size Up 권장</span><span class="tag-bar" style="width:32px"></span><span class="tag-count">4건</span></div><div class="tag-row"><span class="tag-name">👶 Husky 사이즈</span><span class="tag-bar" style="width:24px"></span><span class="tag-count">3건</span></div><div class="tag-row"><span class="tag-name">👕 Loose/Baggy</span><span class="tag-bar" style="width:16px"></span><span class="tag-count">2건</span></div><div class="tag-row"><span class="tag-name">✂️ Snug/Tight</span><span class="tag-bar" style="width:16px"></span><span class="tag-count">2건</span></div><div class="tag-row"><span class="tag-name">🎯 Oversized 언급</span><span class="tag-bar" style="width:8px"></span><span class="tag-count">1건</span></div><div class="tag-row"><span class="tag-name">⬇️ Size Down 권장</span><span class="tag-bar" style="width:8px"></span><span class="tag-count">1건</span></div><div class="tag-row"><span class="tag-name" style="color:#999">(일반 fit 언급, 방향성 미태그)</span><span class="tag-bar" style="width:280px;background:linear-gradient(90deg,#bdbdbd,#9e9e9e)"></span><span class="tag-count">35건</span></div>
+</div>
+<details open><summary>📋 대표 Fit 코멘트 20건 (샘플 · 최신순)</summary>
+<div class="cards"><div class="card pos"><div class="card-head"><span class="date">2026-06-18</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Comfort</span><span class="stars">★★★★★</span></div><div class="body">Bought for my three year old son who&#x27;s very tall and skinny. I thought it was gonna be a little big but it fit him very nicely. It also was very soft. One of his favorites he likes to wear.</div></div><div class="card pos"><div class="card-head"><span class="date">2026-05-17</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">TrueSize</span><span class="stars">★★★★★</span></div><div class="card-title">Great Casual Shirt</div><div class="body">Great inexpensive shirt! Perfect for casual wear or around the house. The fabric quality is average, I&#x27;d say. It&#x27;s soft and comfortable, and true to size. I have no complaints. It didn&#x27;t shrink much in the wash either.</div></div><div class="card pos"><div class="card-head"><span class="date">2026-04-22</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">TrueSize</span><span class="stars">★★★★★</span></div><div class="body">This tee is the perfect closet addition for my motorcycle loving kiddo! Love the color and design. True to size</div></div><div class="card pos"><div class="card-head"><span class="date">2026-04-15</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Quality</span><span class="stars">★★★★★</span></div><div class="card-title">Great value and quality</div><div class="body">Nice quality shirt and so glad you offer it in husky sizes</div></div><div class="card neg"><div class="card-head"><span class="date">2026-03-28</span><span class="badge" style="background:#c62828">NEG</span><span class="cat">TrueSize</span><span class="stars">★☆☆☆☆</span></div><div class="card-title">It doesn&#x27;t fit!</div><div class="body">It doesn&#x27;t fit—it&#x27;s too big.</div></div><div class="card neg"><div class="card-head"><span class="date">2026-03-28</span><span class="badge" style="background:#c62828">NEG</span><span class="cat">TrueSize</span><span class="stars">★★☆☆☆</span></div><div class="card-title">It doesn&#x27;t fit it&#x27;s too big.</div><div class="body">It doesn&#x27;t fit!</div></div><div class="card pos"><div class="card-head"><span class="date">2026-02-17</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Quality</span><span class="stars">★★★★★</span></div><div class="body">Great fit and durability</div></div><div class="card pos"><div class="card-head"><span class="date">2026-02-16</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">TrueSize</span><span class="stars">★★★★★</span></div><div class="body">A good option for a boy to wear for Valentine&#x27;s day at school. Runs small</div></div><div class="card pos"><div class="card-head"><span class="date">2026-02-08</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">TrueSize</span><span class="stars">★★★★★</span></div><div class="card-title">Weird Fit</div><div class="body">This shirt seems to run small in the husky size. My son wears husky xl in most tops, but this one was too narrow on him. The neck area fitted weird as well. Sizing is inconsistent!</div></div><div class="card neg"><div class="card-head"><span class="date">2026-01-18</span><span class="badge" style="background:#c62828">NEG</span><span class="cat">TrueSize</span><span class="stars">★★★☆☆</span></div><div class="card-title">Cute but runs small</div><div class="body">Cute shirt had to return bc the sizing is off. Runs very small. And it&#x27;s white not beige.</div></div><div class="card pos"><div class="card-head"><span class="date">2025-12-22</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Design</span><span class="stars">★★★★★</span></div><div class="card-title">A favorite</div><div class="body">One of our favorites! Great cut and sizing. Looks as pictured. Quality is nice as well, it&#x27;s not too thin.</div></div><div class="card pos"><div class="card-head"><span class="date">2025-11-14</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">TrueSize</span><span class="stars">★★★★★</span></div><div class="card-title">Kids Hanukkah T-shirt</div><div class="body">My daughter is nine years old and normally wears a size 10-12. This T-shirt is definitely big and she could have sized down to a medium.</div></div><div class="card pos"><div class="card-head"><span class="date">2025-11-07</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Design</span><span class="stars">★★★★★</span></div><div class="card-title">Hot Sauce Anyone!</div><div class="body">This shirt is seriously so adorable. It is a little big for my son but that was to be expected. He is 3 1/2 years old and wears a 4T/5T so we wanted to get it a little bigger.</div></div><div class="card pos"><div class="card-head"><span class="date">2025-11-06</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Comfort</span><span class="stars">★★★★★</span></div><div class="card-title">Rocking the shades polar bear</div><div class="body">My son is 10 and is on the smaller size so we purchased the medium size 8. Runs big, but that&#x27;s perfect for growing room.</div></div><div class="card pos"><div class="card-head"><span class="date">2025-11-02</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">TrueSize</span><span class="stars">★★★★★</span></div><div class="card-title">Fun t-shirt for every day</div><div class="body">This shirt runs true to size and fits perfectly. The material is soft to wear and is very comfortable.</div></div><div class="card pos"><div class="card-head"><span class="date">2025-10-28</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">TrueSize</span><span class="stars">★★★★★</span></div><div class="card-title">True to size and unisex fit</div><div class="body">She wears size 4T and this size xs(4/5) shirt fits her perfectly. It&#x27;s a little oversized but that&#x27;s how we love to wear our clothes.</div></div><div class="card neg"><div class="card-head"><span class="date">2025-10-09</span><span class="badge" style="background:#c62828">NEG</span><span class="cat">TrueSize</span><span class="stars">★★★☆☆</span></div><div class="card-title">Sizing!</div><div class="body">Sizing isn&#x27;t the same. Fits very small, I almost thought this was a girls shirt. Size up 1 or 2 sizes.</div></div><div class="card pos"><div class="card-head"><span class="date">2025-08-12</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Quality</span><span class="stars">★★★★★</span></div><div class="card-title">Great Inexpensive Tee</div><div class="body">It&#x27;s 60/40 cotton poly blend so it won&#x27;t shrink in the dryer and it&#x27;s super soft. It&#x27;s loose-fitting and comfortable.</div></div><div class="card neg"><div class="card-head"><span class="date">2025-08-05</span><span class="badge" style="background:#c62828">NEG</span><span class="cat">TrueSize</span><span class="stars">★★☆☆☆</span></div><div class="card-title">Sizing has gotten smaller</div><div class="body">Just bought other XL shirts in the last month, and then ordered XL in this one, and it&#x27;s noticeably smaller. The sleeves were especially tight.</div></div><div class="card pos"><div class="card-head"><span class="date">2025-07-31</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Design</span><span class="stars">★★★★★</span></div><div class="card-title">Love this Halloween tee</div><div class="body">Such an adorable print. Soft tee. Sized up.</div></div></div>
+</details>
+</div>
+<div class="style-block empty">
+<div class="sb-header">
+  <div class="sb-info">
+    <div class="sb-sno">X0E248</div>
+    <div class="sb-fit">Classic Fit</div>
+    <div class="sb-meta">$7.00 · 리뷰 0건 (1Y)</div>
+  </div>
+  <div class="sb-stats"><span class="chip empty">데이터 없음</span></div>
+</div>
+<p class="empty-note">1Y·2Y 통틀어 리뷰 0건. 마스터엔 7 variant 등록. 신상 초기 또는 판매 저조.</p>
+</div>
+<div class="style-block oversized">
+<div class="sb-header">
+  <img class="sb-thumb" src="https://target.scene7.com/is/image/Target/GUEST_fb3d4676-1735-40ea-966f-593cdd91e4ef" onerror="this.style.display='none'">
+  <div class="sb-info">
+    <div class="sb-sno">2MYY30</div>
+    <div class="sb-fit">Oversized</div>
+    <div class="sb-meta">$6.00 · 총 24건 리뷰 (1Y)</div>
+  </div>
+  <div class="sb-stats">
+    <span class="chip chip-avg">Fit 평균 3.0★</span>
+    <span class="chip chip-pos">POS 6건</span>
+    <span class="chip chip-neg">NEG 5건</span>
+    <span class="chip chip-total">Fit 11건</span>
+  </div>
+</div>
+<div class="tag-summary">
+  <div class="tag-title">🏷️ Fit 전용 태그 분포 (원단·촉감 제외)</div>
+  <div class="tag-row"><span class="tag-name">🎯 Oversized 언급</span><span class="tag-bar" style="width:24px"></span><span class="tag-count">3건</span></div><div class="tag-row"><span class="tag-name">📏 Runs Big</span><span class="tag-bar" style="width:16px"></span><span class="tag-count">2건</span></div><div class="tag-row"><span class="tag-name">🌀 세탁 후 줄어듦</span><span class="tag-bar" style="width:8px"></span><span class="tag-count">1건</span></div><div class="tag-row"><span class="tag-name">👕 Loose/Baggy</span><span class="tag-bar" style="width:8px"></span><span class="tag-count">1건</span></div><div class="tag-row"><span class="tag-name" style="color:#999">(일반 fit 언급, 방향성 미태그)</span><span class="tag-bar" style="width:40px;background:linear-gradient(90deg,#bdbdbd,#9e9e9e)"></span><span class="tag-count">5건</span></div>
+</div>
+<details open><summary>📋 대표 Fit 코멘트 11건 (전체 · 최신순)</summary>
+<div class="cards"><div class="card pos"><div class="card-head"><span class="date">2026-06-30</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">TrueSize</span><span class="stars">★★★★☆</span></div><div class="card-title">Runs Big</div><div class="body">The shirt runs big- I ordered an XS for my son who is normally a 4/5 and this fits more like a 6/7. Otherwise super cute- was perfect for a cowboy themed camping trip!</div></div><div class="card neg"><div class="card-head"><span class="date">2026-06-21</span><span class="badge" style="background:#c62828">NEG</span><span class="cat">TrueSize</span><span class="stars">★☆☆☆☆</span></div><div class="body">Kids don&#x27;t wear oversized tees IMO</div></div><div class="card neg"><div class="card-head"><span class="date">2026-06-21</span><span class="badge" style="background:#c62828">NEG</span><span class="cat">TrueSize</span><span class="stars">★☆☆☆☆</span></div><div class="body">Kids don&#x27;t wear oversized tees IMO</div></div><div class="card pos"><div class="card-head"><span class="date">2026-05-28</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">TrueSize</span><span class="stars">★★★★☆</span></div><div class="card-title">Minor shrinking</div><div class="body">Shrunk a little after the delicate setting in the dryer but still fits. Son really likes it.</div></div><div class="card neg"><div class="card-head"><span class="date">2026-04-28</span><span class="badge" style="background:#c62828">NEG</span><span class="cat">Quality</span><span class="stars">★☆☆☆☆</span></div><div class="card-title">Horrible Fit</div><div class="body">Ordered this shirt and it so Short super wide! Reordered it. Same thing. Retuning it.</div></div><div class="card neg"><div class="card-head"><span class="date">2026-04-28</span><span class="badge" style="background:#c62828">NEG</span><span class="cat">Quality</span><span class="stars">★☆☆☆☆</span></div><div class="card-title">Horrible Fit</div><div class="body">Ordered this and it&#x27;s super wide and short. So I reordered it, same thing. Returning it.</div></div><div class="card pos"><div class="card-head"><span class="date">2026-04-07</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Style</span><span class="stars">★★★★☆</span></div><div class="card-title">Cute but big</div><div class="body">Cute shirt but it felt a little bigger than the sizing chart</div></div><div class="card pos"><div class="card-head"><span class="date">2026-03-21</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Comfort</span><span class="stars">★★★★★</span></div><div class="card-title">Great quality comfort</div><div class="body">The extra sizing gives it enough room and is such a soft material!</div></div><div class="card pos"><div class="card-head"><span class="date">2026-03-17</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">Style</span><span class="stars">★★★★★</span></div><div class="card-title">Nice oversized shirt</div><div class="body">Nice shirt for my grandson, fits loose and very stylish for every day wear</div></div><div class="card pos"><div class="card-head"><span class="date">2026-03-07</span><span class="badge" style="background:#2e7d32">POS</span><span class="cat">TrueSize</span><span class="stars">★★★★★</span></div><div class="body">I bought 3 shirts for my grandsons; they fit well, and are great looking. It would be nice to have them in adult sizes.</div></div><div class="card neg"><div class="card-head"><span class="date">2026-03-05</span><span class="badge" style="background:#c62828">NEG</span><span class="cat">Style</span><span class="stars">★★☆☆☆</span></div><div class="card-title">Too wide</div><div class="body">This shirt is as wide as it is long! Not flattering for a slim or average sized child.</div></div></div>
+</details>
+</div>
+<div class="style-block empty">
+<div class="sb-header">
+  <div class="sb-info">
+    <div class="sb-sno">0L20WW</div>
+    <div class="sb-fit">Oversized</div>
+    <div class="sb-meta">$7.00 · 리뷰 0건 (1Y)</div>
+  </div>
+  <div class="sb-stats"><span class="chip empty">데이터 없음</span></div>
+</div>
+<p class="empty-note">1Y·2Y 통틀어 리뷰 0건. 마스터엔 7 variant 등록. 신상 초기 또는 판매 저조.</p>
+</div>
+
+<footer>생성: 2026-07-13 · 출처: salest.sae-a.com/target/feedback · Spot v2 (Fit 전용, 원단·촉감 제외) · CALUDE/GUEST FEEDBACK/ 저장본</footer>
+</div></body></html>

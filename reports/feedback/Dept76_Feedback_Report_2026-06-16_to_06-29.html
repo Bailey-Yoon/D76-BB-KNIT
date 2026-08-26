@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<title>Dept 76 게스트 피드백 리포트 2026-06-16 ~ 06-29 (비교 모드)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f8fa;color:#222;line-height:1.5;padding-bottom:60px}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+header{background:linear-gradient(135deg,#5e35b1 0%,#311b92 100%);color:white;padding:30px 24px;border-radius:12px;margin-bottom:24px}
+header h1{font-size:1.7rem;margin-bottom:8px}
+header .meta{font-size:.92rem;opacity:.9;line-height:1.7}
+.mode-note{background:#fff3cd;color:#856404;padding:8px 14px;border-radius:6px;font-size:.82rem;margin-top:10px;display:inline-block}
+section{background:white;padding:20px 24px;border-radius:10px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+section h2{font-size:1.15rem;margin-bottom:12px;color:#311b92}
+section .sub{font-size:.86rem;color:#666;margin-bottom:10px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.kpi{background:white;padding:18px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.kpi-label{font-size:.82rem;color:#666;margin-bottom:6px}
+.kpi-value{font-size:1.65rem;font-weight:700;line-height:1.1}
+.kpi-sub{font-size:.76rem;color:#888;margin-top:4px}
+.delta{font-size:.72rem;padding:2px 7px;border-radius:10px;margin-left:6px;font-weight:600}
+.delta-good{background:#ddedea;color:#0a6e57}
+.delta-bad{background:#fbe4e4;color:#b1130b}
+.delta-zero{background:#eee;color:#666}
+.avg-row{text-align:center;margin-bottom:14px}
+.avg-tile{display:inline-block;background:#fff8e1;color:#bf360c;padding:8px 16px;border-radius:8px;font-size:.92rem}
+.insight-box{background:linear-gradient(135deg,#fff8e1 0%,#ffecb3 100%);border-left:4px solid #ef6c00;padding:18px 22px;border-radius:8px;margin-bottom:18px}
+.insight-box h2{font-size:1.1rem;color:#bf360c;margin-bottom:10px}
+.insight-box ol{padding-left:22px}
+.insight-box li{margin-bottom:8px;font-size:.93rem}
+.comparison .comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px}
+.comp-box{background:#fafafa;padding:12px 14px;border-radius:8px;border:1px solid #eee}
+.comp-label{font-size:.82rem;color:#666;margin-bottom:8px;font-weight:600}
+.comp-styles{display:flex;flex-wrap:wrap;gap:5px}
+.style-chip{display:inline-block;background:#ede7f6;color:#4527a0;padding:3px 9px;border-radius:14px;font-family:"SF Mono",Consolas,monospace;font-size:.82rem;text-decoration:none;font-weight:600}
+.style-chip.new{background:#e8f5e9;color:#1b5e20}
+.style-chip.both{background:#fff3cd;color:#bf360c}
+.style-chip.gone{background:#f5f5f5;color:#999;text-decoration:line-through}
+.style-chip:hover{filter:brightness(.95)}
+.pattern-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.pattern-table th,.pattern-table td{padding:9px;text-align:left;border-bottom:1px solid #eee}
+.pattern-table th{background:#f3eaff;color:#311b92;font-weight:600;font-size:.8rem}
+.shift-new{background:#f1f8e9}
+.shift-stable{background:#fffde7}
+.shift-down{background:#fff3e0}
+.shift-gone{background:#fafafa;color:#999}
+.mini-chip{display:inline-block;background:#ede7f6;color:#4527a0;padding:1px 7px;border-radius:8px;font-family:"SF Mono",Consolas,monospace;font-size:.74rem;text-decoration:none;margin:1px 2px}
+.mini-chip.gone{background:#f5f5f5;color:#999}
+.style-group{background:white;padding:18px 20px;border-radius:10px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.05);scroll-margin-top:20px}
+.sg-header{display:flex;align-items:center;gap:14px;padding-bottom:12px;border-bottom:1px solid #eee;margin-bottom:14px;flex-wrap:wrap}
+.sg-thumb{width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #ddd}
+.sg-info{flex:1;min-width:200px}
+.sg-styleno{font-family:"SF Mono",Consolas,monospace;font-weight:700;font-size:1.15rem;color:#311b92}
+.sg-name{font-size:.85rem;color:#555;margin-top:2px}
+.cycle-badge{font-size:.7rem;padding:2px 7px;border-radius:8px;margin-left:6px;font-family:-apple-system,sans-serif;font-weight:600}
+.cycle-badge.both{background:#fff3cd;color:#bf360c}
+.cycle-badge.new{background:#e8f5e9;color:#1b5e20}
+.sg-stats{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.chip{padding:3px 10px;border-radius:12px;font-size:.8rem;font-weight:600}
+.chip-pos{background:#ddedea;color:#0a6e57}
+.chip-neg{background:#fbe4e4;color:#b1130b}
+.chip-total{background:#ede7f6;color:#4527a0}
+.chip-date{font-size:.78rem;color:#888;padding:3px 6px}
+.sg-cards{display:flex;flex-direction:column;gap:10px}
+.card{padding:12px 14px;border-radius:8px;border-left:3px solid}
+.card.pos{background:#f7fbf7;border-left-color:#2e7d32}
+.card.neg{background:#fef7f7;border-left-color:#c62828}
+.card-head{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.card-date{font-size:.82rem;color:#666;font-weight:600}
+.card-badge{color:white;padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:700}
+.card-cat{background:#f0f0f0;color:#555;padding:2px 8px;border-radius:10px;font-size:.75rem}
+.card-stars{color:#fb8c00;font-size:.9rem}
+.card-title{font-weight:700;margin-bottom:4px;font-size:.95rem}
+.card-body{font-size:.92rem;color:#333}
+footer{text-align:center;color:#999;font-size:.82rem;margin-top:20px;padding:16px}
+</style></head>
+<body>
+<div class="container">
+  <header>
+    <h1>📍 Dept 76 게스트 피드백 리포트 — 6/16 ~ 6/29</h1>
+    <div class="meta">
+      기간: 2026-06-16 ~ 2026-06-29 (14일)<br>
+      비교 대상: 직전 회차 2026-06-01 ~ 2026-06-15<br>
+      수집일: 2026-06-29 · 브랜드: Cat & Jack
+    </div>
+    <div class="mode-note">⚠️ <b>비교 모드 ad-hoc</b> — 사용자 요청에 따라 v1.0 스펙의 "회차 비교 금지" 룰을 일회성으로 완화한 리포트</div>
+  </header>
+
+  
+<div class="kpi-grid">
+  <div class="kpi" style="border-top:4px solid #5e35b1">
+    <div class="kpi-label">기간 내 리뷰</div>
+    <div class="kpi-value">6건 <span class="delta delta-zero">±0</span></div>
+    <div class="kpi-sub">vs 직전 6건 (6/1~6/15)</div>
+  </div>
+  <div class="kpi" style="border-top:4px solid #ef6c00">
+    <div class="kpi-label">발생 스타일</div>
+    <div class="kpi-value">4개 <span class="delta delta-bad">-1</span></div>
+    <div class="kpi-sub">vs 직전 5개 / D76 마스터 47</div>
+  </div>
+  <div class="kpi" style="border-top:4px solid #2e7d32">
+    <div class="kpi-label">POS</div>
+    <div class="kpi-value" style="color:#2e7d32">5건 <span class="delta delta-good">+1</span></div>
+    <div class="kpi-sub">vs 직전 4건</div>
+  </div>
+  <div class="kpi" style="border-top:4px solid #c62828">
+    <div class="kpi-label">NEG</div>
+    <div class="kpi-value" style="color:#c62828">1건 <span class="delta delta-good">-1</span></div>
+    <div class="kpi-sub">vs 직전 2건</div>
+  </div>
+</div>
+<div class="avg-row">
+  <span class="avg-tile">평균 평점: <b>4.17★</b> (직전 3.67★ · 변동 +0.5)</span>
+</div>
+
+  <div class="insight-box"><h2>🔍 이번 기간 주요 관찰 (6/16~6/29)</h2><ol><li><b>🚀 ELP7Z3 ($6 Bestseller) 강세 지속·확장</b> — 이번 회차에서 3건 모두 5★ POS (Design/Comfort). Space theme이 일관된 강점으로 작동 — "loves space → win-win", "Outer Space Mom Era", "hope to find others for back-to-school" 시그널 . 마스터 평점 4.36★, 전 기간 274 리뷰로 D76 1위.</li><li><b>📏 2MYY30 양가성 노출</b> — 직전 회차 Comfort POS 5★ 받았던 스타일이 이번 회차 "Kids don't wear oversized tees IMO" NEG 1★ TrueSize. TCOM에서는 5/26 마크다운 후 DROPPED 처리됨. 오버사이즈 fit이 buyer-side 시장 판단(시즌 종료)과 일치하는 vendor-side 시그널.</li><li><b>🛒 "Set 오해" NEG 소멸 (관찰)</b> — 직전 회차 0LY3PM·KL3M19 동시 NEG 패턴 (3건/2 styles)이 이번 회차에 사라짐. 단, 두 스타일이 이번 14일간 아예 출연 안한 것이라 이슈 해결이 아니라 "노출 부재". 후속 모니터링 필요.</li><li><b>👶 002LWK "husky size + no wrinkle" 신규 POS 호평</b> — 6/21 husky 사이즈 키이는 가족이 "comes in husky which my son needs now" 명시. 사이즈 다양성 + 실용성(no wrinkle) 조합 호평. Master 평점 4.46→4.60 상승.</li><li><b>🧪 PRE6WG "all cotton" 시그널</b> — 4★ POS인데 본문에 "wish it was all cotton, polyester is to be avoided". 호평이지만 fabric 요구사항 잠재 — vendor 측 다음 시즌 sourcing 시 cotton 비중 늘릴 여지.</li><li><b>호평 키워드</b>: space · cute · soft · perfect color · husky | <b>주의 시그널</b>: "oversized" · "polyester to be avoided"</li></ol></div>
+  
+<section class="comparison">
+  <h2>📊 직전 회차(6/1~6/15) 대비</h2>
+  <div class="comp-grid">
+    <div class="comp-box">
+      <div class="comp-label">📤 이번 회차 신규 출연 스타일</div>
+      <div class="comp-styles"><a href="#style-ELP7Z3" class="style-chip new">ELP7Z3</a> <a href="#style-PRE6WG" class="style-chip new">PRE6WG</a></div>
+    </div>
+    <div class="comp-box">
+      <div class="comp-label">🔁 양 회차 모두 출연</div>
+      <div class="comp-styles"><a href="#style-002LWK" class="style-chip both">002LWK</a> <a href="#style-2MYY30" class="style-chip both">2MYY30</a></div>
+    </div>
+    <div class="comp-box">
+      <div class="comp-label">📥 직전에 있었으나 이번 미출연</div>
+      <div class="comp-styles"><span class="style-chip gone">0LY3PM</span> <span class="style-chip gone">KL3M19</span> <span class="style-chip gone">MR0M8W</span></div>
+    </div>
+  </div>
+</section>
+
+  
+<section>
+  <h2>🔗 패턴 시프트 (양 회차 비교)</h2>
+  <p class="sub">직전 회차 → 이번 회차로 가면서 어떤 패턴이 새로 생기고/사라지고/유지됐는지</p>
+  <table class="pattern-table">
+    <thead><tr><th>이슈 패턴</th><th>직전 6/1~15</th><th>이번 6/16~29</th><th>출연 스타일</th><th>상태</th></tr></thead>
+    <tbody><tr class="shift-new"><td>➕ <b>🚀 Space/Theme 호평</b></td><td>0건</td><td>2건</td><td><a href="#style-ELP7Z3" class="mini-chip">ELP7Z3</a></td><td><b>신규</b></td></tr><tr class="shift-new"><td>➕ <b>🧪 원단 (Cotton/Poly)</b></td><td>0건</td><td>2건</td><td><a href="#style-002LWK" class="mini-chip">002LWK</a> <a href="#style-PRE6WG" class="mini-chip">PRE6WG</a></td><td><b>신규</b></td></tr><tr class="shift-new"><td>➕ <b>👶 Husky/Fit 만족</b></td><td>0건</td><td>2건</td><td><a href="#style-002LWK" class="mini-chip">002LWK</a> <a href="#style-ELP7Z3" class="mini-chip">ELP7Z3</a></td><td><b>신규</b></td></tr><tr class="shift-stable"><td>→ <b>🎨 Color/Design 호평</b></td><td>2건</td><td>3건</td><td><a href="#style-2MYY30" class="mini-chip">2MYY30</a> <a href="#style-ELP7Z3" class="mini-chip">ELP7Z3</a> <span class="mini-chip gone">MR0M8W</span> <a href="#style-PRE6WG" class="mini-chip">PRE6WG</a></td><td><b>지속</b></td></tr><tr class="shift-stable"><td>→ <b>📏 TrueSize/Oversized</b></td><td>1건</td><td>1건</td><td><a href="#style-2MYY30" class="mini-chip">2MYY30</a> <span class="mini-chip gone">MR0M8W</span></td><td><b>지속</b></td></tr><tr class="shift-down"><td>↘ <b>🧶 Soft/Comfort</b></td><td>3건</td><td>1건</td><td><span class="mini-chip gone">0LY3PM</span> <a href="#style-2MYY30" class="mini-chip">2MYY30</a> <a href="#style-ELP7Z3" class="mini-chip">ELP7Z3</a> <span class="mini-chip gone">MR0M8W</span></td><td><b>감소</b></td></tr><tr class="shift-gone"><td>➖ <b>🛒 Set/Package 오해</b></td><td>2건</td><td>0건</td><td><span class="mini-chip gone">0LY3PM</span> <span class="mini-chip gone">KL3M19</span></td><td><b>소멸</b></td></tr><tr class="shift-gone"><td>➖ <b>💰 가격 불만</b></td><td>2건</td><td>0건</td><td><span class="mini-chip gone">0LY3PM</span> <span class="mini-chip gone">KL3M19</span></td><td><b>소멸</b></td></tr></tbody>
+  </table>
+</section>
+
+
+  <section>
+    <h2>📝 스타일별 코멘트 묶음</h2>
+    <p class="sub">이번 회차(6/16~6/29) 출연 스타일만. NEG 건수 → 리뷰 수 → 스타일번호 순. 각 그룹 카드는 날짜 최신순.</p>
+    
+<div class="style-group" id="style-2MYY30">
+  <div class="sg-header">
+    <img src="https://target.scene7.com/is/image/Target/GUEST_fb3d4676-1735-40ea-966f-593cdd91e4ef" class="sg-thumb" onerror="this.style.display='none'">
+    <div class="sg-info">
+      <div class="sg-styleno">2MYY30 <span class="cycle-badge both">🔁 양 회차</span></div>
+      <div class="sg-name">Partners in Brine Oversized Graphic T-Shirt · $6.00</div>
+    </div>
+    <div class="sg-stats">
+      
+      <span class="chip chip-neg">NEG 1건</span>
+      <span class="chip chip-total">총 1건</span>
+      <span class="chip-date">최근 6/21</span>
+    </div>
+  </div>
+  <div class="sg-cards"><div class="card neg">
+<div class="card-head"><span class="card-date">6/21</span><span class="card-badge" style="background:#c62828">NEG</span><span class="card-cat">TrueSize</span><span class="card-stars">★☆☆☆☆</span></div>
+<div class="card-body">Kids don&#x27;t wear oversized tees IMO</div></div></div>
+</div>
+
+<div class="style-group" id="style-ELP7Z3">
+  <div class="sg-header">
+    <img src="https://target.scene7.com/is/image/Target/GUEST_fd68a6f5-0c20-4176-9a5b-3757383caded" class="sg-thumb" onerror="this.style.display='none'">
+    <div class="sg-info">
+      <div class="sg-styleno">ELP7Z3 <span class="cycle-badge new">📤 신규</span></div>
+      <div class="sg-name">Space Theme Graphic Tee ($6 Bestseller) · $6.00</div>
+    </div>
+    <div class="sg-stats">
+      <span class="chip chip-pos">POS 3건</span>
+      
+      <span class="chip chip-total">총 3건</span>
+      <span class="chip-date">최근 6/21</span>
+    </div>
+  </div>
+  <div class="sg-cards"><div class="card pos">
+<div class="card-head"><span class="card-date">6/21</span><span class="card-badge" style="background:#2e7d32">POS</span><span class="card-cat">Design</span><span class="card-stars">★★★★★</span></div>
+<div class="card-title">Cute tee</div><div class="card-body">This is a really cute shirt for my son! The color is perfect, not too dull, not too bright, and he loves space so win-win. So far it seems to be better quality than most of the women shirts I have purchased at Target.</div></div><div class="card pos">
+<div class="card-head"><span class="card-date">6/18</span><span class="card-badge" style="background:#2e7d32">POS</span><span class="card-cat">Comfort</span><span class="card-stars">★★★★★</span></div>
+<div class="card-body">Bought for my three year old son who&#x27;s very tall and skinny. I thought it was gonna be a little big but it fit him very nicely. It also was very soft. One of his favorites he likes to wear.</div></div><div class="card pos">
+<div class="card-head"><span class="card-date">6/17</span><span class="card-badge" style="background:#2e7d32">POS</span><span class="card-cat">Design</span><span class="card-stars">★★★★★</span></div>
+<div class="card-title">In My &quot;Outer Space Mom Era!&quot;</div><div class="card-body">My son LOVES space themed stuff right now and all the mythical creatures like Bigfoot etc. I bought this shirt for his space themed birthday party coming up! good quality, love the color! Thank you Target for putting out this space themed shirt, hope to find others for back to school shopping!</div></div></div>
+</div>
+
+<div class="style-group" id="style-002LWK">
+  <div class="sg-header">
+    <img src="https://target.scene7.com/is/image/Target/GUEST_ee1cea97-4958-449e-b0fb-c239827cc928" class="sg-thumb" onerror="this.style.display='none'">
+    <div class="sg-info">
+      <div class="sg-styleno">002LWK <span class="cycle-badge both">🔁 양 회차</span></div>
+      <div class="sg-name">Boys&#x27; Basic Tee (Husky size available) · $9.00</div>
+    </div>
+    <div class="sg-stats">
+      <span class="chip chip-pos">POS 1건</span>
+      
+      <span class="chip chip-total">총 1건</span>
+      <span class="chip-date">최근 6/21</span>
+    </div>
+  </div>
+  <div class="sg-cards"><div class="card pos">
+<div class="card-head"><span class="card-date">6/21</span><span class="card-badge" style="background:#2e7d32">POS</span><span class="card-cat">Quality</span><span class="card-stars">★★★★★</span></div>
+<div class="card-title">Great basic tee</div><div class="card-body">This is a great basic tee, and it comes in husky which my son needs now. It dies not wrinkle like most other mostly cotton tees.</div></div></div>
+</div>
+
+<div class="style-group" id="style-PRE6WG">
+  <div class="sg-header">
+    <img src="https://target.scene7.com/is/image/Target/GUEST_c1b193e9-5d7e-499e-a4b7-99da7e1c1052" class="sg-thumb" onerror="this.style.display='none'">
+    <div class="sg-info">
+      <div class="sg-styleno">PRE6WG <span class="cycle-badge new">📤 신규</span></div>
+      <div class="sg-name">Mint Color Tee (Polyester Blend) · $5.00</div>
+    </div>
+    <div class="sg-stats">
+      <span class="chip chip-pos">POS 1건</span>
+      
+      <span class="chip chip-total">총 1건</span>
+      <span class="chip-date">최근 6/20</span>
+    </div>
+  </div>
+  <div class="sg-cards"><div class="card pos">
+<div class="card-head"><span class="card-date">6/20</span><span class="card-badge" style="background:#2e7d32">POS</span><span class="card-cat">Design</span><span class="card-stars">★★★★☆</span></div>
+<div class="card-title">Nice</div><div class="card-body">Beautiful shirt. I got the mint colour for my son. I just wish it was all cotton. We all know polyester is to be avoided.</div></div></div>
+</div>
+
+  </section>
+
+  <footer>
+    생성: 2026-06-29 · 출처: salest.sae-a.com/target/feedback · 누적 105건 · 본 회차 신규 6건 · 비교 모드 (spec v1.0 deviation)
+  </footer>
+</div>
+</body></html>

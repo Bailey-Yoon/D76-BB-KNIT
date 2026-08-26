@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Dept 76 게스트 피드백 리포트 (5/1 ~ 5/26)</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; background: #f0f2f5; color: #1c1e21; line-height: 1.55; font-size: 14px; }
+.container { max-width: 1180px; margin: 0 auto; padding: 24px; }
+
+header { background: linear-gradient(135deg, #5e35b1 0%, #311b92 100%); color: white; padding: 22px 30px; border-radius: 12px; margin-bottom: 20px; }
+header h1 { font-size: 21px; margin-bottom: 6px; }
+header .meta { opacity: 0.92; font-size: 13px; }
+header .meta span { margin-right: 14px; }
+
+.kpi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-tile { background: white; padding: 14px 16px; border-radius: 10px; border-left: 4px solid #5e35b1; }
+.kpi-tile.green { border-left-color: #2e7d32; }
+.kpi-tile.red { border-left-color: #c62828; }
+.kpi-tile.orange { border-left-color: #ef6c00; }
+.kpi-tile.blue { border-left-color: #0b6e99; }
+.kpi-tile .label { font-size: 11px; color: #65676b; text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi-tile .value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+.kpi-tile .sub { font-size: 11px; color: #65676b; margin-top: 2px; }
+
+section { background: white; border-radius: 12px; padding: 22px 26px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+section h2 { font-size: 16px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #ebebeb; color: #311b92; }
+section h2 small { color: #65676b; font-weight: 400; font-size: 12px; margin-left: 8px; }
+
+.style-group { background: white; border-radius: 12px; padding: 16px 20px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); scroll-margin-top: 20px; }
+.style-group .sg-header { display: flex; gap: 14px; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #ebebeb; margin-bottom: 12px; }
+.sg-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+.sg-thumb.empty { background: #eee; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px; }
+.sg-meta { flex: 1; }
+.sg-no { font-family: "SF Mono", Consolas, monospace; font-weight: 700; font-size: 16px; color: #311b92; letter-spacing: 0.5px; }
+.sg-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; font-size: 12px; }
+.sg-stat-pos { background: #ddedea; color: #0a6e57; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.sg-stat-neg { background: #fbe4e4; color: #b1130b; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.sg-stat-total { background: #ede7f6; color: #4527a0; padding: 2px 8px; border-radius: 10px; }
+.sg-stat-latest { color: #666; padding: 2px 8px; }
+.sg-cards { display: flex; flex-direction: column; gap: 8px; }
+.card { background: white; border: 1px solid #e4e6eb; scroll-margin-top: 20px; border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; }
+.card.neg { border-left: 4px solid #c62828; background: #fef7f7; }
+.card.pos { border-left: 4px solid #2e7d32; background: #f7fbf7; }
+
+.card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.card-date { font-weight: 700; min-width: 42px; color: #311b92; font-size: 14px; }
+.card-thumb { width: 36px; height: 36px; object-fit: cover; border-radius: 4px; }
+.card-style { font-family: "SF Mono", Consolas, monospace; background: #1f3864; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+.card-badge { font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 600; color: white; }
+.card-badge.neg { background: #c62828; }
+.card-badge.pos { background: #2e7d32; }
+.card-cat { background: #e4e6eb; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+.new-badge { background: #ef6c00; color: white; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700; }
+.card-star { color: #f5b800; margin-left: auto; letter-spacing: 1px; font-size: 13px; }
+.card-star .empty { color: #ddd; }
+.card-title { font-weight: 600; color: #1f3864; font-size: 13.5px; margin: 4px 0; }
+.card-flex { display: flex; gap: 12px; align-items: flex-start; }
+.card-body { font-size: 13.5px; line-height: 1.6; margin: 6px 0; flex: 1; }
+.card-photo img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #e4e6eb; }
+.card-photo:hover img { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.card-pats { margin-top: 6px; }
+.pat-tag { display: inline-block; background: #fff3cd; color: #856404; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-right: 4px; margin-bottom: 4px; border: 1px solid #ffeaa7; font-weight: 500; }
+.tcom-link { background: #e3f2fd; border-left: 3px solid #0b6e99; padding: 6px 12px; border-radius: 4px; font-size: 12px; margin: 6px 0; color: #01579b; }
+
+.xref { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #c5c5c5; }
+.xref-pattern { background: #f3f0fa; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
+.xref-pattern-name { font-size: 12.5px; color: #5e35b1; font-weight: 600; margin-bottom: 8px; }
+.xref-style-block { margin: 8px 0; padding-left: 10px; border-left: 2px solid #b39ddb; }
+.xref-style-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 12px; }
+.xref-thumb { width: 24px; height: 24px; object-fit: cover; border-radius: 3px; }
+.xref-style-no { font-family: "SF Mono", Consolas, monospace; background: #311b92; color: white; padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+.xref-style-cnt { background: #5e35b1; color: white; padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; }
+.xref-style-head em { font-style: italic; color: #5e35b1; font-size: 11px; }
+.xref-rev { background: white; padding: 6px 10px; margin: 4px 0; border-radius: 4px; font-size: 12px; }
+.xref-rev.xref-neg { background: #fff0f0; border-left: 2px solid #c62828; }
+.xref-rev.xref-pos { background: #f0faf0; border-left: 2px solid #2e7d32; }
+.xref-date { font-weight: 600; color: #444; font-size: 11px; margin-right: 4px; }
+.xref-sent { font-size: 10px; padding: 1px 5px; border-radius: 6px; font-weight: 600; color: white; margin-right: 4px; }
+.xref-sent.xref-neg { background: #c62828; }
+.xref-sent.xref-pos { background: #2e7d32; }
+.xref-cat { font-size: 10px; padding: 1px 5px; border-radius: 6px; background: #e4e6eb; color: #444; margin-right: 4px; }
+.xref-star { color: #f5b800; font-size: 10px; letter-spacing: 0.5px; }
+.xref-star .empty { color: #ddd; }
+.xref-text { font-size: 12px; margin-top: 3px; line-height: 1.5; color: #333; }
+.xref-more { font-size: 11px; color: #777; padding: 4px 10px; font-style: italic; }
+
+table.pattern-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.pattern-tbl th { background: #f3f0fa; text-align: left; padding: 10px 12px; font-weight: 600; color: #5e35b1; border-bottom: 2px solid #e4e6eb; font-size: 12px; }
+table.pattern-tbl td { padding: 9px 12px; border-bottom: 1px solid #ebebeb; vertical-align: middle; }
+table.pattern-tbl .num { text-align: center; font-weight: 600; white-space: nowrap; }
+.pat-chip { display: inline-block; background: #ede7f6; color: #311b92; font-family: "SF Mono", Consolas, monospace; font-size: 11px; padding: 2px 7px; border-radius: 4px; margin: 2px 3px 2px 0; text-decoration: none; }
+.pat-chip:hover { background: #311b92; color: white; }
+
+table.tcom { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.tcom th { background: #e3f2fd; text-align: left; padding: 8px 10px; font-weight: 600; color: #01579b; font-size: 11.5px; }
+table.tcom td { padding: 8px 10px; border-bottom: 1px solid #ebebeb; vertical-align: middle; }
+table.tcom tr.unmatched td { color: #999; background: #fafafa; }
+.tbl-thumb { width: 32px; height: 32px; object-fit: cover; border-radius: 3px; }
+.tcom-status { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.tcom-status.active { background: #ddedea; color: #0a6e57; }
+.tcom-status.dropped { background: #ededec; color: #787774; }
+
+.insight { background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); border-left: 4px solid #ef6c00; padding: 14px 18px; border-radius: 6px; font-size: 13.5px; line-height: 1.7; margin-top: 10px; }
+.insight b { color: #bf360c; }
+.insight ul { margin-top: 6px; padding-left: 20px; }
+.insight li { margin: 4px 0; }
+
+footer { text-align: center; padding: 18px; color: #65676b; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>📍 Dept 76 게스트 피드백 리포트 — 5/1 ~ 5/26</h1>
+  <div class="meta">
+    <span>기간: <b>2026-05-01 ~ 2026-05-26</b> (26일)</span>
+    <span>수집일: <b>2026-05-26</b></span>
+    <span>오늘자 데이터 기준</span>
+  </div>
+</header>
+
+<div class="kpi">
+  <div class="kpi-tile"><div class="label">기간 내 리뷰</div><div class="value">15건</div><div class="sub">5/1~5/26</div></div>
+  <div class="kpi-tile orange"><div class="label">발생 스타일</div><div class="value">11개</div><div class="sub">/ Dept 76 마스터 47</div></div>
+  <div class="kpi-tile green"><div class="label">POS</div><div class="value">14건</div><div class="sub">호평</div></div>
+  <div class="kpi-tile red"><div class="label">NEG</div><div class="value">1건</div><div class="sub">불만</div></div>
+</div>
+
+<section>
+  <h2>🔍 이번 기간 주요 관찰 (5/1 ~ 5/26)</h2>
+  <div class="insight">
+    <b>1. 26일간 NEG는 1건뿐 (5/11 002LWK "shirts run big")</b> — POS 14건 / NEG 1건 비율로 <b>건전 상태</b>. NEG도 4점이거나 "사이즈 약간 큼" 정도로 critical 이슈 아님.
+    <br><br>
+    <b>2. 새 스타일 L0E6R6 첫 리뷰 발생 (5/17)</b> — "So comfortable and fashionable!" POS 5★ + 사진 첨부로 시작. <b>D-0부터 호평으로 출발한 신상</b>.
+    <br><br>
+    <b>3. 2MYY30 후반 회복세</b> — 이 스타일은 누적 NEG 6건 (Spring 동안)이지만 5월 후반 POS 4건 연속 발생 (5/17, 5/17, 5/23 등). 평점 3.71★ → 만족도 회복 흐름.
+    <br><br>
+    <b>4. 호평 핵심 키워드</b>:
+    <ul>
+      <li><b>"100% Cotton"</b> — 2KGY54, R6X532 (코튼 소재 신뢰)</li>
+      <li><b>"Set / 매칭 라인"</b> — 44971R + KL3M19 (Summer 세트 컨셉)</li>
+      <li><b>"True to size"</b> — ELP7Z3, KL3M19 (사이즈 정확 라인)</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <h2>🔗 패턴 연계성 <small>5/1~5/26 기간 내 2개 이상 스타일에서 동시 발생한 패턴만</small></h2>
+  <table class="pattern-tbl">
+    <thead><tr><th style="width:38%">이슈 패턴</th><th style="width:12%">누적 건수</th><th style="width:12%">발생 스타일 수</th><th>발생 스타일</th></tr></thead>
+    <tbody><tr><td><b>Wash 견뢰도 호평</b></td><td class="num">2건</td><td class="num">2개</td><td><a href="#style-2KGY54" class="pat-chip">2KGY54</a><a href="#style-2MYY30" class="pat-chip">2MYY30</a></td></tr><tr><td><b>True to size 호평</b></td><td class="num">2건</td><td class="num">2개</td><td><a href="#style-ELP7Z3" class="pat-chip">ELP7Z3</a><a href="#style-KL3M19" class="pat-chip">KL3M19</a></td></tr><tr><td><b>100% Cotton 호평</b></td><td class="num">2건</td><td class="num">2개</td><td><a href="#style-2KGY54" class="pat-chip">2KGY54</a><a href="#style-R6X532" class="pat-chip">R6X532</a></td></tr><tr><td><b>사이즈 큼 (Runs big)</b></td><td class="num">2건</td><td class="num">2개</td><td><a href="#style-002LWK" class="pat-chip">002LWK</a><a href="#style-MR0M8W" class="pat-chip">MR0M8W</a></td></tr><tr><td><b>촉감 거침 (Itchy)</b></td><td class="num">2건</td><td class="num">2개</td><td><a href="#style-0LY3PM" class="pat-chip">0LY3PM</a><a href="#style-1K16GE" class="pat-chip">1K16GE</a></td></tr><tr><td><b>Set/매칭 라인 호평</b></td><td class="num">2건</td><td class="num">2개</td><td><a href="#style-44971R" class="pat-chip">44971R</a><a href="#style-KL3M19" class="pat-chip">KL3M19</a></td></tr><tr><td><b>Linen blend</b></td><td class="num">2건</td><td class="num">2개</td><td><a href="#style-0LY3PM" class="pat-chip">0LY3PM</a><a href="#style-KL3M19" class="pat-chip">KL3M19</a></td></tr></tbody>
+  </table>
+</section>
+
+
+
+<section>
+  <h2>📝 5/1~5/26 코멘트 전체 <small>날짜 최신순 · 각 카드 "🔗" 박스 = 이번 기간 다른 스타일에서 같은 패턴 발생 시</small></h2>
+  
+    <div class="style-group" id="style-002LWK">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_ee1cea97-4958-449e-b0fb-c239827cc928" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">002LWK</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 1건</span>
+            <span class="sg-stat-neg">NEG 1건</span>
+            <span class="sg-stat-total">총 2건</span>
+            <span class="sg-stat-latest">최근 05/11</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card neg">
+          <div class="card-head">
+            <span class="card-date">05/11</span>
+            <span class="card-badge neg">NEGATIVE</span>
+            <span class="card-cat">TrueSize</span>
+            <span class="card-star">★★<span class="empty">☆☆☆</span></span>
+          </div>
+          
+          <div class="card-flex">
+            <div class="card-body">I feel these shirts run big. A small is long enough to be a size medium.</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">사이즈 큼 (Runs big)</span></div>
+          <div class="xref"><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>사이즈 큼 (Runs big)</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_fd68a6f5-0c20-4176-9a5b-3757383caded" class="xref-thumb" loading="lazy"><span class="xref-style-no">ELP7Z3</span><span class="xref-style-cnt">2건</span></div><div class="xref-rev xref-neg"><span class="xref-date">03/28</span><span class="xref-sent xref-neg">NEG</span><span class="xref-cat">Style</span><span class="xref-star">★<span class="empty">☆☆☆☆</span></span><div class="xref-text"><b>"It doesn't fit!"</b> It doesn't fit—it's too big.</div></div><div class="xref-rev xref-neg"><span class="xref-date">03/28</span><span class="xref-sent xref-neg">NEG</span><span class="xref-cat">Style</span><span class="xref-star">★★<span class="empty">☆☆☆</span></span><div class="xref-text"><b>"It doesn't fit, it's too big"</b> It doesn't fit!</div></div></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_fb3d4676-1735-40ea-966f-593cdd91e4ef" class="xref-thumb" loading="lazy"><span class="xref-style-no">2MYY30</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">03/05</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Style</span><span class="xref-star">★★<span class="empty">☆☆☆</span></span><div class="xref-text"><b>"Too wide"</b> This shirt is as wide as it is long! Not flattering for a slim or average sized child.</div></div></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_191e940d-97a5-407d-93ee-35a2491f049d" class="xref-thumb" loading="lazy"><span class="xref-style-no">MR0M8W</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">05/09</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Comfort</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text">I had to return the size XL just because it was too big for my 12 year old. Size L fit perfectly!</div></div></div></div></div>
+        </div>
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/04</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Value</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          <div class="card-title">"Must buy!"</div>
+          <div class="card-flex">
+            <div class="card-body">Quality is amazing, it's great for the price! My son loves these & color does not fade! Definitely will be buying more.</div>
+            
+          </div>
+          
+          
+        </div>
+</div></div>
+
+    <div class="style-group" id="style-2MYY30">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_fb3d4676-1735-40ea-966f-593cdd91e4ef" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">2MYY30</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 3건</span>
+            
+            <span class="sg-stat-total">총 3건</span>
+            <span class="sg-stat-latest">최근 05/23</span>
+            <span class="sg-stat-tcom">📦 076-16-4107 · $4.80</span>
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/23</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Quality</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          <div class="card-title">"Very nice, comfy and washes great"</div>
+          <div class="card-flex">
+            <div class="card-body">Such good quality</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">Wash 견뢰도 호평</span></div>
+          
+        </div>
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/17</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Comfort</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          
+          <div class="card-flex">
+            <div class="card-body">great soft tshirt</div>
+            
+          </div>
+          
+          
+        </div>
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/02</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Design</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          <div class="card-title">"Super cute!"</div>
+          <div class="card-flex">
+            <div class="card-body">Love this print! It's the oversized shirts, so gives my boys a little wiggle room to grow! Will always buy these!</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">오버사이즈 (호평/혹평 양면)</span></div>
+          <div class="xref"><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>오버사이즈 (호평/혹평 양면)</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_fb3d4676-1735-40ea-966f-593cdd91e4ef" class="xref-thumb" loading="lazy"><span class="xref-style-no">2MYY30</span><span class="xref-style-cnt">2건</span> <em>● 동일 스타일</em></div><div class="xref-rev xref-pos"><span class="xref-date">05/02</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Design</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"Super cute!"</b> Love this print! It's the oversized shirts.</div></div><div class="xref-rev xref-pos"><span class="xref-date">03/17</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Quality</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"Nice oversized shirt"</b> Nice shirt for my grandson, fits loose and very stylish</div></div></div></div></div>
+        </div>
+</div></div>
+
+    <div class="style-group" id="style-ELP7Z3">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_fd68a6f5-0c20-4176-9a5b-3757383caded" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">ELP7Z3</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 2건</span>
+            
+            <span class="sg-stat-total">총 2건</span>
+            <span class="sg-stat-latest">최근 05/17</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/17</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">TrueSize</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          <div class="card-title">"Great Casual Shirt"</div>
+          <div class="card-flex">
+            <div class="card-body">Great inexpensive shirt! Perfect for casual wear or around the house. The fabric quality is average, I'd say. It's soft and comfortable, and true to size. I have no complaints. It didn't shrink much in the wash either.</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">수축 (Shrink)</span><span class="pat-tag">True to size 호평</span></div>
+          <div class="xref"><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>True to size 호평</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_ee1cea97-4958-449e-b0fb-c239827cc928" class="xref-thumb" loading="lazy"><span class="xref-style-no">002LWK</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">04/05</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Quality</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text">Great fit. True to size. Soft fabric</div></div></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_fd68a6f5-0c20-4176-9a5b-3757383caded" class="xref-thumb" loading="lazy"><span class="xref-style-no">ELP7Z3</span><span class="xref-style-cnt">1건</span> <em>● 동일 스타일</em></div><div class="xref-rev xref-pos"><span class="xref-date">04/22</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">TrueSize</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text">This tee is the perfect closet addition. Love the color and design. True to size</div></div></div></div></div>
+        </div>
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/01</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Value</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          
+          <div class="card-flex">
+            <div class="card-body">Very nice quality, and the price you can't beat</div>
+            
+          </div>
+          
+          
+        </div>
+</div></div>
+
+    <div class="style-group" id="style-0LY3PM">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_7e85deba-377a-431d-90d3-df0e949e92d0" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">0LY3PM</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 1건</span>
+            
+            <span class="sg-stat-total">총 1건</span>
+            <span class="sg-stat-latest">최근 05/05</span>
+            <span class="sg-stat-tcom">📦 076-04-2356 · $18.00</span>
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/05</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Style</span>
+            <span class="card-star">★★★★<span class="empty">☆</span></span>
+          </div>
+          <div class="card-title">"Looks great but may be itchy for some!"</div>
+          <div class="card-flex">
+            <div class="card-body">Looks great. The shirt is a little bit long on my son. It's so itchy that he won't wear it. I do understand that it's linen like fabric so that's normal. However, my son with autism could not wear it, but looks amazing.</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">촉감 거침 (Itchy)</span><span class="pat-tag">Linen blend</span></div>
+          <div class="xref"><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>촉감 거침 (Itchy)</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_a266696e-1865-4184-8d1e-c59bccea89df" class="xref-thumb" loading="lazy"><span class="xref-style-no">1K16GE</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">05/10</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Design</span><span class="xref-star">★★★★<span class="empty">☆</span></span><div class="xref-text">very comfy but a little thin kinda see through</div></div></div></div><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>Linen blend</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_c8726d69-331c-4be4-99e8-7019cb70d531" class="xref-thumb" loading="lazy"><span class="xref-style-no">KL3M19</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">05/08</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">TrueSize</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"excellent"</b> Absolutely love this set! The blue patchwork print looks even better in person. The linen blend fabric feels lightweight.</div></div></div></div></div>
+        </div>
+</div></div>
+
+    <div class="style-group" id="style-1K16GE">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_a266696e-1865-4184-8d1e-c59bccea89df" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">1K16GE</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 1건</span>
+            
+            <span class="sg-stat-total">총 1건</span>
+            <span class="sg-stat-latest">최근 05/10</span>
+            <span class="sg-stat-tcom">📦 076-14-2928 · </span>
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/10</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Design</span>
+            <span class="card-star">★★★★<span class="empty">☆</span></span>
+          </div>
+          
+          <div class="card-flex">
+            <div class="card-body">very comfy but a little thin kinda see through (madrid style) though perhaps thats because of the light color</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">원단 비침/얇음</span><span class="pat-tag">촉감 거침 (Itchy)</span></div>
+          <div class="xref"><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>원단 비침/얇음</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_a266696e-1865-4184-8d1e-c59bccea89df" class="xref-thumb" loading="lazy"><span class="xref-style-no">1K16GE</span><span class="xref-style-cnt">1건</span> <em>● 동일 스타일</em></div><div class="xref-rev xref-pos"><span class="xref-date">05/10</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Design</span><span class="xref-star">★★★★<span class="empty">☆</span></span><div class="xref-text">very comfy but a little thin kinda see through</div></div></div></div><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>촉감 거침 (Itchy)</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_7e85deba-377a-431d-90d3-df0e949e92d0" class="xref-thumb" loading="lazy"><span class="xref-style-no">0LY3PM</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">05/05</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Style</span><span class="xref-star">★★★★<span class="empty">☆</span></span><div class="xref-text"><b>"Looks great but may be itchy for some!"</b> Looks great. The shirt is a little bit long on my son. It's so itchy that he won't wear it.</div></div></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_a266696e-1865-4184-8d1e-c59bccea89df" class="xref-thumb" loading="lazy"><span class="xref-style-no">1K16GE</span><span class="xref-style-cnt">1건</span> <em>● 동일 스타일</em></div><div class="xref-rev xref-pos"><span class="xref-date">05/10</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Design</span><span class="xref-star">★★★★<span class="empty">☆</span></span><div class="xref-text">very comfy but a little thin kinda see through</div></div></div></div></div>
+        </div>
+</div></div>
+
+    <div class="style-group" id="style-2KGY54">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_f8a09bd1-a0f4-4fac-aac4-ad531a5bcaad" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">2KGY54</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 1건</span>
+            
+            <span class="sg-stat-total">총 1건</span>
+            <span class="sg-stat-latest">최근 05/13</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/13</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Quality</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          <div class="card-title">"100% Cotton and Very Comfortable!"</div>
+          <div class="card-flex">
+            <div class="card-body">100 % cotton and very soft! Love the fabric, the cut, the texture and they wash very well. Great shirts!</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">100% Cotton 호평</span><span class="pat-tag">Wash 견뢰도 호평</span></div>
+          <div class="xref"><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>100% Cotton 호평</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_f8a09bd1-a0f4-4fac-aac4-ad531a5bcaad" class="xref-thumb" loading="lazy"><span class="xref-style-no">2KGY54</span><span class="xref-style-cnt">1건</span> <em>● 동일 스타일</em></div><div class="xref-rev xref-pos"><span class="xref-date">05/13</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Quality</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"100% Cotton and Very Comfortable!"</b> 100% cotton and very soft! Love the fabric.</div></div></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_f9b43034-3654-4cee-9ffa-c844668fd90b" class="xref-thumb" loading="lazy"><span class="xref-style-no">R6X532</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">05/13</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Comfort</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"100% Cotton!!!!! Love these shirts!"</b> Loveeee that they're made with a natural fiber, cotton. The shirts are soft and the cut is great.</div></div></div></div><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>Wash 견뢰도 호평</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_fb3d4676-1735-40ea-966f-593cdd91e4ef" class="xref-thumb" loading="lazy"><span class="xref-style-no">2MYY30</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">05/23</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Quality</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"Very nice, comfy and washes great"</b> Such good quality</div></div></div></div></div>
+        </div>
+</div></div>
+
+    <div class="style-group" id="style-44971R">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_5f91fcb1-b102-4095-b493-e3edd8bf0604" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">44971R</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 1건</span>
+            
+            <span class="sg-stat-total">총 1건</span>
+            <span class="sg-stat-latest">최근 05/05</span>
+            <span class="sg-stat-tcom">📦 076-04-2347 · $10.50</span>
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/05</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Style</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          <div class="card-title">"Great fit and color!"</div>
+          <div class="card-flex">
+            <div class="card-body">This looks amazing and I like that it's a set and it's just dressy enough so if you guys are having lunch as a family and you want your little one to be dressed up or down but comfortable it's a perfect set even for church or gatherings of that such.</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">Set/매칭 라인 호평</span></div>
+          <div class="xref"><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>Set/매칭 라인 호평</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_5f91fcb1-b102-4095-b493-e3edd8bf0604" class="xref-thumb" loading="lazy"><span class="xref-style-no">44971R</span><span class="xref-style-cnt">1건</span> <em>● 동일 스타일</em></div><div class="xref-rev xref-pos"><span class="xref-date">05/05</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Style</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"Great fit and color!"</b> This looks amazing and I like that it's a set, perfect set even for church.</div></div></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_c8726d69-331c-4be4-99e8-7019cb70d531" class="xref-thumb" loading="lazy"><span class="xref-style-no">KL3M19</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">05/08</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">TrueSize</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"excellent"</b> Absolutely love this set! The blue patchwork print looks even better in person. The linen blend fabric feels lightweight.</div></div></div></div></div>
+        </div>
+</div></div>
+
+    <div class="style-group" id="style-KL3M19">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_c8726d69-331c-4be4-99e8-7019cb70d531" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">KL3M19</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 1건</span>
+            
+            <span class="sg-stat-total">총 1건</span>
+            <span class="sg-stat-latest">최근 05/08</span>
+            <span class="sg-stat-tcom">📦 076-04-2365 · $12.60</span>
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/08</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">TrueSize</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          <div class="card-title">"excellent"</div>
+          <div class="card-flex">
+            <div class="card-body">Absolutely love this set! The blue patchwork print looks even better in person — stylish, fun, and perfect for summer. The linen blend fabric feels lightweight, breathable, and comfortable for active kids and the fit was true to size.</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">Set/매칭 라인 호평</span><span class="pat-tag">Linen blend</span><span class="pat-tag">True to size 호평</span></div>
+          <div class="xref"><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>Set/매칭 라인 호평</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_5f91fcb1-b102-4095-b493-e3edd8bf0604" class="xref-thumb" loading="lazy"><span class="xref-style-no">44971R</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">05/05</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Style</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"Great fit and color!"</b> This looks amazing and I like that it's a set, perfect set even for church.</div></div></div></div><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>True to size 호평</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_ee1cea97-4958-449e-b0fb-c239827cc928" class="xref-thumb" loading="lazy"><span class="xref-style-no">002LWK</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">04/05</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Quality</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text">Great fit. True to size. Soft fabric</div></div></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_fd68a6f5-0c20-4176-9a5b-3757383caded" class="xref-thumb" loading="lazy"><span class="xref-style-no">ELP7Z3</span><span class="xref-style-cnt">2건</span></div><div class="xref-rev xref-pos"><span class="xref-date">04/22</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">TrueSize</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text">This tee is the perfect closet addition. Love the color and design. True to size</div></div><div class="xref-rev xref-pos"><span class="xref-date">05/17</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">TrueSize</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"Great Casual Shirt"</b> Great inexpensive shirt! Perfect for casual wear or around the house. The fabric quality is average, I'd say. It's soft and comfortable, and true to size. I have no complaints. It didn't shrink much i</div></div></div></div></div>
+        </div>
+</div></div>
+
+    <div class="style-group" id="style-L0E6R6">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_b6a082cd-cfc2-470c-aa6c-113bc0dec6f4" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">L0E6R6</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 1건</span>
+            
+            <span class="sg-stat-total">총 1건</span>
+            <span class="sg-stat-latest">최근 05/17</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/17</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Value</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          <div class="card-title">"So comfortable and fashionable!"</div>
+          <div class="card-flex">
+            <div class="card-body">My son loved it!</div>
+            <a href="https://target.scene7.com/is/image/Target/GUEST_960c1d67-dedb-4f71-b2ed-4651839c17c3" target="_blank" class="card-photo"><img src="https://target.scene7.com/is/image/Target/GUEST_960c1d67-dedb-4f71-b2ed-4651839c17c3" loading="lazy"></a>
+          </div>
+          
+          
+        </div>
+</div></div>
+
+    <div class="style-group" id="style-MR0M8W">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_191e940d-97a5-407d-93ee-35a2491f049d" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">MR0M8W</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 1건</span>
+            
+            <span class="sg-stat-total">총 1건</span>
+            <span class="sg-stat-latest">최근 05/09</span>
+            <span class="sg-stat-tcom">📦 076-04-2338 · $15.00</span>
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/09</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Comfort</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          
+          <div class="card-flex">
+            <div class="card-body">I had to return the size XL just because it was waaaay too big for my 12 year old. I always buy his shirts XL maybe this runs a little big? Anyways, material is comfy. Size L fit my 12 year old perfectly!</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">사이즈 큼 (Runs big)</span></div>
+          <div class="xref"><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>사이즈 큼 (Runs big)</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_ee1cea97-4958-449e-b0fb-c239827cc928" class="xref-thumb" loading="lazy"><span class="xref-style-no">002LWK</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-neg"><span class="xref-date">05/11</span><span class="xref-sent xref-neg">NEG</span><span class="xref-cat">TrueSize</span><span class="xref-star">★★<span class="empty">☆☆☆</span></span><div class="xref-text">I feel these shirts run big. A small is long enough to be a size medium.</div></div></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_fd68a6f5-0c20-4176-9a5b-3757383caded" class="xref-thumb" loading="lazy"><span class="xref-style-no">ELP7Z3</span><span class="xref-style-cnt">2건</span></div><div class="xref-rev xref-neg"><span class="xref-date">03/28</span><span class="xref-sent xref-neg">NEG</span><span class="xref-cat">Style</span><span class="xref-star">★<span class="empty">☆☆☆☆</span></span><div class="xref-text"><b>"It doesn't fit!"</b> It doesn't fit—it's too big.</div></div><div class="xref-rev xref-neg"><span class="xref-date">03/28</span><span class="xref-sent xref-neg">NEG</span><span class="xref-cat">Style</span><span class="xref-star">★★<span class="empty">☆☆☆</span></span><div class="xref-text"><b>"It doesn't fit, it's too big"</b> It doesn't fit!</div></div></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_fb3d4676-1735-40ea-966f-593cdd91e4ef" class="xref-thumb" loading="lazy"><span class="xref-style-no">2MYY30</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">03/05</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Style</span><span class="xref-star">★★<span class="empty">☆☆☆</span></span><div class="xref-text"><b>"Too wide"</b> This shirt is as wide as it is long! Not flattering for a slim or average sized child.</div></div></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_191e940d-97a5-407d-93ee-35a2491f049d" class="xref-thumb" loading="lazy"><span class="xref-style-no">MR0M8W</span><span class="xref-style-cnt">1건</span> <em>● 동일 스타일</em></div><div class="xref-rev xref-pos"><span class="xref-date">05/09</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Comfort</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text">I had to return the size XL just because it was too big for my 12 year old. Size L fit perfectly!</div></div></div></div></div>
+        </div>
+</div></div>
+
+    <div class="style-group" id="style-R6X532">
+      <div class="sg-header">
+        <img src="https://target.scene7.com/is/image/Target/GUEST_f9b43034-3654-4cee-9ffa-c844668fd90b" class="sg-thumb" loading="lazy">
+        <div class="sg-meta">
+          <div class="sg-no">R6X532</div>
+          <div class="sg-stats">
+            <span class="sg-stat-pos">POS 1건</span>
+            
+            <span class="sg-stat-total">총 1건</span>
+            <span class="sg-stat-latest">최근 05/13</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="sg-cards">
+
+        <div class="card pos">
+          <div class="card-head">
+            <span class="card-date">05/13</span>
+            <span class="card-badge pos">POSITIVE</span>
+            <span class="card-cat">Comfort</span>
+            <span class="card-star">★★★★★<span class="empty"></span></span>
+          </div>
+          <div class="card-title">"100% Cotton!!!!! Love these shirts!"</div>
+          <div class="card-flex">
+            <div class="card-body">Loveeee that they're made with a natural fiber, cotton, and not some plastic poly blend. The shirts are soft and the cut is great. We ended up buying 4 of them because they're THAT amazing.</div>
+            
+          </div>
+          <div class="card-pats"><span class="pat-tag">100% Cotton 호평</span></div>
+          <div class="xref"><div class="xref-pattern"><div class="xref-pattern-name">🔗 이번 회차 같은 패턴: <b>100% Cotton 호평</b></div><div class="xref-style-block"><div class="xref-style-head"><img src="https://target.scene7.com/is/image/Target/GUEST_f8a09bd1-a0f4-4fac-aac4-ad531a5bcaad" class="xref-thumb" loading="lazy"><span class="xref-style-no">2KGY54</span><span class="xref-style-cnt">1건</span></div><div class="xref-rev xref-pos"><span class="xref-date">05/13</span><span class="xref-sent xref-pos">POS</span><span class="xref-cat">Quality</span><span class="xref-star">★★★★★<span class="empty"></span></span><div class="xref-text"><b>"100% Cotton and Very Comfortable!"</b> 100% cotton and very soft! Love the fabric.</div></div></div></div></div>
+        </div>
+</div></div>
+
+</section>
+
+<footer>
+  Generated 2026-05-26 · 게스트 피드백 리포트 (수시 점검용) · Raw cumulative: 88건<br>
+  GUEST FEEDBACK × TCOM 통합 마스터: <code>_master_db/style_id_to_dpci_map.csv</code>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<title>Dept 76 게스트 피드백 리포트 2026-06-01 ~ 06-15</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+       background:#f7f8fa; color:#222; line-height:1.5; padding-bottom:60px; }
+.container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+header { background: linear-gradient(135deg, #5e35b1 0%, #311b92 100%);
+         color: white; padding: 30px 24px; border-radius: 12px; margin-bottom: 24px; }
+header h1 { font-size: 1.7rem; margin-bottom: 8px; }
+header .meta { font-size: 0.92rem; opacity: 0.9; line-height:1.7; }
+section { background:white; padding:20px 24px; border-radius:10px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+section h2 { font-size:1.15rem; margin-bottom:12px; color:#311b92; }
+section .sub { font-size:0.86rem; color:#666; margin-bottom:10px; }
+.kpi-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:14px; margin-bottom:18px; }
+.kpi { background:white; padding:18px; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+.kpi-label { font-size:0.82rem; color:#666; margin-bottom:6px; }
+.kpi-value { font-size:1.9rem; font-weight:700; line-height:1.1; }
+.kpi-sub { font-size:0.78rem; color:#888; margin-top:4px; }
+.insight-box { background:linear-gradient(135deg,#fff8e1 0%,#ffecb3 100%);
+              border-left:4px solid #ef6c00; padding:18px 22px; border-radius:8px; margin-bottom:18px; }
+.insight-box h2 { font-size:1.1rem; color:#bf360c; margin-bottom:10px; }
+.insight-box ol { padding-left: 22px; }
+.insight-box li { margin-bottom:8px; font-size:0.93rem; }
+.pattern-table { width:100%; border-collapse:collapse; font-size:0.9rem; }
+.pattern-table th, .pattern-table td { padding:10px; text-align:left; border-bottom:1px solid #eee; }
+.pattern-table th { background:#f3eaff; color:#311b92; font-weight:600; }
+.style-chip { display:inline-block; background:#ede7f6; color:#4527a0;
+              padding:3px 9px; border-radius:14px; font-family:"SF Mono",Consolas,monospace;
+              font-size:0.82rem; text-decoration:none; margin:2px 4px 2px 0; }
+.style-chip:hover { background:#d1c4e9; }
+.style-group { background:white; padding:18px 20px; border-radius:10px;
+                margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);
+                scroll-margin-top: 20px; }
+.sg-header { display:flex; align-items:center; gap:14px; padding-bottom:12px;
+              border-bottom:1px solid #eee; margin-bottom:14px; flex-wrap:wrap; }
+.sg-thumb { width:60px; height:60px; object-fit:cover; border-radius:6px; border:1px solid #ddd; }
+.sg-info { flex:1; min-width:200px; }
+.sg-styleno { font-family:"SF Mono",Consolas,monospace; font-weight:700;
+                font-size:1.15rem; color:#311b92; }
+.sg-name { font-size:0.85rem; color:#555; }
+.sg-stats { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.chip { padding:3px 10px; border-radius:12px; font-size:0.8rem; font-weight:600; }
+.chip-pos { background:#ddedea; color:#0a6e57; }
+.chip-neg { background:#fbe4e4; color:#b1130b; }
+.chip-total { background:#ede7f6; color:#4527a0; }
+.chip-date { font-size:0.78rem; color:#888; padding:3px 6px; }
+.sg-cards { display:flex; flex-direction:column; gap:10px; }
+.card { padding:12px 14px; border-radius:8px; border-left:3px solid; }
+.card.pos { background:#f7fbf7; border-left-color:#2e7d32; }
+.card.neg { background:#fef7f7; border-left-color:#c62828; }
+.card-head { display:flex; gap:8px; align-items:center; margin-bottom:6px; flex-wrap:wrap; }
+.card-date { font-size:0.82rem; color:#666; font-weight:600; }
+.card-badge { color:white; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:700; }
+.card-cat { background:#f0f0f0; color:#555; padding:2px 8px; border-radius:10px; font-size:0.75rem; }
+.card-stars { color:#fb8c00; font-size:0.9rem; }
+.card-title { font-weight:700; margin-bottom:4px; font-size:0.95rem; }
+.card-body { font-size:0.92rem; color:#333; }
+.pat-tags { margin-top:8px; }
+.pat-tag { display:inline-block; background:#fff3cd; color:#856404;
+            padding:2px 8px; border-radius:10px; font-size:0.72rem; margin-right:4px; }
+.cross-box { background:#f3eaff; border-left:3px solid #5e35b1;
+              margin-top:8px; padding:8px 10px; border-radius:6px; font-size:0.85rem; }
+.cross-box a { color:#4527a0; font-family:"SF Mono",Consolas,monospace;
+                 text-decoration:none; font-weight:600; }
+footer { text-align:center; color:#999; font-size:0.82rem; margin-top:20px; padding:16px; }
+</style></head>
+<body>
+<div class="container">
+  <header>
+    <h1>📍 Dept 76 게스트 피드백 리포트 — 6/1 ~ 6/15</h1>
+    <div class="meta">
+      기간: 2026-06-01 ~ 2026-06-15 (15일)<br>
+      수집일: 2026-06-15<br>
+      오늘자 데이터 기준 · 브랜드: Cat & Jack
+    </div>
+  </header>
+
+  
+<div class="kpi-grid">
+  <div class="kpi" style="border-top:4px solid #5e35b1">
+    <div class="kpi-label">기간 내 리뷰</div>
+    <div class="kpi-value">6건</div>
+    <div class="kpi-sub">6/1~6/15 (15일)</div>
+  </div>
+  <div class="kpi" style="border-top:4px solid #ef6c00">
+    <div class="kpi-label">발생 스타일</div>
+    <div class="kpi-value">5개</div>
+    <div class="kpi-sub">/ Dept 76 마스터 47</div>
+  </div>
+  <div class="kpi" style="border-top:4px solid #2e7d32">
+    <div class="kpi-label">POS</div>
+    <div class="kpi-value" style="color:#2e7d32">4건</div>
+    <div class="kpi-sub">호평</div>
+  </div>
+  <div class="kpi" style="border-top:4px solid #c62828">
+    <div class="kpi-label">NEG</div>
+    <div class="kpi-value" style="color:#c62828">2건</div>
+    <div class="kpi-sub">불만</div>
+  </div>
+</div>
+
+  <div class="insight-box"><h2>🔍 이번 기간 주요 관찰</h2><ol><li><b>🛒 "Linen Blend 셔츠+쇼츠 세트로 알았다" 패턴 누적</b> — 0LY3PM($18 셔츠) · KL3M19($18 쇼츠) 두 스타일에서 동일 NEG 발생 (6/2, 6/12). 직전 5/29 동일 패턴 포함 시 누적 3건. 비주얼 코디네이션이 매력적인 반면 "세트 가격이 아니다"는 인지 충격이 반복됨.</li><li><b>2MYY30 ($6 → $4.80 마크다운 후 DROPPED) 잔량 POS 지속</b> — 5/26 TCOM 그리드에서 빠진 이후에도 6/9 POS Comfort 5★ 리뷰 유입. 재고 카트 잔량 소진 또는 후속 입고 시그널. 셔링/색상 호평 패턴 유지.</li><li><b>MR0M8W 신규 POS 진입</b> — 6/3 첫 리뷰 "perfect color for the transition from summer to fall, super comfortable, oversized just enough". $15 Seersucker 버튼다운, 가을 트랜지션 컬러 캠페인 후보.</li><li><b>0LY3PM 양가성</b> — 같은 스타일에서 NEG (가격 불만 6/2) + POS ("Chic grandson, casual comfortable yet dressy" 6/9) 동시 발생. 디자인 자체는 호평, 가격 인지가 결정적 분기점.</li><li><b>호평 키워드</b>: soft · comfortable · perfect color · transition | <b>주의 시그널</b>: "thought it was a set" (2 스타일 / NEG 1★ 2건)</li></ol></div>
+  
+<section>
+  <h2>🔗 패턴 연계성</h2>
+  <p class="sub">이번 회차(6/1~6/15) 출연 스타일 간 동시 발생 패턴만 — 최소 2개 스타일에서 발생한 것</p>
+  <table class="pattern-table">
+    <thead><tr><th>이슈 패턴</th><th>누적 건수</th><th>발생 스타일 수</th><th>발생 스타일</th></tr></thead>
+    <tbody><tr><td><b>🧶 부드러움/편안함</b></td><td>3건</td><td>3개</td><td><a href="#style-0LY3PM" class="style-chip">0LY3PM</a> <a href="#style-2MYY30" class="style-chip">2MYY30</a> <a href="#style-MR0M8W" class="style-chip">MR0M8W</a></td></tr><tr><td><b>🛒 세트/패키지 오해</b></td><td>2건</td><td>2개</td><td><a href="#style-0LY3PM" class="style-chip">0LY3PM</a> <a href="#style-KL3M19" class="style-chip">KL3M19</a></td></tr><tr><td><b>💰 가격 불만 ($18+)</b></td><td>2건</td><td>2개</td><td><a href="#style-0LY3PM" class="style-chip">0LY3PM</a> <a href="#style-KL3M19" class="style-chip">KL3M19</a></td></tr><tr><td><b>🎨 색상/디자인 호평</b></td><td>2건</td><td>2개</td><td><a href="#style-2MYY30" class="style-chip">2MYY30</a> <a href="#style-MR0M8W" class="style-chip">MR0M8W</a></td></tr></tbody>
+  </table>
+</section>
+
+
+  <section>
+    <h2>📝 스타일별 코멘트 묶음</h2>
+    <p class="sub">NEG 건수 → 리뷰 수 → 스타일번호 순으로 정렬. 각 그룹 내 카드는 날짜 최신순.</p>
+    
+<div class="style-group" id="style-0LY3PM">
+  <div class="sg-header">
+    <img src="https://target.scene7.com/is/image/Target/GUEST_7e85deba-377a-431d-90d3-df0e949e92d0" class="sg-thumb" onerror="this.style.display='none'">
+    <div class="sg-info">
+      <div class="sg-styleno">0LY3PM</div>
+      <div class="sg-name">Tropical Print Linen Blend Button-Up Shirt · $18.00</div>
+    </div>
+    <div class="sg-stats">
+      <span class="chip chip-pos">POS 1건</span>
+      <span class="chip chip-neg">NEG 1건</span>
+      <span class="chip chip-total">총 2건</span>
+      <span class="chip-date">최근 6/9</span>
+    </div>
+  </div>
+  <div class="sg-cards">
+<div class="card pos">
+  <div class="card-head">
+    <span class="card-date">6/9</span>
+    <span class="card-badge" style="background:#2e7d32">POS</span>
+    <span class="card-cat">Style</span>
+    <span class="card-stars">★★★★★</span>
+  </div>
+  <div class="card-title">Chic grandson</div>
+  <div class="card-body">Grandsons loves this outfit casual comfortable but yet looks dressy</div>
+  <div class="pat-tags"><span class="pat-tag">🧶 부드러움/편안함</span></div>
+  <div class="cross-box">🔗 같은 패턴 <b>🧶 부드러움/편안함</b> → <a href="#style-2MYY30">2MYY30</a> · <a href="#style-MR0M8W">MR0M8W</a></div>
+</div>
+
+<div class="card neg">
+  <div class="card-head">
+    <span class="card-date">6/2</span>
+    <span class="card-badge" style="background:#c62828">NEG</span>
+    <span class="card-cat">Value</span>
+    <span class="card-stars">★☆☆☆☆</span>
+  </div>
+  
+  <div class="card-body">I thought it was a set Just to realized it wasn&#x27;t and it&#x27;s expensive 🙄 Good fabric though</div>
+  <div class="pat-tags"><span class="pat-tag">🛒 세트/패키지 오해</span> <span class="pat-tag">💰 가격 불만 ($18+)</span></div>
+  <div class="cross-box">🔗 같은 패턴 <b>🛒 세트/패키지 오해</b> → <a href="#style-KL3M19">KL3M19</a></div><div class="cross-box">🔗 같은 패턴 <b>💰 가격 불만 ($18+)</b> → <a href="#style-KL3M19">KL3M19</a></div>
+</div>
+</div>
+</div>
+
+<div class="style-group" id="style-KL3M19">
+  <div class="sg-header">
+    <img src="https://target.scene7.com/is/image/Target/GUEST_c8726d69-331c-4be4-99e8-7019cb70d531" class="sg-thumb" onerror="this.style.display='none'">
+    <div class="sg-info">
+      <div class="sg-styleno">KL3M19</div>
+      <div class="sg-name">Tropical Print Linen Blend Pull-On Shorts · $18.00</div>
+    </div>
+    <div class="sg-stats">
+      
+      <span class="chip chip-neg">NEG 1건</span>
+      <span class="chip chip-total">총 1건</span>
+      <span class="chip-date">최근 6/12</span>
+    </div>
+  </div>
+  <div class="sg-cards">
+<div class="card neg">
+  <div class="card-head">
+    <span class="card-date">6/12</span>
+    <span class="card-badge" style="background:#c62828">NEG</span>
+    <span class="card-cat">Value</span>
+    <span class="card-stars">★☆☆☆☆</span>
+  </div>
+  <div class="card-title">Pricey</div>
+  <div class="card-body">I thought this was sold as a 2 piece set. My mistake for not reading the description more clearly but at the price point I&#x27;m surprised!</div>
+  <div class="pat-tags"><span class="pat-tag">🛒 세트/패키지 오해</span> <span class="pat-tag">💰 가격 불만 ($18+)</span></div>
+  <div class="cross-box">🔗 같은 패턴 <b>🛒 세트/패키지 오해</b> → <a href="#style-0LY3PM">0LY3PM</a></div><div class="cross-box">🔗 같은 패턴 <b>💰 가격 불만 ($18+)</b> → <a href="#style-0LY3PM">0LY3PM</a></div>
+</div>
+</div>
+</div>
+
+<div class="style-group" id="style-002LWK">
+  <div class="sg-header">
+    <img src="https://target.scene7.com/is/image/Target/GUEST_ee1cea97-4958-449e-b0fb-c239827cc928" class="sg-thumb" onerror="this.style.display='none'">
+    <div class="sg-info">
+      <div class="sg-styleno">002LWK</div>
+      <div class="sg-name">Boys&#x27; Short Sleeve Basic Tee · $9.00</div>
+    </div>
+    <div class="sg-stats">
+      <span class="chip chip-pos">POS 1건</span>
+      
+      <span class="chip chip-total">총 1건</span>
+      <span class="chip-date">최근 6/1</span>
+    </div>
+  </div>
+  <div class="sg-cards">
+<div class="card pos">
+  <div class="card-head">
+    <span class="card-date">6/1</span>
+    <span class="card-badge" style="background:#2e7d32">POS</span>
+    <span class="card-cat">Quality</span>
+    <span class="card-stars">★★★★★</span>
+  </div>
+  
+  <div class="card-body">Love the item. Nice quality</div>
+  
+  
+</div>
+</div>
+</div>
+
+<div class="style-group" id="style-2MYY30">
+  <div class="sg-header">
+    <img src="https://target.scene7.com/is/image/Target/GUEST_fb3d4676-1735-40ea-966f-593cdd91e4ef" class="sg-thumb" onerror="this.style.display='none'">
+    <div class="sg-info">
+      <div class="sg-styleno">2MYY30</div>
+      <div class="sg-name">Partners in Brine Oversized Graphic T-Shirt · $6.00</div>
+    </div>
+    <div class="sg-stats">
+      <span class="chip chip-pos">POS 1건</span>
+      
+      <span class="chip chip-total">총 1건</span>
+      <span class="chip-date">최근 6/9</span>
+    </div>
+  </div>
+  <div class="sg-cards">
+<div class="card pos">
+  <div class="card-head">
+    <span class="card-date">6/9</span>
+    <span class="card-badge" style="background:#2e7d32">POS</span>
+    <span class="card-cat">Comfort</span>
+    <span class="card-stars">★★★★★</span>
+  </div>
+  
+  <div class="card-body">Tshirt is soft and I love the color.</div>
+  <div class="pat-tags"><span class="pat-tag">🧶 부드러움/편안함</span> <span class="pat-tag">🎨 색상/디자인 호평</span></div>
+  <div class="cross-box">🔗 같은 패턴 <b>🧶 부드러움/편안함</b> → <a href="#style-0LY3PM">0LY3PM</a> · <a href="#style-MR0M8W">MR0M8W</a></div><div class="cross-box">🔗 같은 패턴 <b>🎨 색상/디자인 호평</b> → <a href="#style-MR0M8W">MR0M8W</a></div>
+</div>
+</div>
+</div>
+
+<div class="style-group" id="style-MR0M8W">
+  <div class="sg-header">
+    <img src="https://target.scene7.com/is/image/Target/GUEST_191e940d-97a5-407d-93ee-35a2491f049d" class="sg-thumb" onerror="this.style.display='none'">
+    <div class="sg-info">
+      <div class="sg-styleno">MR0M8W</div>
+      <div class="sg-name">Seersucker Textured Button-Down Shirt · $15.00</div>
+    </div>
+    <div class="sg-stats">
+      <span class="chip chip-pos">POS 1건</span>
+      
+      <span class="chip chip-total">총 1건</span>
+      <span class="chip-date">최근 6/3</span>
+    </div>
+  </div>
+  <div class="sg-cards">
+<div class="card pos">
+  <div class="card-head">
+    <span class="card-date">6/3</span>
+    <span class="card-badge" style="background:#2e7d32">POS</span>
+    <span class="card-cat">Comfort</span>
+    <span class="card-stars">★★★★★</span>
+  </div>
+  
+  <div class="card-body">A perfect color for the transition from summer to fall. Super comfortable and oversized just enough.</div>
+  <div class="pat-tags"><span class="pat-tag">🧶 부드러움/편안함</span> <span class="pat-tag">🎨 색상/디자인 호평</span></div>
+  <div class="cross-box">🔗 같은 패턴 <b>🧶 부드러움/편안함</b> → <a href="#style-0LY3PM">0LY3PM</a> · <a href="#style-2MYY30">2MYY30</a></div><div class="cross-box">🔗 같은 패턴 <b>🎨 색상/디자인 호평</b> → <a href="#style-2MYY30">2MYY30</a></div>
+</div>
+</div>
+</div>
+
+  </section>
+
+  <footer>
+    생성: 2026-06-15 · 출처: salest.sae-a.com/target/feedback · 누적 99건 · 본 회차 신규 11건 (5/27~6/15 catch-up 5건 + 6/1~6/15 본 기간 6건) · 포맷: SPEC v1.0
+  </footer>
+</div>
+</body></html>
