@@ -5,35 +5,71 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>D76 Research Hub</title>
 <style>
-:root{--red:#CC0000;--purple:#5e35b1;--purple2:#311b92;--teal:#00695c;--ink:#222;--sub:#666;--bg:#f4f2f5;--card:#ffffff}
+:root{--tcom:#CC0000;--gf:#5e35b1;--gf2:#311b92;--man:#00695c;--amber:#ef6c00;
+  --ink:#1d1c22;--sub:#6a6a72;--muted:#9a99a2;--bg:#f3f2f6;--card:#ffffff;--bar:#1b1b22;--line:#e7e5ee}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
-.wrap{max-width:980px;margin:0 auto;padding:28px 20px 60px}
-header{background:linear-gradient(135deg,#37474f 0%,#111 100%);color:#fff;border-radius:16px;padding:30px 34px;margin-bottom:26px}
-header h1{font-size:24px;margin-bottom:6px}
-header .meta{opacity:.8;font-size:13px;line-height:1.6}
-h2{font-size:15px;color:var(--sub);font-weight:600;margin:26px 4px 12px;text-transform:uppercase;letter-spacing:.06em}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-a.card{display:block;background:var(--card);border-radius:14px;padding:20px 22px;text-decoration:none;color:var(--ink);
-  box-shadow:0 1px 4px rgba(0,0,0,.07);border-left:5px solid #999;transition:transform .12s,box-shadow .12s}
-a.card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
-a.card .ico{font-size:26px;margin-bottom:10px}
+body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
+.topbar{background:var(--bar);color:#fff;font-size:13px;padding:12px 20px;display:flex;gap:14px;align-items:center}
+.topbar .brand{font-weight:700;color:#fff;text-decoration:none;font-size:14px}
+.topbar .live{margin-left:auto;opacity:.75;font-size:12px}
+.wrap{max-width:1020px;margin:0 auto;padding:26px 20px 60px}
+.hero{background:linear-gradient(135deg,#2b2a33 0%,#111 100%);color:#fff;border-radius:16px;padding:26px 30px;margin-bottom:18px;
+  display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
+.hero h1{font-size:23px;margin-bottom:6px}
+.hero .meta{opacity:.75;font-size:13px;line-height:1.6}
+.fx{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:12px 18px;min-width:190px}
+.fx .l{font-size:11px;letter-spacing:.05em;opacity:.7;text-transform:uppercase}
+.fx .v{font-size:24px;font-weight:700;margin:2px 0;font-variant-numeric:tabular-nums}
+.fx .s{font-size:11px;opacity:.6}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:22px}
+.stat{background:var(--card);border-radius:12px;padding:14px 16px;border-left:4px solid var(--muted);box-shadow:0 1px 3px rgba(20,18,30,.06)}
+.stat .l{font-size:11.5px;color:var(--sub)}
+.stat .v{font-size:24px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+.stat .s{font-size:11px;color:var(--muted);margin-top:2px}
+.stat.tcom{border-color:var(--tcom)}.stat.gf{border-color:var(--gf)}.stat.dn .s{color:var(--tcom)}
+h2{font-size:14px;color:var(--sub);font-weight:600;margin:24px 4px 10px;text-transform:uppercase;letter-spacing:.07em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:13px}
+a.card{display:block;background:var(--card);border-radius:14px;padding:19px 21px;text-decoration:none;color:var(--ink);
+  box-shadow:0 1px 3px rgba(20,18,30,.06);border-left:5px solid var(--muted);transition:transform .12s,box-shadow .12s}
+a.card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(20,18,30,.13)}
+a.card .ico{font-size:25px;margin-bottom:9px}
 a.card .t{font-size:16px;font-weight:700;margin-bottom:5px}
 a.card .d{font-size:12.5px;color:var(--sub);line-height:1.55}
-a.card .tag{display:inline-block;margin-top:10px;font-size:11px;padding:2px 9px;border-radius:10px;background:#eee;color:#555}
-a.card.tcom{border-left-color:var(--red)} a.card.tcom .tag{background:#fdecea;color:var(--red)}
-a.card.gf{border-left-color:var(--purple)} a.card.gf .tag{background:#ede7f6;color:var(--purple2)}
-a.card.knit{border-left-color:var(--teal)} a.card.knit .tag{background:#e0f2f1;color:var(--teal)}
-footer{margin-top:44px;text-align:center;color:#999;font-size:12px;line-height:1.7}
+a.card .tag{display:inline-block;margin-top:10px;font-size:11px;padding:2px 9px;border-radius:10px;background:#eeecf3;color:#555}
+a.card.tcom{border-left-color:var(--tcom)} a.card.tcom .tag{background:#fdecea;color:var(--tcom)}
+a.card.gf{border-left-color:var(--gf)} a.card.gf .tag{background:#ede7f6;color:var(--gf2)}
+a.card.man{border-left-color:var(--man)} a.card.man .tag{background:#e0f2f1;color:var(--man)}
+footer{margin-top:42px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
 </style>
 </head>
 <body>
+<div class="topbar">
+  <a class="brand" href="./">📊 D76 Research Hub</a>
+  <span class="live">Target Dept 76 · Cat &amp; Jack · 격주 갱신</span>
+</div>
 <div class="wrap">
-<header>
-  <h1>📊 D76 Research Hub</h1>
-  <div class="meta">Target Dept 76 (Big Kids Boy) · Cat &amp; Jack 리서치 게시판<br>
-  격주 자동 수집 · 최종 게시: <b>2026-08-26</b></div>
-</header>
+
+<div class="hero">
+  <div>
+    <h1>D76 Research Dashboard</h1>
+    <div class="meta">Target Dept 76 (Big Kids Boy) · Cat &amp; Jack 리서치 게시판<br>
+    최신 회차: <b>2026-08-03 ~ 08-18 (W13)</b> · 최종 게시: <b>2026-08-26</b></div>
+  </div>
+  <div class="fx">
+    <div class="l">USD / KRW</div>
+    <div class="v" id="fxv">…</div>
+    <div class="s" id="fxs">환율 불러오는 중</div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat tcom"><div class="l">076 카탈로그</div><div class="v">105</div><div class="s">111 → 105 (−6)</div></div>
+  <div class="stat tcom"><div class="l">신상 (NEW)</div><div class="v">5</div><div class="s">전부 신규 클래스 076-17</div></div>
+  <div class="stat tcom dn"><div class="l">가격 변동</div><div class="v">19</div><div class="s">전부 인하 · 클리어런스 마무리</div></div>
+  <div class="stat tcom"><div class="l">DROPPED</div><div class="v">21</div><div class="s">재등장 10</div></div>
+  <div class="stat gf"><div class="l">신규 리뷰</div><div class="v">97</div><div class="s">누적 223건</div></div>
+  <div class="stat gf"><div class="l">NEG 불만</div><div class="v">18</div><div class="s">주의: WR8X75 (9건)</div></div>
+</div>
 
 <h2>격주 트래킹 리포트</h2>
 <div class="grid">
@@ -53,7 +89,7 @@ footer{margin-top:44px;text-align:center;color:#999;font-size:12px;line-height:1
 
 <h2>Manual</h2>
 <div class="grid">
-  <a class="card knit" href="reports/manual/ASAPMCE/">
+  <a class="card man" href="reports/manual/ASAPMCE/">
     <div class="ico">📘</div>
     <div class="t">ASAP/MCE Process Manual</div>
     <div class="d">ASAP/MCE 업무 프로세스 매뉴얼</div>
@@ -73,8 +109,36 @@ footer{margin-top:44px;text-align:center;color:#999;font-size:12px;line-height:1
 
 <footer>
   Sae-A Target11 · 자동 생성 게시판 — 새 회차는 격주로 이 페이지에 추가됩니다.<br>
-  데이터 출처: Target.com 공개 카탈로그 · 게스트 리뷰 (파싱 데이터)
+  데이터 출처: Target.com 공개 카탈로그 · 게스트 리뷰 (파싱 데이터) · 환율: open.er-api.com (일별 갱신)
 </footer>
 </div>
+
+<script>
+(async function(){
+  const v = document.getElementById('fxv'), s = document.getElementById('fxs');
+  const show = (rate, when) => {
+    v.textContent = '₩' + Number(rate).toLocaleString('ko-KR', {maximumFractionDigits: 1});
+    s.textContent = '1 USD · ' + when + ' 기준';
+  };
+  try {
+    const r = await fetch('https://open.er-api.com/v6/latest/USD');
+    const j = await r.json();
+    if (j && j.rates && j.rates.KRW) {
+      const d = j.time_last_update_utc ? new Date(j.time_last_update_utc) : null;
+      show(j.rates.KRW, d ? (d.getMonth()+1) + '/' + d.getDate() : '오늘');
+      return;
+    }
+    throw new Error('no rate');
+  } catch (e) {
+    try {
+      const r2 = await fetch('https://api.frankfurter.app/latest?from=USD&to=KRW');
+      const j2 = await r2.json();
+      show(j2.rates.KRW, j2.date.slice(5).replace('-', '/'));
+    } catch (e2) {
+      v.textContent = '—'; s.textContent = '환율 조회 실패 (새로고침 시 재시도)';
+    }
+  }
+})();
+</script>
 </body>
 </html>
