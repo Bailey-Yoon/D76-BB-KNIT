@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fabric Shipment Status — D76 Tools</title>
+<style>
+:root{--tool:#0277bd;--tool2:#01579b;--tint:#e3f2fd;--ink:#222;--sub:#666;--muted:#9a99a2;
+  --bg:#f2f5fa;--card:#fff;--bar:#1b1b22;--line:#e6e9f0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
+.topbar{background:var(--bar);color:#fff;font-size:13px;padding:11px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.topbar a{text-decoration:none}
+.topbar a.brand{color:#fff;font-weight:700}
+.topbar a.sec{color:#9ecdf0}
+.topbar .lbl{margin-left:auto;opacity:.6;font-size:12px}
+.fab{position:fixed;right:18px;bottom:18px;z-index:9999;background:var(--bar);color:#fff;text-decoration:none;
+  width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;
+  box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.wrap{max-width:880px;margin:0 auto;padding:24px 20px 70px}
+header{background:linear-gradient(135deg,var(--tool) 0%,var(--tool2) 100%);color:#fff;border-radius:14px;
+  padding:24px 28px;margin-bottom:18px}
+header h1{font-size:21px;margin-bottom:6px}
+header .meta{opacity:.88;font-size:13px;line-height:1.6}
+
+.panel{background:var(--card);border-radius:12px;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.panel > h2{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px}
+
+.picks{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+a.pick{display:flex;align-items:center;gap:16px;background:var(--tint);border:1px solid #cfe4f7;border-radius:12px;
+  padding:18px 20px;text-decoration:none;color:var(--ink);transition:transform .12s,box-shadow .12s,background .12s}
+a.pick:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(2,119,189,.2);background:#fff;border-color:var(--tool)}
+/* 국기 이모지는 Windows Chromium 에서 regional indicator 를 못 그려 "NI" 처럼 글자로 새는 경우가
+   있어 쓰지 않는다. 항상 같게 보이는 코드 뱃지로 대체. */
+a.pick .badge{flex:none;width:54px;height:54px;border-radius:12px;background:var(--tool);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;letter-spacing:.04em}
+a.pick .txt{min-width:0}
+a.pick .code{display:block;font-size:18px;font-weight:700;color:var(--tool2);line-height:1.2}
+a.pick .name{display:block;font-size:12.5px;color:var(--sub);margin-top:3px}
+a.pick .go{margin-left:auto;font-size:19px;color:var(--tool);flex:none}
+
+.note{font-size:12.5px;color:var(--sub);line-height:1.8}
+.note b{color:var(--tool2)}
+footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;line-height:1.8}
+@media(max-width:520px){header{padding:20px 22px}.panel{padding:17px 18px}a.pick{padding:15px 16px;gap:13px}
+  a.pick .badge{width:46px;height:46px;font-size:15px}a.pick .code{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a>
+  <span style="opacity:.35">|</span>
+  <a class="sec" href="/D76-BB-KNIT/reports/tools/">🧮 Tools</a>
+  <span class="lbl">Fabric Shipment Status</span>
+</div>
+<a class="fab" href="/D76-BB-KNIT/" title="D76 Hub">📊</a>
+
+<div class="wrap">
+<header>
+  <h1>🚚 Fabric Shipment Status</h1>
+  <div class="meta">Vertical → CA COP 원단 출고 현황. 국가를 선택하면 해당 Google Drive 폴더가 열립니다.</div>
+</header>
+
+<div class="panel">
+  <h2>국가 선택</h2>
+  <div class="picks">
+    <a class="pick" href="https://drive.google.com/drive/folders/116R8_qMujmFVKMx_4Oa8LlVRV7mjOjIB"
+       target="_blank" rel="noopener noreferrer">
+      <span class="badge">NIC</span>
+      <span class="txt">
+        <span class="code">Nicaragua</span>
+        <span class="name">Google Drive 폴더 열기</span>
+      </span>
+      <span class="go">↗</span>
+    </a>
+    <a class="pick" href="https://drive.google.com/drive/folders/1QPJ4diBo9F2FH4m_Mdl0WCuNN8Na9IAO"
+       target="_blank" rel="noopener noreferrer">
+      <span class="badge">GT</span>
+      <span class="txt">
+        <span class="code">Guatemala</span>
+        <span class="name">Google Drive 폴더 열기</span>
+      </span>
+      <span class="go">↗</span>
+    </a>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>참고</h2>
+  <div class="note">
+    · 새 탭에서 <b>Google Drive</b> 폴더가 열립니다. 회사 계정 로그인이 필요할 수 있습니다.<br>
+    · 폴더가 열리지 않으면 Drive 접근 권한 문제이므로 폴더 소유자에게 공유를 요청하세요.<br>
+    · 출고 현황 파일 자체는 Drive에서 관리됩니다 — 이 페이지는 바로가기입니다.
+  </div>
+</div>
+
+<footer>
+  Sae-A Target11 · D76 Tools
+</footer>
+</div>
+</body>
+</html>
