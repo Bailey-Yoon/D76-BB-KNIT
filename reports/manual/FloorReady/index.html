@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Floor Ready — D76 Manual</title>
+<style>
+:root{--man:#00695c;--man2:#004d40;--tint:#e0f2f1;--ink:#1d1c22;--sub:#6a6a72;--muted:#9a99a2;
+  --bg:#f3f2f6;--bar:#1b1b22;--line:#e7e5ee}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;font-size:13px;padding:11px 20px;
+  display:flex;gap:14px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.topbar a{text-decoration:none}
+.topbar a.brand{color:#fff;font-weight:700}
+.topbar a.sec{color:#9fdcd2}
+.topbar .lbl{margin-left:auto;opacity:.6;font-size:12px}
+
+.ctrl{flex-shrink:0;background:#fff;border-bottom:1px solid var(--line);padding:11px 20px;
+  display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.tabs{display:flex;gap:7px}
+.tabs button{font:inherit;font-size:14px;font-weight:600;padding:9px 22px;border-radius:9px;cursor:pointer;
+  border:1px solid var(--line);background:var(--bg);color:var(--sub);
+  transition:background .12s,color .12s,border-color .12s}
+.tabs button:hover{border-color:var(--man);color:var(--man2)}
+.tabs button[aria-selected="true"]{background:var(--man);border-color:var(--man);color:#fff}
+.meta{font-size:11.5px;color:var(--muted);line-height:1.5}
+.open{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.open a{font-size:12.5px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);
+  background:#fff;color:var(--sub);text-decoration:none;white-space:nowrap;transition:border-color .12s,color .12s}
+.open a:hover{border-color:var(--man);color:var(--man2)}
+
+.stage{flex:1;min-height:0;position:relative;background:#525659}
+iframe{border:0;width:100%;height:100%;display:block}
+.hint{display:none;padding:26px 22px;text-align:center;color:#fff;font-size:13.5px;line-height:1.9}
+.hint a{display:inline-block;margin-top:12px;background:var(--man);color:#fff;text-decoration:none;
+  padding:11px 22px;border-radius:9px;font-weight:600}
+/* 모바일 브라우저(특히 iOS Safari)는 iframe 안의 PDF 를 제대로 못 그린다 — 새 탭 안내로 대체 */
+@media(max-width:640px){
+  iframe{display:none}
+  .stage{background:#3a3d40}
+  .hint{display:block}
+  .open{margin-left:0;width:100%}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a>
+  <span style="opacity:.35">|</span>
+  <a class="sec" href="/D76-BB-KNIT/">📘 Manual</a>
+  <span class="lbl">Floor Ready</span>
+</div>
+
+<div class="ctrl">
+  <div class="tabs" role="tablist">
+    <button id="btn-tops" role="tab" aria-selected="true" aria-controls="viewer">TOPS</button>
+    <button id="btn-bottoms" role="tab" aria-selected="false" aria-controls="viewer">BOTTOMS</button>
+  </div>
+  <div class="meta">Floor Ready 기준서<br>Updated 2026-08-20</div>
+  <div class="open">
+    <a id="tab-open" href="TOPS.pdf" target="_blank" rel="noopener noreferrer">새 탭에서 열기 ↗</a>
+    <a id="dl" href="TOPS.pdf" download>내려받기</a>
+  </div>
+</div>
+
+<div class="stage">
+  <iframe id="viewer" src="TOPS.pdf#view=FitH" title="Floor Ready — TOPS"></iframe>
+  <div class="hint">
+    이 화면 크기에서는 PDF 를 바로 띄우지 못합니다.<br>위에서 TOPS / BOTTOMS 를 고른 뒤 아래로 여세요.
+    <a id="m-open" href="TOPS.pdf" target="_blank" rel="noopener noreferrer">PDF 열기 ↗</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  var DOCS = {
+    tops:    { file: 'TOPS.pdf',    label: 'TOPS' },
+    bottoms: { file: 'BOTTOMS.pdf', label: 'BOTTOMS' }
+  };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function show(key) {
+    var d = DOCS[key];
+    if (!d) return;
+    // #view=FitH 는 열었을 때 페이지 폭에 맞춰 준다
+    $('viewer').src = d.file + '#view=FitH';
+    $('viewer').title = 'Floor Ready — ' + d.label;
+    $('tab-open').href = d.file;
+    $('m-open').href = d.file;
+    $('dl').href = d.file;
+    $('dl').setAttribute('download', d.file);
+    $('btn-tops').setAttribute('aria-selected', String(key === 'tops'));
+    $('btn-bottoms').setAttribute('aria-selected', String(key === 'bottoms'));
+    if (location.hash.slice(1) !== key) {
+      history.replaceState(null, '', '#' + key);
+    }
+  }
+
+  $('btn-tops').addEventListener('click', function () { show('tops'); });
+  $('btn-bottoms').addEventListener('click', function () { show('bottoms'); });
+  window.addEventListener('hashchange', function () { show(location.hash.slice(1) || 'tops'); });
+
+  // #tops / #bottoms 로 바로 들어올 수 있게 (허브에서 직접 링크 가능)
+  show(DOCS[location.hash.slice(1)] ? location.hash.slice(1) : 'tops');
+})();
+</script>
+</body>
+</html>
