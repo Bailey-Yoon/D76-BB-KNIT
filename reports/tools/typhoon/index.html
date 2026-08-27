@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<title>D76 · 태풍 추적</title>
+<link rel="icon" href="/D76-BB-KNIT/favicon.svg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--tool:#0277bd;--tool2:#01579b;--ink:#1d1c22;--sub:#6a6a72;--muted:#9a99a2;
+  --bg:#f2f5fa;--bar:#1b1b22;--line:#e6e9f0}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;font-size:13px;padding:11px 20px;
+  display:flex;gap:14px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.topbar a{text-decoration:none}
+.topbar a.brand{color:#fff;font-weight:700}
+.topbar a.sec{color:#9ecdf0}
+.topbar .lbl{margin-left:auto;opacity:.6;font-size:12px}
+
+.ctrl{flex-shrink:0;background:#fff;border-bottom:1px solid var(--line);padding:10px 20px;
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.ctrl .src{font-size:12.5px;color:var(--sub);line-height:1.5}
+.ctrl .src b{color:var(--tool2)}
+.ctrl .hint{font-size:11px;color:var(--muted);line-height:1.5}
+.open{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.open a{font-size:12.5px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);
+  background:#fff;color:var(--sub);text-decoration:none;white-space:nowrap;transition:border-color .12s,color .12s}
+.open a:hover{border-color:var(--tool);color:var(--tool2)}
+
+.stage{flex:1;min-height:0;position:relative;background:#dfe6ee}
+iframe{border:0;width:100%;height:100%;display:block}
+.fallback{display:none;padding:30px 22px;text-align:center;color:var(--sub);font-size:13.5px;line-height:1.9}
+.fallback a{display:inline-block;margin-top:12px;background:var(--tool);color:#fff;text-decoration:none;
+  padding:11px 22px;border-radius:9px;font-weight:600}
+/* 기상청 지도는 데스크톱 기준이라 좁은 화면에서는 새 탭이 낫다 */
+@media(max-width:760px){
+  iframe{display:none}
+  .fallback{display:block}
+  .open{margin-left:0;width:100%}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a>
+  <span style="opacity:.35">|</span>
+  <a class="sec" href="/D76-BB-KNIT/reports/tools/">🧮 Tools</a>
+  <span class="lbl">태풍 추적</span>
+</div>
+
+<div class="ctrl">
+  <div>
+    <div class="src">출처: <b>기상청 날씨누리</b> — 태풍 상세정보</div>
+    <div class="hint">오른쪽 목록에서 태풍을 고르면 경로·강풍반경·위성영상을 겹쳐 볼 수 있습니다.</div>
+  </div>
+  <div class="open">
+    <a href="https://www.weather.go.kr/w/typhoon/ko/weather/typhoon_02.jsp" target="_blank" rel="noopener noreferrer">기상청에서 열기 ↗</a>
+  </div>
+</div>
+
+<div class="stage">
+  <iframe id="map" src="https://www.weather.go.kr/w/typhoon/ko/weather/typhoon_02.jsp"
+          title="기상청 태풍 상세정보"
+          referrerpolicy="no-referrer-when-downgrade"></iframe>
+  <div class="fallback">
+    이 화면 크기에서는 지도를 그대로 띄우기 어렵습니다.
+    <a href="https://www.weather.go.kr/w/typhoon/ko/weather/typhoon_02.jsp" target="_blank" rel="noopener noreferrer">기상청 태풍정보 열기 ↗</a>
+  </div>
+</div>
+</body>
+</html>
