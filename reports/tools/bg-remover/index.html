@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>배경 지우기 — D76 Tools</title>
+<style>
+:root{--tool:#0277bd;--tool2:#01579b;--tint:#e3f2fd;--ink:#222;--sub:#666;--muted:#9a99a2;
+  --bg:#f2f5fa;--card:#fff;--bar:#1b1b22;--line:#e6e9f0;--warn:#ef6c00;--ok:#2e7d32}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;font-size:13px;padding:11px 20px;
+  display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.topbar a{text-decoration:none}
+.topbar a.brand{color:#fff;font-weight:700}
+.topbar a.sec{color:#9ecdf0}
+.topbar .lbl{margin-left:auto;opacity:.6;font-size:12px}
+.fab{position:fixed;right:18px;bottom:18px;z-index:9999;background:var(--bar);color:#fff;text-decoration:none;
+  width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;
+  box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.wrap{max-width:980px;margin:0 auto;padding:24px 20px 70px}
+header{background:linear-gradient(135deg,var(--tool) 0%,var(--tool2) 100%);color:#fff;border-radius:14px;
+  padding:24px 28px;margin-bottom:18px}
+header h1{font-size:21px;margin-bottom:6px}
+header .meta{opacity:.88;font-size:13px;line-height:1.6}
+
+.panel{background:var(--card);border-radius:12px;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.panel > h2{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px}
+
+/* ── 업로드 ───────────────────────────────────── */
+#drop{border:2px dashed #c3d4e6;border-radius:12px;background:#fafcff;padding:38px 22px;text-align:center;
+  cursor:pointer;transition:border-color .12s,background .12s}
+#drop:hover,#drop.over{border-color:var(--tool);background:var(--tint)}
+#drop .big{font-size:34px;line-height:1}
+#drop .t{font-size:15px;font-weight:700;margin-top:10px}
+#drop .d{font-size:12.5px;color:var(--sub);margin-top:6px;line-height:1.6}
+input[type=file]{display:none}
+
+/* ── 편집 ─────────────────────────────────────── */
+#editor{display:none}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.seg button{font:inherit;font-size:13px;font-weight:600;padding:9px 15px;border-radius:9px;cursor:pointer;
+  border:1px solid var(--line);background:var(--bg);color:var(--sub);transition:background .12s,color .12s,border-color .12s}
+.seg button:hover{border-color:var(--tool);color:var(--tool2)}
+.seg button[aria-pressed="true"]{background:var(--tool);border-color:var(--tool);color:#fff}
+
+.opt{background:#f7fafd;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.opt label{display:block;font-size:12.5px;color:var(--sub);font-weight:600;margin-bottom:8px}
+.opt .num{font-family:"SF Mono",Consolas,"D2Coding",monospace;color:var(--tool2)}
+.opt input[type=range]{width:100%;accent-color:var(--tool)}
+.opt p{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.6}
+
+/* 투명 영역이 보이도록 체커보드 */
+.stage{background:conic-gradient(#e6e7e3 90deg,#fff 90deg 180deg,#e6e7e3 180deg 270deg,#fff 270deg) 0 0/18px 18px;
+  border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;justify-content:center;margin-bottom:14px}
+#cv{max-width:100%;max-height:56vh;touch-action:none;cursor:crosshair;display:block}
+
+.tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.btn{font:inherit;font-size:12.5px;padding:8px 14px;border-radius:8px;cursor:pointer;border:1px solid var(--line);
+  background:#fff;color:var(--sub);transition:border-color .12s,color .12s,background .12s}
+.btn:hover:not(:disabled){border-color:var(--tool);color:var(--tool2)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--tool);border-color:var(--tool);color:#fff;font-size:14px;font-weight:600;padding:11px 22px}
+.btn.primary:hover{background:var(--tool2);border-color:var(--tool2);color:#fff}
+.left{margin-left:auto;font-family:"SF Mono",Consolas,"D2Coding",monospace;font-size:11.5px;color:var(--muted)}
+
+#msg{font-size:12.5px;line-height:1.6;padding:11px 15px;border-radius:9px;margin-top:12px;display:none}
+#msg.ok{display:block;background:#e8f5e9;border-left:4px solid var(--ok);color:#1b5e20}
+#msg.warn{display:block;background:#fff8e1;border-left:4px solid var(--warn);color:#7a4b00}
+
+.out{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.out .note{font-size:11.5px;color:var(--muted);line-height:1.55}
+footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;line-height:1.8}
+@media(max-width:520px){header{padding:20px 22px}.panel{padding:17px 18px}#cv{max-height:44vh}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a>
+  <span style="opacity:.35">|</span>
+  <a class="sec" href="/D76-BB-KNIT/reports/tools/">🧮 Tools</a>
+  <span class="lbl">배경 지우기</span>
+</div>
+<a class="fab" href="/D76-BB-KNIT/" title="D76 Hub">📊</a>
+
+<div class="wrap">
+<header>
+  <h1>✂️ 배경 지우기</h1>
+  <div class="meta">사진을 올리고 배경을 지운 뒤 투명 PNG로 내려받습니다. 브라우저 안에서만 처리되어 이미지가 서버로 올라가지 않습니다.</div>
+</header>
+
+<div class="panel" id="uploadPanel">
+  <h2>이미지</h2>
+  <div id="drop" tabindex="0" role="button" aria-label="이미지 선택 또는 끌어다 놓기">
+    <div class="big">🖼️</div>
+    <div class="t">이미지를 끌어다 놓거나 클릭해서 선택</div>
+    <div class="d">붙여넣기(Ctrl+V)도 됩니다 · PNG · JPG · WEBP</div>
+  </div>
+  <input type="file" id="file" accept="image/*">
+</div>
+
+<div id="editor">
+  <div class="panel">
+    <h2>방식</h2>
+    <div class="seg" id="modes">
+      <button data-mode="auto" aria-pressed="true">자동</button>
+      <button data-mode="pick" aria-pressed="false">색 찍어 지우기</button>
+      <button data-mode="erase" aria-pressed="false">지우개</button>
+      <button data-mode="restore" aria-pressed="false">되살리기</button>
+    </div>
+    <div class="opt" id="opt"></div>
+
+    <div class="stage"><canvas id="cv"></canvas></div>
+
+    <div class="tools">
+      <button class="btn" id="erode">테두리 한 겹 깎기</button>
+      <button class="btn" id="feather">가장자리 부드럽게</button>
+      <button class="btn" id="undo" disabled>되돌리기</button>
+      <button class="btn" id="reset">처음으로</button>
+      <span class="left" id="left">100% 남음</span>
+    </div>
+    <div id="msg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>내려받기</h2>
+    <div class="out">
+      <button class="btn primary" id="dl">투명 PNG로 내려받기</button>
+      <button class="btn" id="again">다른 이미지</button>
+      <span class="note" id="outnote"></span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Sae-A Target11 · D76 Tools<br>
+  이미지는 업로드되지 않고 브라우저 안에서만 처리됩니다
+</footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var EDIT_MAX = 1200;   // 편집용 축소 한계 (픽셀 연산량 억제)
+  var OUT_MAX  = 4000;   // 내려받기 해상도 상한 (메모리 보호)
+
+  var $ = function (id) { return document.getElementById(id); };
+  var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
+
+  var st = {
+    img: null,        // 원본 Image (내보낼 때 다시 그린다)
+    w: 0, h: 0,       // 편집 캔버스 크기
+    orig: null,       // 편집 해상도 원본 픽셀 (되살리기용)
+    work: null,       // 편집 중 픽셀
+    history: [],
+    mode: 'auto',
+    tol: 32,
+    brush: 40,
+    painting: false,
+    lastPt: null
+  };
+
+  /* ── 히스토리 ───────────────────────────────── */
+  function snapshot() {
+    if (!st.work) return;
+    st.history.push(new Uint8ClampedArray(st.work.data));
+    if (st.history.length > 10) st.history.shift();
+    $('undo').disabled = false;
+  }
+  function undo() {
+    if (!st.history.length) return;
+    st.work.data.set(st.history.pop());
+    paint();
+    $('undo').disabled = !st.history.length;
+  }
+  function reset() { snapshot(); st.work.data.set(st.orig.data); paint(); }
+
+  /* ── 이어진 비슷한 색을 알파 0으로 (스캔라인 방식) ── */
+  function floodErase(sx, sy, tol) {
+    var data = st.work.data, w = st.w, h = st.h;
+    var si = (sy * w + sx) * 4;
+    if (data[si + 3] === 0) return 0;
+    var sr = data[si], sg = data[si + 1], sb = data[si + 2];
+    var thr = tol * 2.4, thr2 = thr * thr;
+    var seen = new Uint8Array(w * h);
+    var stack = [sx, sy];
+    var n = 0;
+    function near(i) {
+      if (data[i * 4 + 3] === 0) return false;
+      var dr = data[i * 4] - sr, dg = data[i * 4 + 1] - sg, db = data[i * 4 + 2] - sb;
+      return dr * dr + dg * dg + db * db <= thr2;
+    }
+    while (stack.length) {
+      var y = stack.pop(), x0 = stack.pop();
+      var x = x0;
+      while (x > 0 && !seen[y * w + x - 1] && near(y * w + x - 1)) x--;
+      var spanUp = false, spanDown = false;
+      for (; x < w; x++) {
+        var i = y * w + x;
+        if (seen[i] || !near(i)) break;
+        seen[i] = 1;
+        data[i * 4 + 3] = 0;
+        n++;
+        if (y > 0) {
+          var up = (y - 1) * w + x;
+          var oku = !seen[up] && near(up);
+          if (oku && !spanUp) { stack.push(x, y - 1); spanUp = true; }
+          else if (!oku) spanUp = false;
+        }
+        if (y < h - 1) {
+          var dn = (y + 1) * w + x;
+          var okd = !seen[dn] && near(dn);
+          if (okd && !spanDown) { stack.push(x, y + 1); spanDown = true; }
+          else if (!okd) spanDown = false;
+        }
+      }
+    }
+    return n;
+  }
+
+  /* 네 모서리 + 위아래 중앙에서 자동으로 배경을 문다 */
+  function autoErase(tol) {
+    var w = st.w, h = st.h, n = 0;
+    var seeds = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1],
+                 [Math.floor(w / 2), 0], [Math.floor(w / 2), h - 1]];
+    seeds.forEach(function (p) { n += floodErase(p[0], p[1], tol); });
+    return n;
+  }
+
+  /* 남은 테두리 한 겹을 깎아 배경색 띠를 없앤다 */
+  function erodeEdge() {
+    var data = st.work.data, w = st.w, h = st.h;
+    var a = new Uint8ClampedArray(w * h), i;
+    for (i = 0; i < w * h; i++) a[i] = data[i * 4 + 3];
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        i = y * w + x;
+        if (!a[i]) continue;
+        var l = x > 0 ? a[i - 1] : 0, r = x < w - 1 ? a[i + 1] : 0;
+        var u = y > 0 ? a[i - w] : 0, d = y < h - 1 ? a[i + w] : 0;
+        if (!l || !r || !u || !d) data[i * 4 + 3] = 0;
+      }
+    }
+  }
+
+  /* 알파만 흐리게 해서 가장자리를 부드럽게 (분리형 박스블러) */
+  function featherEdge(radius) {
+    var data = st.work.data, w = st.w, h = st.h, i, x, y, sum;
+    var src = new Uint8ClampedArray(w * h);
+    for (i = 0; i < w * h; i++) src[i] = data[i * 4 + 3];
+    var tmp = new Uint8ClampedArray(w * h);
+    var r = Math.max(1, radius | 0);
+    for (y = 0; y < h; y++) {
+      sum = 0;
+      for (x = -r; x <= r; x++) sum += src[y * w + clamp(x, 0, w - 1)];
+      for (x = 0; x < w; x++) {
+        tmp[y * w + x] = sum / (2 * r + 1);
+        sum -= src[y * w + clamp(x - r, 0, w - 1)];
+        sum += src[y * w + clamp(x + r + 1, 0, w - 1)];
+      }
+    }
+    for (x = 0; x < w; x++) {
+      sum = 0;
+      for (y = -r; y <= r; y++) sum += tmp[clamp(y, 0, h - 1) * w + x];
+      for (y = 0; y < h; y++) {
+        data[(y * w + x) * 4 + 3] = sum / (2 * r + 1);
+        sum -= tmp[clamp(y - r, 0, h - 1) * w + x];
+        sum += tmp[clamp(y + r + 1, 0, h - 1) * w + x];
+      }
+    }
+  }
+
+  /* ── 브러시 ─────────────────────────────────── */
+  function brushAt(x, y, radius, restore) {
+    var data = st.work.data, o = st.orig.data, w = st.w, h = st.h;
+    var r2 = radius * radius;
+    var x0 = Math.max(0, x - radius), x1 = Math.min(w - 1, x + radius);
+    var y0 = Math.max(0, y - radius), y1 = Math.min(h - 1, y + radius);
+    for (var yy = y0; yy <= y1; yy++) {
+      for (var xx = x0; xx <= x1; xx++) {
+        var dx = xx - x, dy = yy - y;
+        if (dx * dx + dy * dy > r2) continue;
+        var i = (yy * w + xx) * 4;
+        if (restore) { data[i] = o[i]; data[i + 1] = o[i + 1]; data[i + 2] = o[i + 2]; data[i + 3] = o[i + 3]; }
+        else data[i + 3] = 0;
+      }
+    }
+  }
+  function brushLine(a, b, radius, restore) {
+    var dx = b.x - a.x, dy = b.y - a.y;
+    var steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / Math.max(1, radius / 3)));
+    for (var i = 0; i <= steps; i++) {
+      brushAt(Math.round(a.x + dx * i / steps), Math.round(a.y + dy * i / steps), radius, restore);
+    }
+  }
+
+  /* ── 그리기 ─────────────────────────────────── */
+  function paint() {
+    $('cv').getContext('2d').putImageData(st.work, 0, 0);
+    var d = st.work.data, solid = 0;
+    for (var i = 3; i < d.length; i += 4) if (d[i] > 8) solid++;
+    $('left').textContent = Math.round(solid / (st.w * st.h) * 100) + '% 남음';
+  }
+  function say(text, kind) {
+    var m = $('msg');
+    m.className = kind || '';
+    m.textContent = text || '';
+  }
+  function point(e) {
+    var cv = $('cv'), r = cv.getBoundingClientRect();
+    return {
+      x: clamp(Math.round((e.clientX - r.left) / r.width * st.w), 0, st.w - 1),
+      y: clamp(Math.round((e.clientY - r.top) / r.height * st.h), 0, st.h - 1)
+    };
+  }
+
+  /* ── 옵션 패널 ──────────────────────────────── */
+  function renderOptions() {
+    var box = $('opt');
+    if (st.mode === 'auto' || st.mode === 'pick') {
+      box.innerHTML =
+        '<label for="tol">비슷한 색 허용 범위 <span class="num" id="tolNum">' + st.tol + '</span></label>' +
+        '<input type="range" id="tol" min="1" max="100" step="1" value="' + st.tol + '">' +
+        (st.mode === 'auto'
+          ? '<button class="btn" id="run" style="width:100%;margin-top:10px">네 모서리에서 배경 지우기</button>' +
+            '<p>덜 지워지면 값을 올리고, 대상까지 파이면 값을 내린 뒤 다시 실행하세요.</p>'
+          : '<p>지우고 싶은 배경을 이미지에서 직접 클릭하세요. 클릭한 색과 이어진 영역만 지워집니다.</p>');
+    } else {
+      box.innerHTML =
+        '<label for="brush">브러시 크기 <span class="num" id="brushNum">' + st.brush + 'px</span></label>' +
+        '<input type="range" id="brush" min="4" max="160" step="2" value="' + st.brush + '">' +
+        '<p>' + (st.mode === 'erase'
+          ? '이미지 위를 드래그하면 그 부분이 지워집니다.'
+          : '지워진 부분을 드래그하면 원본이 다시 나타납니다.') + '</p>';
+    }
+  }
+
+  /* ── 이미지 열기 ────────────────────────────── */
+  function load(file) {
+    if (!file || !/^image\//.test(file.type)) { say('이미지 파일만 열 수 있습니다.', 'warn'); return; }
+    var url = URL.createObjectURL(file);
+    var im = new Image();
+    im.onerror = function () { URL.revokeObjectURL(url); say('이미지를 열지 못했습니다.', 'warn'); };
+    im.onload = function () {
+      var k = Math.min(1, EDIT_MAX / Math.max(im.naturalWidth, im.naturalHeight));
+      var w = Math.max(1, Math.round(im.naturalWidth * k));
+      var h = Math.max(1, Math.round(im.naturalHeight * k));
+      var cv = $('cv');
+      cv.width = w; cv.height = h;
+      var ctx = cv.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(im, 0, 0, w, h);
+      var data;
+      try { data = ctx.getImageData(0, 0, w, h); }
+      catch (err) { say('이미지 픽셀을 읽지 못했습니다.', 'warn'); return; }
+
+      st.img = im; st.w = w; st.h = h;
+      st.orig = new ImageData(new Uint8ClampedArray(data.data), w, h);
+      st.work = new ImageData(new Uint8ClampedArray(data.data), w, h);
+      st.history = []; st.mode = 'auto'; st.painting = false; st.lastPt = null;
+
+      $('uploadPanel').style.display = 'none';
+      $('editor').style.display = 'block';
+      $('undo').disabled = true;
+      setMode('auto');
+      paint();
+
+      var ow = im.naturalWidth, oh = im.naturalHeight;
+      var ok = Math.min(1, OUT_MAX / Math.max(ow, oh));
+      $('outnote').innerHTML = '원본 ' + ow + '×' + oh + ' · 내려받기 ' +
+        Math.round(ow * ok) + '×' + Math.round(oh * ok) + ' PNG';
+      say(k < 1 ? '편집은 ' + w + '×' + h + '로 줄여서 하고, 내려받을 때 원본 해상도로 되돌립니다.' : '', k < 1 ? 'ok' : '');
+    };
+    im.src = url;
+  }
+
+  function setMode(m) {
+    st.mode = m;
+    var btns = $('modes').querySelectorAll('[data-mode]');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', String(btns[i].dataset.mode === m));
+    }
+    $('cv').style.cursor = (m === 'erase' || m === 'restore') ? 'cell' : 'crosshair';
+    renderOptions();
+  }
+
+  /* ── 내려받기 ───────────────────────────────── */
+  /* 편집은 축소본에서 했으므로, 원본을 다시 그린 뒤 편집 알파를
+     bilinear 로 확대해 덮어씌운다. 그래야 원본 화질이 유지된다. */
+  function download() {
+    var im = st.img;
+    if (!im) return;
+    var k = Math.min(1, OUT_MAX / Math.max(im.naturalWidth, im.naturalHeight));
+    var W = Math.max(1, Math.round(im.naturalWidth * k));
+    var H = Math.max(1, Math.round(im.naturalHeight * k));
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(im, 0, 0, W, H);
+    var out;
+    try { out = ctx.getImageData(0, 0, W, H); }
+    catch (err) { say('내보내기에 실패했습니다.', 'warn'); return; }
+
+    var od = out.data, ed = st.work.data, ew = st.w, eh = st.h;
+    for (var y = 0; y < H; y++) {
+      var fy = (y + 0.5) * eh / H - 0.5;
+      var yi = Math.floor(fy), ty = fy - yi;
+      var ya = clamp(yi, 0, eh - 1), yb = clamp(yi + 1, 0, eh - 1);
+      for (var x = 0; x < W; x++) {
+        var fx = (x + 0.5) * ew / W - 0.5;
+        var xi = Math.floor(fx), tx = fx - xi;
+        var xa = clamp(xi, 0, ew - 1), xb = clamp(xi + 1, 0, ew - 1);
+        var a00 = ed[(ya * ew + xa) * 4 + 3], a10 = ed[(ya * ew + xb) * 4 + 3];
+        var a01 = ed[(yb * ew + xa) * 4 + 3], a11 = ed[(yb * ew + xb) * 4 + 3];
+        od[(y * W + x) * 4 + 3] =
+          (a00 * (1 - tx) + a10 * tx) * (1 - ty) + (a01 * (1 - tx) + a11 * tx) * ty;
+      }
+    }
+    ctx.putImageData(out, 0, 0);
+    cv.toBlob(function (blob) {
+      if (!blob) { say('내보내기에 실패했습니다.', 'warn'); return; }
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'cutout.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      say('투명 PNG로 내려받았습니다. (' + W + '×' + H + ')', 'ok');
+    }, 'image/png');
+  }
+
+  /* ── 이벤트 ─────────────────────────────────── */
+  var drop = $('drop');
+  drop.addEventListener('click', function () { $('file').click(); });
+  drop.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('file').click(); }
+  });
+  $('file').addEventListener('change', function (e) { if (e.target.files[0]) load(e.target.files[0]); });
+  ['dragenter', 'dragover'].forEach(function (t) {
+    drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (t) {
+    drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function (e) {
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) load(e.dataTransfer.files[0]);
+  });
+  window.addEventListener('paste', function (e) {
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') === 0) { load(items[i].getAsFile()); break; }
+    }
+  });
+
+  $('modes').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-mode]');
+    if (b) setMode(b.dataset.mode);
+  });
+
+  $('opt').addEventListener('click', function (e) {
+    if (!e.target.closest('#run')) return;
+    snapshot();
+    var n = autoErase(st.tol);
+    paint();
+    say(n ? '배경을 지웠습니다. 남은 부분은 지우개로 다듬으세요.'
+          : '지울 배경을 찾지 못했습니다. 허용 범위를 올려 보세요.', n ? 'ok' : 'warn');
+  });
+  $('opt').addEventListener('input', function (e) {
+    if (e.target.id === 'tol') { st.tol = +e.target.value; $('tolNum').textContent = st.tol; }
+    if (e.target.id === 'brush') { st.brush = +e.target.value; $('brushNum').textContent = st.brush + 'px'; }
+  });
+
+  $('erode').addEventListener('click', function () { snapshot(); erodeEdge(); paint(); });
+  $('feather').addEventListener('click', function () { snapshot(); featherEdge(1); paint(); });
+  $('undo').addEventListener('click', undo);
+  $('reset').addEventListener('click', reset);
+  $('dl').addEventListener('click', download);
+  $('again').addEventListener('click', function () {
+    st.img = null; st.work = null; st.orig = null; st.history = [];
+    $('editor').style.display = 'none';
+    $('uploadPanel').style.display = 'block';
+    $('file').value = '';
+    say('');
+  });
+
+  var cv = $('cv');
+  cv.addEventListener('pointerdown', function (e) {
+    if (!st.work) return;
+    e.preventDefault();
+    var p = point(e);
+    snapshot();
+    if (st.mode === 'pick' || st.mode === 'auto') {
+      var n = floodErase(p.x, p.y, st.tol);
+      paint();
+      if (!n) say('그 자리는 이미 지워져 있거나 지울 색이 없습니다.', 'warn');
+      else say('');
+      return;
+    }
+    st.painting = true;
+    st.lastPt = p;
+    brushAt(p.x, p.y, brushRadius(), st.mode === 'restore');
+    paint();
+    cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener('pointermove', function (e) {
+    if (!st.painting) return;
+    var p = point(e);
+    brushLine(st.lastPt, p, brushRadius(), st.mode === 'restore');
+    st.lastPt = p;
+    paint();
+  });
+  ['pointerup', 'pointercancel'].forEach(function (t) {
+    cv.addEventListener(t, function () { st.painting = false; st.lastPt = null; });
+  });
+  /* 화면에 축소되어 표시되므로, 화면 기준 브러시 크기를 픽셀 기준으로 되돌린다 */
+  function brushRadius() {
+    return Math.max(1, Math.round(st.brush / 2 * (st.w / cv.getBoundingClientRect().width)));
+  }
+
+  renderOptions();
+})();
+</script>
+</body>
+</html>
