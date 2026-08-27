@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Recap ↔ PO Report 자동 검증</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --ink:#1a2333; --muted:#66738a;
+    --line:#e3e8ef; --accent:#1f5eff; --ok:#0e8a4c; --okbg:#e8f6ee;
+    --bad:#c62828; --badbg:#fdecec; --warn:#b26a00; --warnbg:#fff4e0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:'Segoe UI','Malgun Gothic',sans-serif; background:var(--bg); color:var(--ink); margin:0;}
+.d76wrap{padding:28px 20px 60px}
+  .wrap{max-width:1080px; margin:0 auto;}
+  h1{font-size:21px; font-weight:700; margin-bottom:4px;}
+  .sub{color:var(--muted); font-size:13px; margin-bottom:22px; line-height:1.6;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
+  @media(max-width:760px){.grid{grid-template-columns:1fr;}}
+  .drop{background:var(--card); border:2px dashed var(--line); border-radius:12px; padding:22px 18px; text-align:center; cursor:pointer; transition:.15s;}
+  .drop:hover,.drop.over{border-color:var(--accent); background:#f0f5ff;}
+  .drop h3{font-size:14px; margin-bottom:5px;}
+  .drop p{font-size:12px; color:var(--muted); line-height:1.5;}
+  .drop .count{display:inline-block; margin-top:9px; font-size:12px; font-weight:600; color:var(--accent);}
+  .filelist{margin-top:8px; font-size:11px; color:var(--muted); max-height:110px; overflow:auto; text-align:left;}
+  .filelist div{padding:1px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .btnrow{display:flex; gap:10px; align-items:center; margin-bottom:22px; flex-wrap:wrap;}
+  button.run{background:var(--accent); color:#fff; border:none; border-radius:9px; padding:11px 26px; font-size:14px; font-weight:600; cursor:pointer;}
+  button.run:disabled{background:#b9c4d6; cursor:not-allowed;}
+  button.clear{background:none; border:1px solid var(--line); border-radius:9px; padding:10px 18px; font-size:13px; color:var(--muted); cursor:pointer;}
+  .status{font-size:13px; color:var(--muted);}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px;}
+  .card h2{font-size:15px; margin-bottom:3px;}
+  .card .meta{font-size:12px; color:var(--muted); margin-bottom:13px;}
+  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .chip{font-size:12px; font-weight:600; padding:5px 12px; border-radius:999px; background:#eef1f6; color:var(--ink);}
+  .chip.ok{background:var(--okbg); color:var(--ok);}
+  .chip.bad{background:var(--badbg); color:var(--bad);}
+  .chip.warn{background:var(--warnbg); color:var(--warn);}
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  th{background:#f6f8fb; text-align:left; padding:8px 9px; border-bottom:1.5px solid var(--line); font-size:11.5px; color:var(--muted); white-space:nowrap; position:sticky; top:0;}
+  td{padding:7px 9px; border-bottom:1px solid var(--line); white-space:nowrap;}
+  td.num{text-align:right; font-variant-numeric:tabular-nums;}
+  tr.bad td{background:var(--badbg);}
+  tr.warn td{background:var(--warnbg);}
+  .badge{display:inline-block; font-size:11px; font-weight:700; padding:2px 9px; border-radius:999px;}
+  .badge.ok{background:var(--okbg); color:var(--ok);}
+  .badge.bad{background:var(--badbg); color:var(--bad);}
+  .badge.warn{background:var(--warnbg); color:var(--warn);}
+  .diff{font-size:11.5px; color:var(--bad); white-space:normal; line-height:1.5;}
+  .note{font-size:11.5px; color:var(--muted); margin-top:10px; line-height:1.6;}
+  .tablebox{max-height:560px; overflow:auto; border:1px solid var(--line); border-radius:8px;}
+  .empty{padding:36px; text-align:center; color:var(--muted); font-size:13px;}
+  .err{background:var(--badbg); color:var(--bad); border-radius:8px; padding:10px 14px; font-size:12.5px; margin-bottom:14px; line-height:1.6;}
+</style>
+</head>
+<body>
+<div style="position:sticky;top:0;z-index:9999;background:#1b1b22;color:#fff;font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;padding:11px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;"><a href="/D76-BB-KNIT/" style="color:#fff;text-decoration:none;font-weight:700;">📊 D76 Hub</a><span style="opacity:.35">|</span><a href="/D76-BB-KNIT/reports/tools/" style="color:#9ecdf0;text-decoration:none;">🧮 Tools</a><span style="margin-left:auto;opacity:.6;font-size:12px">PO Recap Checker</span></div><a href="/D76-BB-KNIT/" title="D76 Hub" style="position:fixed;right:18px;bottom:18px;z-index:9999;background:#1b1b22;color:#fff;text-decoration:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 14px rgba(0,0,0,.35);">📊</a>
+<div class="d76wrap">
+
+<div class="wrap">
+  <h1>Order Recap ↔ PO Report 자동 검증</h1>
+  <div class="sub">
+    오더리캡(xlsx)과 Target PO Report(Excel/PDF)를 올리면 PO별로 <b>Ship Window 날짜 · 총수량 · Amount · 사이즈별 수량</b>을 자동 대조합니다.<br>
+    모든 처리는 이 화면(브라우저) 안에서만 이루어지며 파일이 외부로 전송되지 않습니다.
+  </div>
+
+  <div class="grid">
+    <div class="drop" id="dropRecap">
+      <h3>① Order Recap 파일</h3>
+      <p>예: 35EX4K-C426-GT2 Order Recap … .xlsx<br>클릭하거나 파일을 끌어다 놓으세요 (여러 개 가능)</p>
+      <span class="count" id="cntRecap">0개 선택됨</span>
+      <div class="filelist" id="listRecap"></div>
+      <input type="file" id="inRecap" accept=".xlsx,.xlsm" multiple hidden>
+    </div>
+    <div class="drop" id="dropPO">
+      <h3>② PO Report 파일들 (Excel / PDF)</h3>
+      <p>예: Target Stores PO Report (Excel) - 10001951836… .xlsx / .pdf<br>폴더 안 파일 전체를 한 번에 끌어다 놓으세요</p>
+      <span class="count" id="cntPO">0개 선택됨</span>
+      <div class="filelist" id="listPO"></div>
+      <input type="file" id="inPO" accept=".xlsx,.xlsm,.pdf" multiple hidden>
+    </div>
+  </div>
+
+  <div class="btnrow">
+    <button class="run" id="btnRun" disabled>검증 실행</button>
+    <button class="clear" id="btnClear">초기화</button>
+    <span class="status" id="status"></span>
+  </div>
+
+  <div id="errors"></div>
+  <div id="results"><div class="card"><div class="empty">파일을 올리고 [검증 실행]을 누르면 결과가 여기에 표시됩니다.</div></div></div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+const recapFiles = [];   // File[]
+const poFiles = [];      // File[]
+
+/* ---------- 파일 선택 UI ---------- */
+function bindDrop(dropId, inputId, store, cntId, listId){
+  const drop = document.getElementById(dropId);
+  const input = document.getElementById(inputId);
+  drop.addEventListener("click", () => input.click());
+  input.addEventListener("change", () => { addFiles(store, [...input.files], cntId, listId); input.value=""; });
+  drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+  drop.addEventListener("drop", e => {
+    e.preventDefault(); drop.classList.remove("over");
+    addFiles(store, [...e.dataTransfer.files], cntId, listId);
+  });
+}
+function addFiles(store, files, cntId, listId){
+  for(const f of files){
+    if(!store.some(x => x.name === f.name && x.size === f.size)) store.push(f);
+  }
+  document.getElementById(cntId).textContent = store.length + "개 선택됨";
+  document.getElementById(listId).innerHTML = store.map(f => "<div>· " + esc(f.name) + "</div>").join("");
+  document.getElementById("btnRun").disabled = !(recapFiles.length && poFiles.length);
+}
+bindDrop("dropRecap","inRecap",recapFiles,"cntRecap","listRecap");
+bindDrop("dropPO","inPO",poFiles,"cntPO","listPO");
+document.getElementById("btnClear").addEventListener("click", () => {
+  recapFiles.length = 0; poFiles.length = 0;
+  addFiles(recapFiles,[],"cntRecap","listRecap");
+  addFiles(poFiles,[],"cntPO","listPO");
+  document.getElementById("results").innerHTML = '<div class="card"><div class="empty">파일을 올리고 [검증 실행]을 누르면 결과가 여기에 표시됩니다.</div></div>';
+  document.getElementById("errors").innerHTML = "";
+  document.getElementById("status").textContent = "";
+});
+
+/* ---------- 공통 유틸 ---------- */
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmtN(v){ return v==null ? "—" : Number(v).toLocaleString("en-US"); }
+function fmtA(v){ return v==null ? "—" : Number(v).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+const SIZE_KEYS = ["XXLHUSKY","XXLHSKY","XLHUSKY","XLHSKY","LHUSKY","LHSKY","XXLH","XLH","XXL","XL","XS","S","M","L"];
+const CANON = {XXLHSKY:"XXLHUSKY", XLHSKY:"XLHUSKY", LHSKY:"LHUSKY", XXLH:"XXLHUSKY", XLH:"XLHUSKY"};
+function canonSize(raw){
+  const d = String(raw).toUpperCase().replace(/[\s._-]/g,"");
+  return CANON[d] || d;
+}
+function sizeOfDesc(desc){
+  const d = String(desc).toUpperCase().replace(/\s+/g,"");
+  for(const k of SIZE_KEYS){ if(d.endsWith(k)) return CANON[k] || k; }
+  return null;
+}
+
+/* 리캡 SW '26/07/31-08/05' → ["07/31/2026","08/05/2026"] (연도 롤오버 처리) */
+function parseSW(sw){
+  const m = sw.match(/^(\d{2})\/(\d{2})\/(\d{2})-(\d{2})\/(\d{2})$/);
+  if(!m) return null;
+  const by = 2000 + +m[1], bm = +m[2], bd = +m[3], em = +m[4], ed = +m[5];
+  const ey = em < bm ? by + 1 : by;
+  const p = n => String(n).padStart(2,"0");
+  return [p(bm)+"/"+p(bd)+"/"+by, p(em)+"/"+p(ed)+"/"+ey];
+}
+function normDate(s){
+  if(s==null) return null;
+  if(s instanceof Date) return String(s.getMonth()+1).padStart(2,"0")+"/"+String(s.getDate()).padStart(2,"0")+"/"+s.getFullYear();
+  const m = String(s).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(!m) return String(s).trim();
+  let y = +m[3]; if(y < 100) y += 2000;
+  return String(+m[1]).padStart(2,"0")+"/"+String(+m[2]).padStart(2,"0")+"/"+y;
+}
+
+/* ---------- Order Recap 파싱 ---------- */
+function parseRecap(wb, fname){
+  const blocks = [];
+  let styleInfo = "";
+  for(const sn of wb.SheetNames){
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], {header:1, raw:true, defval:null});
+    // 사이즈 헤더(기본 C~K)
+    let sizeLabels = ["XS","S","M","L","XL","XXL","LHUSKY","XLHUSKY","XXLHUSKY"];
+    for(const r of rows){
+      const nonNull = (r||[]).map(v => v==null ? "" : String(v).trim());
+      if(nonNull[2] && canonSize(nonNull[2])==="XS"){
+        sizeLabels = [];
+        for(let c=2; c<=10; c++) sizeLabels.push(nonNull[c] ? canonSize(nonNull[c]) : null);
+        break;
+      }
+    }
+    for(const r of rows){
+      const a = r && r[0]!=null ? String(r[0]).trim() : "";
+      if(/^Style No/i.test(a)) styleInfo = a.replace(/^Style No\s*:?\s*/i,"");
+    }
+    let cur = null;
+    for(const r of rows){
+      if(!r) continue;
+      const a = r[0]!=null ? String(r[0]).trim() : "";
+      const b = r[1]!=null ? String(r[1]).trim() : "";
+      if(/^\d+Th$/i.test(a)) cur = {del:a, sheet:sn};
+      if(cur){
+        if(/^\d{2}\/\d{2}\/\d{2}-\d{2}\/\d{2}$/.test(a)) cur.sw = a;
+        if(/^PO\./i.test(a)) cur.po = a.replace(/^PO\./i,"").trim();
+        if(b === "S.TTL"){
+          cur.qty = Number(r[11]) || 0;   // L열
+          cur.amt = Number(r[13]) || 0;   // N열
+          cur.sizes = {};
+          sizeLabels.forEach((nm,i) => { if(nm) cur.sizes[nm] = Number(r[2+i]) || 0; });
+          if(cur.po) blocks.push(cur);
+          cur = null;
+        }
+      }
+    }
+  }
+  return {file:fname, style:styleInfo, blocks};
+}
+
+/* ---------- PO Report (Excel) 파싱 ---------- */
+function labelValue(row, label){
+  const i = row.findIndex(v => v!=null && String(v).trim() === label);
+  if(i < 0) return null;
+  for(let j=i+1; j<row.length; j++){
+    if(row[j]!=null && String(row[j]).trim() !== "") return row[j];
+  }
+  return null;
+}
+function parsePOExcel(wb, fname){
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, raw:true, defval:null});
+  const out = {file:fname, kind:"excel", po:null, begin:null, end:null, totalQty:null, totalAmt:null, sizes:{}, sizeOk:true};
+  let hdr = null, ci = {};
+  for(let ri=0; ri<rows.length; ri++){
+    const r = rows[ri] || [];
+    if(out.po==null){ const v = labelValue(r,"PO Number:"); if(v!=null) out.po = String(v).trim(); }
+    if(out.begin==null){ const v = labelValue(r,"Ship Begin Date:"); if(v!=null) out.begin = normDate(v); }
+    if(out.end==null){ const v = labelValue(r,"Ship End Date:"); if(v!=null) out.end = normDate(v); }
+    const strs = r.map(v => v==null ? "" : String(v).trim());
+    if(hdr==null && strs.includes("Item Desc")){
+      hdr = ri;
+      ci.desc = strs.indexOf("Item Desc");
+      ci.qty  = strs.indexOf("Item Qty");
+      ci.seq  = strs.indexOf("Item seq");
+      continue;
+    }
+    if(strs[0] === "Total Quantities:"){
+      out.totalQty = Number(labelValue(r,"Total Quantities:"));
+      const va = labelValue(r,"Total of Amount:");
+      out.totalAmt = va!=null ? Number(va) : null;
+      break;
+    }
+    if(hdr!=null){
+      const desc = ci.desc>=0 ? r[ci.desc] : null;
+      const q = ci.qty>=0 ? r[ci.qty] : null;
+      if(desc==null || String(desc).trim()==="" || q==null || String(q).trim()==="") continue;
+      const qty = Number(q);
+      if(String(desc).toUpperCase().includes("ASSORTMENT")){ out._parent = qty; continue; }
+      const s = sizeOfDesc(desc);
+      if(s==null){ out.sizeOk = false; continue; }
+      const seq = ci.seq>=0 ? r[ci.seq] : null;
+      if(seq==null || String(seq).trim()===""){        // 팩 구성 라인 → 팩수량 × 구성수량
+        out.sizes[s] = (out.sizes[s]||0) + qty * (out._parent||0);
+      } else {
+        out._parent = null;
+        out.sizes[s] = (out.sizes[s]||0) + qty;
+      }
+    }
+  }
+  delete out._parent;
+  if(!out.po){ const m = fname.match(/(\d{11})/); if(m) out.po = m[1]; }
+  return out;
+}
+
+/* ---------- PO Report (PDF) 파싱 ---------- */
+async function parsePOPdf(buf, fname){
+  const doc = await pdfjsLib.getDocument({data:buf}).promise;
+  let txt = "";
+  for(let p=1; p<=doc.numPages; p++){
+    const page = await doc.getPage(p);
+    const tc = await page.getTextContent();
+    txt += tc.items.map(it => it.str).join(" ") + "\n";
+  }
+  const g = re => { const m = txt.match(re); return m ? m[1].trim() : null; };
+  const out = {file:fname, kind:"pdf", sizes:null, sizeOk:false};
+  out.po = g(/PO Number:\s*(\d+)/);
+  out.begin = normDate(g(/Ship Begin Date:\s*([\d\/]+)/));
+  out.end = normDate(g(/Ship End Date:\s*([\d\/]+)/));
+  const q = g(/Total Quantities:\s*([\d,]+)/);
+  const a = g(/Total of Amount:\s*([\d,\.]+)/);
+  out.totalQty = q!=null ? Number(q.replace(/,/g,"")) : null;
+  out.totalAmt = a!=null ? Number(a.replace(/,/g,"")) : null;
+  if(!out.po){ const m = fname.match(/(\d{11})/); if(m) out.po = m[1]; }
+  return out;
+}
+
+/* ---------- 검증 실행 ---------- */
+document.getElementById("btnRun").addEventListener("click", async () => {
+  const st = document.getElementById("status");
+  const errBox = document.getElementById("errors");
+  errBox.innerHTML = "";
+  const errors = [];
+  document.getElementById("btnRun").disabled = true;
+
+  try{
+    // 1) PO Report 로드 (같은 PO는 Excel 우선, 최신 파일 우선이 아닌 Excel>PDF 우선)
+    const poMap = {};
+    let done = 0;
+    for(const f of poFiles){
+      st.textContent = `PO Report 읽는 중… (${++done}/${poFiles.length}) ${f.name}`;
+      try{
+        const buf = await f.arrayBuffer();
+        let rec;
+        if(/\.pdf$/i.test(f.name)) rec = await parsePOPdf(buf, f.name);
+        else rec = parsePOExcel(XLSX.read(buf,{type:"array"}), f.name);
+        if(!rec.po){ errors.push(`${f.name}: PO 번호를 찾지 못했습니다.`); continue; }
+        if(!poMap[rec.po] || (poMap[rec.po].kind==="pdf" && rec.kind==="excel")) poMap[rec.po] = rec;
+      }catch(e){ errors.push(`${f.name}: 읽기 실패 (${e.message||e})`); }
+    }
+
+    // 2) 리캡 로드 & 대조
+    const sections = [];
+    for(const f of recapFiles){
+      st.textContent = `리캡 읽는 중… ${f.name}`;
+      try{
+        const wb = XLSX.read(await f.arrayBuffer(), {type:"array"});
+        const recap = parseRecap(wb, f.name);
+        if(!recap.blocks.length){ errors.push(`${f.name}: 리캡 형식(nTh / SW / PO. / S.TTL)을 인식하지 못했습니다.`); continue; }
+        sections.push(check(recap, poMap));
+      }catch(e){ errors.push(`${f.name}: 읽기 실패 (${e.message||e})`); }
+    }
+
+    // 3) 리캡에 없는 PO 리포트
+    const used = new Set(); sections.forEach(s => s.rows.forEach(r => used.add(r.po)));
+    const unused = Object.keys(poMap).filter(po => !used.has(po));
+
+    render(sections, unused, poMap);
+    if(errors.length) errBox.innerHTML = '<div class="err">' + errors.map(esc).join("<br>") + "</div>";
+    st.textContent = "완료";
+  } finally {
+    document.getElementById("btnRun").disabled = !(recapFiles.length && poFiles.length);
+  }
+});
+
+function check(recap, poMap){
+  const rows = [];
+  for(const b of recap.blocks){
+    const row = {del:b.del, po:b.po, sw:b.sw||"", qty:b.qty, amt:b.amt, issues:[], status:"OK"};
+    const sw = b.sw ? parseSW(b.sw) : null;
+    row.swBegin = sw ? sw[0] : null; row.swEnd = sw ? sw[1] : null;
+    const rep = poMap[b.po];
+    if(!rep){ row.status = "NOREPORT"; rows.push(row); continue; }
+    row.repBegin = rep.begin; row.repEnd = rep.end;
+    row.repQty = rep.totalQty; row.repAmt = rep.totalAmt; row.kind = rep.kind;
+
+    if(sw && rep.begin && rep.end){
+      if(sw[0] !== rep.begin || sw[1] !== rep.end)
+        row.issues.push(`SW 날짜: 리캡 ${sw[0]}–${sw[1]} vs PO ${rep.begin}–${rep.end}`);
+    } else row.issues.push("SW 날짜: 비교 불가(형식 인식 실패)");
+
+    if(rep.totalQty!=null && Math.abs(b.qty - rep.totalQty) > 0.5)
+      row.issues.push(`수량: 리캡 ${fmtN(b.qty)} vs PO ${fmtN(rep.totalQty)} (차이 ${fmtN(b.qty-rep.totalQty)})`);
+    if(rep.totalAmt!=null && Math.abs(b.amt - rep.totalAmt) > 0.05)
+      row.issues.push(`Amount: 리캡 ${fmtA(b.amt)} vs PO ${fmtA(rep.totalAmt)} (차이 ${fmtA(b.amt-rep.totalAmt)})`);
+
+    if(rep.kind==="excel" && rep.sizes && rep.sizeOk){
+      const names = new Set([...Object.keys(b.sizes||{}), ...Object.keys(rep.sizes)]);
+      for(const nm of names){
+        const rv = (b.sizes && b.sizes[nm]) || 0, pv = rep.sizes[nm] || 0;
+        if(Math.abs(rv-pv) > 0.5) row.issues.push(`사이즈 ${nm}: 리캡 ${fmtN(rv)} vs PO ${fmtN(pv)}`);
+      }
+    } else if(rep.kind==="pdf"){
+      row.sizeNote = "PDF — 사이즈 상세 생략(총계만 검증)";
+    } else if(!rep.sizeOk){
+      row.sizeNote = "일부 품명 사이즈 인식 실패 — 사이즈 비교 생략";
+    }
+    row.status = row.issues.length ? "MISMATCH" : "OK";
+    rows.push(row);
+  }
+  return {recap, rows};
+}
+
+function render(sections, unused, poMap){
+  const box = document.getElementById("results");
+  if(!sections.length){ box.innerHTML = '<div class="card"><div class="empty">표시할 결과가 없습니다.</div></div>'; return; }
+  let html = "";
+  for(const s of sections){
+    const ok = s.rows.filter(r => r.status==="OK").length;
+    const bad = s.rows.filter(r => r.status==="MISMATCH").length;
+    const nr = s.rows.filter(r => r.status==="NOREPORT").length;
+    const qsum = s.rows.reduce((t,r) => t + (r.qty||0), 0);
+    const asum = s.rows.reduce((t,r) => t + (r.amt||0), 0);
+    html += `<div class="card">
+      <h2>${esc(s.recap.style || s.recap.file)}</h2>
+      <div class="meta">${esc(s.recap.file)} · 리캡 합계 ${fmtN(qsum)} pcs / $${fmtA(asum)}</div>
+      <div class="chips">
+        <span class="chip">PO ${s.rows.length}건</span>
+        <span class="chip ok">일치 ${ok}</span>
+        ${bad ? `<span class="chip bad">불일치 ${bad}</span>` : ""}
+        ${nr ? `<span class="chip warn">리포트 없음 ${nr}</span>` : ""}
+      </div>
+      <div class="tablebox"><table>
+        <thead><tr><th>차수</th><th>PO</th><th>리캡 SW</th><th>PO Ship Window</th>
+        <th style="text-align:right">리캡 수량</th><th style="text-align:right">PO 수량</th>
+        <th style="text-align:right">리캡 Amount</th><th style="text-align:right">PO Amount</th><th>결과</th></tr></thead><tbody>`;
+    for(const r of s.rows){
+      const cls = r.status==="MISMATCH" ? "bad" : r.status==="NOREPORT" ? "warn" : "";
+      const badge = r.status==="OK" ? '<span class="badge ok">일치</span>'
+                  : r.status==="MISMATCH" ? '<span class="badge bad">불일치</span>'
+                  : '<span class="badge warn">리포트 없음</span>';
+      const poWin = r.repBegin ? `${r.repBegin}–${r.repEnd}` : "—";
+      html += `<tr class="${cls}"><td>${esc(r.del)}</td><td>${esc(r.po)}</td>
+        <td>${r.swBegin ? r.swBegin+"–"+r.swEnd : esc(r.sw)}</td><td>${poWin}</td>
+        <td class="num">${fmtN(r.qty)}</td><td class="num">${fmtN(r.repQty)}</td>
+        <td class="num">${fmtA(r.amt)}</td><td class="num">${fmtA(r.repAmt)}</td>
+        <td>${badge}${r.sizeNote ? ' <span style="font-size:10.5px;color:var(--muted)">'+esc(r.sizeNote)+"</span>" : ""}</td></tr>`;
+      if(r.issues.length)
+        html += `<tr class="${cls}"><td></td><td colspan="8"><div class="diff">└ ${r.issues.map(esc).join("<br>└ ")}</div></td></tr>`;
+    }
+    html += `</tbody></table></div>
+      <div class="note">검증 기준 — 날짜: 리캡 SW(연도 롤오버 반영) vs PO Report Ship Begin/End 완전 일치 · 수량/사이즈: ±0 허용 · Amount: ±$0.05 허용 · Assortment PO는 팩수량×팩당 구성수량으로 환산 비교</div>
+    </div>`;
+  }
+  if(unused.length){
+    html += `<div class="card"><h2>리캡에 없는 PO Report</h2><div class="meta">업로드한 PO Report 중 어떤 리캡에도 참조되지 않은 PO입니다.</div>
+      <div class="note">${unused.map(po => esc(po) + " (" + esc(poMap[po].file) + ")").join("<br>")}</div></div>`;
+  }
+  box.innerHTML = html;
+}
+</script>
+
+</div>
+</body>
+</html>
