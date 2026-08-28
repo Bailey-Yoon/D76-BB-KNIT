@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<link rel="icon" href="/D76-BB-KNIT/favicon.svg"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>D76 · GF 08-19~08-28</title><style>
+:root{--ink:#1d1c22;--body:#4a4954;--sub:#6a6a72;--muted:#6e6d77;--bg:#f3f2f6;--card:#fff;--bar:#1b1b22;--line:#e7e5ee;--tcom:#CC0000;--gf:#5e35b1;--man:#00695c;--tool:#0277bd;--amber:#ef6c00}
+
+body{font-family:-apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;background:#f3f2f6;margin:0;color:#222}
+.wrap{max-width:1080px;margin:0 auto;padding:20px}
+header{background:#f6f3fc;color:#4527a0;border-radius:14px;padding:26px 30px;margin-bottom:18px}
+header h1{margin:0 0 8px;font-size:22px;color:var(--ink)} header .meta{font-size:13px;color:var(--sub)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,18,30,.06)}
+.kpi.o{border-color:#ef6c00}.kpi.g{border-color:#00695c}.kpi.r{border-color:#CC0000}
+.kpi .v{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:#666}
+.insight{background:#fff8ee;border-left:4px solid #ef6c00;border-radius:10px;padding:16px 20px;margin-bottom:18px;font-size:14px;line-height:1.7}
+.nav{margin-bottom:18px;line-height:2.2}
+.nav a{display:inline-block;padding:3px 10px;border-radius:20px;font-family:"SF Mono", Consolas, monospace;font-size:12px;text-decoration:none;margin-right:4px}
+.nav a.high{background:#fbe4e4;color:#CC0000}.nav a.medium{background:#fff3cd;color:#856404}.nav a.low{background:#ddedea;color:#0a6e57}
+table.pt{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;margin-bottom:18px;font-size:13px}
+table.pt th{background:#ede7f6;color:#4527a0;padding:9px 12px;text-align:left}table.pt td{padding:9px 12px;border-top:1px solid #eee}
+.sgroup{border-radius:16px;margin-bottom:16px;padding:18px 20px;background:#f3f2f6;box-shadow:none}
+.sgroup.pri-high{background:#fdf3f3}.sgroup.pri-medium{background:#fff8ee}.sgroup.pri-low{background:#eef6f5}
+.sg-head{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+.thumb{width:60px;height:60px;border-radius:8px;object-fit:cover;background:#eee}
+.thumb.ph{display:flex;align-items:center;justify-content:center;color:#aaa;font-size:20px}
+.sno{font-family:"SF Mono", Consolas, monospace;font-size:18px;font-weight:700;color:#4527a0}
+.pri{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;vertical-align:middle}
+.pri.high{background:#CC0000;color:#fff}.pri.medium{background:#c25700;color:#fff}.pri.low{background:#00695c;color:#fff}
+.chip{font-size:11px;padding:2px 8px;border-radius:10px;margin-right:5px}
+.chip.pos-c{background:#ddedea;color:#0a6e57}.chip.neg-c{background:#fbe4e4;color:#CC0000}
+.chip.tot{background:#ede7f6;color:#4527a0}.chip.avg{background:#e3f2fd;color:#0d47a1}.chip.price{background:#f5f5f5;color:#333}
+.review{border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px}
+.review.pos{background:#f7fbf7}.review.neg{background:#fef7f7}
+.r-meta{display:flex;gap:8px;align-items:center;margin-bottom:4px;font-size:12px}
+.r-date{color:#666}.badge{padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.badge.pos-bg{background:#ddedea;color:#0a6e57}.badge.neg-bg{background:#fbe4e4;color:#CC0000}
+.r-cat{background:#f0f0f0;padding:1px 7px;border-radius:10px;font-size:10px}
+.stars{color:#c96a00;font-size:12px}.stars .empty{color:#bcbbc6}
+.r-title{font-weight:600;margin-bottom:2px}.r-body{line-height:1.55}
+.r-flex{display:flex;gap:10px}.r-main{flex:1}
+.rp{width:74px;height:74px;object-fit:cover;border-radius:8px}
+.pats{margin-top:5px}.pat{background:#fff3cd;color:#856404;font-size:10px;padding:2px 7px;border-radius:10px;margin-right:4px}
+.cross{margin-top:5px;font-size:11px;color:#555}
+.chip-x{font-family:"SF Mono", Consolas, monospace;background:#ede7f6;color:#4527a0;padding:1px 7px;border-radius:10px;text-decoration:none;font-size:11px;margin-right:3px}
+h2{font-size:17px;margin:24px 0 10px}
+footer{color:#6a6a72;font-size:12px;margin:26px 0 10px;text-align:center}
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:8px}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar,#1b1b22);color:#fff;font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;padding:11px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.topbar a{color:#fff;text-decoration:none}.topbar .brand{font-weight:700}.topbar .sep{opacity:.3}.topbar .live{margin-left:auto;font-size:12px;opacity:.55}@media(max-width:640px){.topbar{font-size:12px;padding:10px 14px}.topbar .live{display:none}}.fab{position:fixed;right:18px;bottom:18px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--bar,#1b1b22);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;text-decoration:none;box-shadow:0 8px 22px rgba(20,18,30,.11)}
+
+/* 4b — 색 면 안의 리뷰 타일은 그림자 없음 (면 자체가 그룹을 만든다) */
+.sgroup .review{background:#fff;border-radius:14px;box-shadow:none}
+.sgroup .chip{background:#fff}
+
+.eyebrow{font-size:11px;letter-spacing:.16em;font-weight:700;margin-bottom:6px}
+</style></head>
+<body>
+<div class="topbar"><a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a><span class="sep">|</span><a class="here" href="/D76-BB-KNIT/reports/feedback/">💬 Guest Feedback 목록</a></div><a class="fab" href="/D76-BB-KNIT/" title="D76 Hub">📊</a>
+
+<div class="wrap">
+<header><div class="eyebrow" style="color:#4527a0">GUEST FEEDBACK · 회차 리포트</div>
+  <h1>📍 Dept 76 게스트 피드백 리포트 — 08/19 ~ 08/28</h1>
+<div class="meta">기간: 2026-08-19 ~ 2026-08-28 (10일) · 수집일: 2026-08-28 · 오늘자 데이터 기준 · 브랜드: Cat &amp; Jack</div></header>
+<div class="kpis">
+<div class="kpi"><div class="v">26건</div><div class="l">이번 수집 확인 리뷰 — 기간 작성분 13 · 이전 작성분 백필 13</div></div>
+<div class="kpi o"><div class="v">16개</div><div class="l">발생 스타일 / Dept 76 마스터 255</div></div>
+<div class="kpi g"><div class="v">19건</div><div class="l">POS 호평</div></div>
+<div class="kpi r"><div class="v">7건</div><div class="l">NEG 불만</div></div>
+</div>
+<div class="insight"><b>🔍 이번 기간 주요 관찰</b><br>
+1. 이번 기간(08/19~08/28) 작성분 <b>13건</b> (POS 10 · NEG 3). 여기에 사이트 피드 지연으로 뒤늦게 확인된 <b>이전 작성분 13건</b>(3~8월)이 함께 수집돼 총 26건.<br>2. <b>YP4MYZ</b> (그래픽 티) 코멘트 5건으로 최다 — 색감·소재 호평이 4건이나, <b>오배송 반복</b> 불만 1건(교환 후에도 같은 오배송)이 함께 접수됨. 품질이 아닌 <b>이행(fulfillment)</b> 이슈.<br>3. <b>소재 촉감 불만이 두 스타일에서 동일 문구로 반복</b> — 0LY3PM·KL3M19 모두 "cute but itchy", 별점 3점. 원단 자체 이슈일 수 있어 동일 원단 사용 여부 확인 필요.<br>4. <b>Z2MPYW</b> NEG 2건 — 세탁 후 수축(핏 상실)과 미배송. 수축은 원단 축률 이슈로 재현성 확인 대상.<br>5. <b>100% 코튼 표기가 계속 구매 동인으로 언급됨</b> — "not some plastic poly blend" 등 천연섬유 선호가 반복 확인. 반대로 <b>WR8X75</b>는 디자인 고증 오류 지적이 이어짐.
+</div>
+<h2>🔗 패턴 연계성 (2개 스타일 이상)</h2>
+<table class="pt"><tr><th>이슈 패턴</th><th>건수</th><th>발생 스타일 수</th><th>발생 스타일</th></tr>
+<tr><td>오버사이즈/사이즈 큼</td><td>5건</td><td>5개</td><td><a class="chip-x" href="#style-0L20WW">0L20WW</a> <a class="chip-x" href="#style-MR0M8W">MR0M8W</a> <a class="chip-x" href="#style-MRWRK5">MRWRK5</a> <a class="chip-x" href="#style-P6P7YE">P6P7YE</a> <a class="chip-x" href="#style-X0E248">X0E248</a></td></tr>
+<tr><td>소재 촉감 (itchy)</td><td>2건</td><td>2개</td><td><a class="chip-x" href="#style-0LY3PM">0LY3PM</a> <a class="chip-x" href="#style-KL3M19">KL3M19</a></td></tr>
+<tr><td>배송/주문 오류</td><td>2건</td><td>2개</td><td><a class="chip-x" href="#style-YP4MYZ">YP4MYZ</a> <a class="chip-x" href="#style-Z2MPYW">Z2MPYW</a></td></tr>
+</table>
+<h2>📝 스타일별 코멘트 묶음</h2>
+<div class="sgroup pri-high" id="style-Z2MPYW"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_3570529c-8361-4826-877c-c3033bb1040a?wid=120&amp;hei=120&amp;fmt=jpeg" alt="Z2MPYW" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-95128789" target="_blank" rel="noopener noreferrer">Z2MPYW</a> <span class="pri high">HIGH</span></div>
+<div class="sg-chips"><span class="chip price">$5</span><span class="chip pos-c">POS 0</span><span class="chip neg-c">NEG 2</span><span class="chip tot">이번 2건</span><span class="chip avg">사이트 평점 4.7</span></div>
+</div></div><div class="sg-cards">
+<div class="review neg"><div class="r-meta"><span class="r-date">08/23</span><span class="badge neg-bg">NEG</span><span class="r-cat">Value</span><span class="stars">★<span class="empty">☆☆☆☆</span></span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">Never shipped, can&#x27;t refund or replace.</div>
+</div></div></div>
+<div class="review neg"><div class="r-meta"><span class="r-date">08/18</span><span class="badge neg-bg">NEG</span><span class="r-cat">TrueSize</span><span class="stars">★<span class="empty">☆☆☆☆</span></span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Shrinks</div>
+<div class="r-body">My son tried this shirt on, and it fit perfectly. Unfortunately it shrinks when washed and no longer fits.</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-medium" id="style-YP4MYZ"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_ff0821ab-c47e-47aa-afb1-896de2f48882?wid=120&amp;hei=120&amp;fmt=jpeg" alt="YP4MYZ" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-95123832" target="_blank" rel="noopener noreferrer">YP4MYZ</a> <span class="pri medium">MEDIUM</span></div>
+<div class="sg-chips"><span class="chip price">$10</span><span class="chip pos-c">POS 4</span><span class="chip neg-c">NEG 1</span><span class="chip tot">이번 5건</span><span class="chip avg">사이트 평점 4.8</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">08/22</span><span class="badge pos-bg">POS</span><span class="r-cat">Design</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Green loose fit graphic shirt</div>
+<div class="r-body">Love the fit, color, and quality of this loose fitting shirt on my 12 yr old son. It exceeded my expectations!</div>
+</div></div></div>
+<div class="review pos"><div class="r-meta"><span class="r-date">08/19</span><span class="badge pos-bg">POS</span><span class="r-cat">Design</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Fashionble</div>
+<div class="r-body">Excellent material and nice color collection. Best for teens</div>
+</div></div></div>
+<div class="review neg"><div class="r-meta"><span class="r-date">08/17</span><span class="badge neg-bg">NEG</span><span class="r-cat">Design</span><span class="stars">★<span class="empty">☆☆☆☆</span></span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">Couldn&#x27;t tell you because I was sent the wrong shirts and when returned and reordered got the same wrong shirts again and when spoke with someone on the phone who ordered the shirts for me the wrong ones were delvered again.</div>
+</div></div></div>
+<div class="review pos"><div class="r-meta"><span class="r-date">08/17</span><span class="badge pos-bg">POS</span><span class="r-cat">Design</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Very nice</div>
+<div class="r-body">Vibrant colors and the material is great.</div>
+</div></div></div>
+<div class="review pos"><div class="r-meta"><span class="r-date">06/29</span><span class="badge pos-bg">POS</span><span class="r-cat">Quality</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Red color model sold it for me!</div>
+<div class="r-body">Amazing quality shirt, love the fit, the model representing the red shirt is what sold it. My kids love the representation, keep it up Target!</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-medium" id="style-R6X532"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_f9b43034-3654-4cee-9ffa-c844668fd90b?wid=120&amp;hei=120&amp;fmt=jpeg" alt="R6X532" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-94798597" target="_blank" rel="noopener noreferrer">R6X532</a> <span class="pri medium">MEDIUM</span></div>
+<div class="sg-chips"><span class="chip price">$10</span><span class="chip pos-c">POS 1</span><span class="chip neg-c">NEG 1</span><span class="chip tot">이번 2건</span><span class="chip avg">사이트 평점 4.4</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">05/13</span><span class="badge pos-bg">POS</span><span class="r-cat">Comfort</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">100% Cotton!!!!! Love these shirts!</div>
+<div class="r-body">Loveeee that they&#x27;re made with a natural fiber, cotton, and not some plastic poly blend. The shirts are soft and the cut is great. We ended up buying 4 of them because they&#x27;re THAT amazing. We love Target&#x27;s cotton shirts!</div>
+</div></div></div>
+<div class="review neg"><div class="r-meta"><span class="r-date">03/06</span><span class="badge neg-bg">NEG</span><span class="r-cat">Quality</span><span class="stars">★★<span class="empty">☆☆☆</span></span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">I want to buy things but theyre so boring</div>
+<div class="r-body">Target quality is always fine and I keep trying to shop here for my son, but boys clothes have gone from happy and fun to either solids or boring tees with places where my child has never been. Why buy a San Diego or Tokyo shirt when you have no connection? Is this cool? I&#x27;ll buy my tourist shirts when I travel to the places, not from Target. It feels silly to buy my kid something totally irrelevant just to clothe him. You guys used to have cool wildlife shirts, shirts with canoes and chemistry stuff and volcanoes. Now I shop at Boden and Hanna Andersson for what we used to love here.</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-medium" id="style-0LY3PM"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_21ffe4cf-8ffc-46e8-9cbb-a3c5124e2e53?wid=120&amp;hei=120&amp;fmt=jpeg" alt="0LY3PM" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-94984616" target="_blank" rel="noopener noreferrer">0LY3PM</a> <span class="pri medium">MEDIUM</span></div>
+<div class="sg-chips"><span class="chip price">$18</span><span class="chip pos-c">POS 0</span><span class="chip neg-c">NEG 1</span><span class="chip tot">이번 1건</span><span class="chip avg">사이트 평점 4.2</span></div>
+</div></div><div class="sg-cards">
+<div class="review neg"><div class="r-meta"><span class="r-date">08/19</span><span class="badge neg-bg">NEG</span><span class="r-cat">Design</span><span class="stars">★★★<span class="empty">☆☆</span></span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Cute but itchy</div>
+<div class="r-body">Half rating because the pattern and style is cute but unfortunately just like the other review, the material is sooooo itchy!!!</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-medium" id="style-KL3M19"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_c8726d69-331c-4be4-99e8-7019cb70d531?wid=120&amp;hei=120&amp;fmt=jpeg" alt="KL3M19" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-95021390" target="_blank" rel="noopener noreferrer">KL3M19</a> <span class="pri medium">MEDIUM</span></div>
+<div class="sg-chips"><span class="chip price">$18</span><span class="chip pos-c">POS 0</span><span class="chip neg-c">NEG 1</span><span class="chip tot">이번 1건</span><span class="chip avg">사이트 평점 4.8</span></div>
+</div></div><div class="sg-cards">
+<div class="review neg"><div class="r-meta"><span class="r-date">08/19</span><span class="badge neg-bg">NEG</span><span class="r-cat">Design</span><span class="stars">★★★<span class="empty">☆☆</span></span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Cute but itchy</div>
+<div class="r-body">Half rating because the pattern and style is cute but unfortunately just like the other review, the material is sooooo itchy!!!</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-medium" id="style-WR8X75"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_5e4b5299-6f37-4877-8ce0-a9689d107ba5?wid=120&amp;hei=120&amp;fmt=jpeg" alt="WR8X75" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-95191540" target="_blank" rel="noopener noreferrer">WR8X75</a> <span class="pri medium">MEDIUM</span></div>
+<div class="sg-chips"><span class="chip price">$7</span><span class="chip pos-c">POS 0</span><span class="chip neg-c">NEG 1</span><span class="chip tot">이번 1건</span><span class="chip avg">사이트 평점 3.7</span></div>
+</div></div><div class="sg-cards">
+<div class="review neg"><div class="r-meta"><span class="r-date">08/15</span><span class="badge neg-bg">NEG</span><span class="r-cat">Design</span><span class="stars">★<span class="empty">☆☆☆☆</span></span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Dont buy.</div>
+<div class="r-body">So inaccurate. Who designed this? Elk? Trees are wrong. Grizzlies? Wolves? Hilarious.</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-low" id="style-002LWK"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_e0c27cd1-b6d9-4e06-b244-eed0ad72701d?wid=120&amp;hei=120&amp;fmt=jpeg" alt="002LWK" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-93080441" target="_blank" rel="noopener noreferrer">002LWK</a> <span class="pri low">LOW</span></div>
+<div class="sg-chips"><span class="chip price">$9</span><span class="chip pos-c">POS 3</span><span class="chip neg-c">NEG 0</span><span class="chip tot">이번 3건</span><span class="chip avg">사이트 평점 4.7</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">08/26</span><span class="badge pos-bg">POS</span><span class="r-cat">Comfort</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Great ts</div>
+<div class="r-body">Soft and just heavy enough. Seems to be regular sizing.</div>
+</div></div></div>
+<div class="review pos"><div class="r-meta"><span class="r-date">08/22</span><span class="badge pos-bg">POS</span><span class="r-cat">Quality</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Good quality basic tee</div>
+<div class="r-body">Very soft tee, and so far they have held their shape. Good quality</div>
+</div></div></div>
+<div class="review pos"><div class="r-meta"><span class="r-date">08/21</span><span class="badge pos-bg">POS</span><span class="r-cat">Value</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">Bought it for an art project with my son-lovely t-shirt.</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-low" id="style-P6P7YE"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_d76748c1-7518-45db-8d91-d806a3839215?wid=120&amp;hei=120&amp;fmt=jpeg" alt="P6P7YE" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-95127360" target="_blank" rel="noopener noreferrer">P6P7YE</a> <span class="pri low">LOW</span></div>
+<div class="sg-chips"><span class="chip price">$18</span><span class="chip pos-c">POS 2</span><span class="chip neg-c">NEG 0</span><span class="chip tot">이번 2건</span><span class="chip avg">사이트 평점 4.8</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">08/21</span><span class="badge pos-bg">POS</span><span class="r-cat">Style</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">Perfect fit! A little oversized but thats the look I was going for lightweight and stylish!</div>
+</div></div></div>
+<div class="review pos"><div class="r-meta"><span class="r-date">08/16</span><span class="badge pos-bg">POS</span><span class="r-cat">Style</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">My son loves this little outfit.The pants and shirt are from target.</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-low" id="style-X0E248"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_256bda19-ff68-4860-bfed-1a1d1996c8c4?wid=120&amp;hei=120&amp;fmt=jpeg" alt="X0E248" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-1008964204" target="_blank" rel="noopener noreferrer">X0E248</a> <span class="pri low">LOW</span></div>
+<div class="sg-chips"><span class="chip price">$7</span><span class="chip pos-c">POS 2</span><span class="chip neg-c">NEG 0</span><span class="chip tot">이번 2건</span><span class="chip avg">사이트 평점 4.9</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">08/22</span><span class="badge pos-bg">POS</span><span class="r-cat">Design</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">My son loved his new tees. Color is as pictured and quality is amazing. Definitely recommend.</div>
+</div></div></div>
+<div class="review pos"><div class="r-meta"><span class="r-date">08/19</span><span class="badge pos-bg">POS</span><span class="r-cat">Value</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">Adorable boys clothes. Purchased as a gift all these outfits and they&#x27;re all too big. Would I be able to purchase at the same price the smaller size?</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-low" id="style-0L20WW"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_b4db5521-e74e-480a-b5b6-3fab77349dc7?wid=120&amp;hei=120&amp;fmt=jpeg" alt="0L20WW" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-95206277" target="_blank" rel="noopener noreferrer">0L20WW</a> <span class="pri low">LOW</span></div>
+<div class="sg-chips"><span class="chip price">$7</span><span class="chip pos-c">POS 1</span><span class="chip neg-c">NEG 0</span><span class="chip tot">이번 1건</span><span class="chip avg">사이트 평점 4.9</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">08/14</span><span class="badge pos-bg">POS</span><span class="r-cat">TrueSize</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">love this sgirt i love how it fits oversized and msterial is great</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-low" id="style-35R076"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_345b4478-89ce-4533-9463-0dfb22353bb1?wid=120&amp;hei=120&amp;fmt=jpeg" alt="35R076" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-95127343" target="_blank" rel="noopener noreferrer">35R076</a> <span class="pri low">LOW</span></div>
+<div class="sg-chips"><span class="chip price">$18</span><span class="chip pos-c">POS 1</span><span class="chip neg-c">NEG 0</span><span class="chip tot">이번 1건</span><span class="chip avg">사이트 평점 4.8</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">08/20</span><span class="badge pos-bg">POS</span><span class="r-cat">TrueSize</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">sz 6/7 sm and 8 Med fit good with draw string</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-low" id="style-ELP7Z3"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_9580e37a-d51f-4095-b564-e5c0f385c593?wid=120&amp;hei=120&amp;fmt=jpeg" alt="ELP7Z3" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-94571407" target="_blank" rel="noopener noreferrer">ELP7Z3</a> <span class="pri low">LOW</span></div>
+<div class="sg-chips"><span class="chip price">$6</span><span class="chip pos-c">POS 1</span><span class="chip neg-c">NEG 0</span><span class="chip tot">이번 1건</span><span class="chip avg">사이트 평점 4.3</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">04/22</span><span class="badge pos-bg">POS</span><span class="r-cat">TrueSize</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">This tee is the perfect closet addition for my motorcycle loving kiddo! Love the color and design. True to size</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-low" id="style-L0E6R6"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_b6a082cd-cfc2-470c-aa6c-113bc0dec6f4?wid=120&amp;hei=120&amp;fmt=jpeg" alt="L0E6R6" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-94826356" target="_blank" rel="noopener noreferrer">L0E6R6</a> <span class="pri low">LOW</span></div>
+<div class="sg-chips"><span class="chip price">$15</span><span class="chip pos-c">POS 1</span><span class="chip neg-c">NEG 0</span><span class="chip tot">이번 1건</span><span class="chip avg">사이트 평점 4.7</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">05/29</span><span class="badge pos-bg">POS</span><span class="r-cat">Quality</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">resistente, con un diseño bonito y que encaja perfecto en una repisa.</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-low" id="style-MR0M8W"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_191e940d-97a5-407d-93ee-35a2491f049d?wid=120&amp;hei=120&amp;fmt=jpeg" alt="MR0M8W" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-95021240" target="_blank" rel="noopener noreferrer">MR0M8W</a> <span class="pri low">LOW</span></div>
+<div class="sg-chips"><span class="chip price">$15</span><span class="chip pos-c">POS 1</span><span class="chip neg-c">NEG 0</span><span class="chip tot">이번 1건</span><span class="chip avg">사이트 평점 4.9</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">05/09</span><span class="badge pos-bg">POS</span><span class="r-cat">Comfort</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-body">I had to return the size XL just because it was waaaay too big for my 12 year old. I always buy his shirts XL maybe this runs a little big? Anyways, material is comfy. Size L fit my 12 year old perfectly!</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-low" id="style-MRWRK5"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_db30f622-3ce5-4837-9f27-bb7ddd4a12ca?wid=120&amp;hei=120&amp;fmt=jpeg" alt="MRWRK5" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-95127325" target="_blank" rel="noopener noreferrer">MRWRK5</a> <span class="pri low">LOW</span></div>
+<div class="sg-chips"><span class="chip price">$8</span><span class="chip pos-c">POS 1</span><span class="chip neg-c">NEG 0</span><span class="chip tot">이번 1건</span><span class="chip avg">사이트 평점 5</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">08/24</span><span class="badge pos-bg">POS</span><span class="r-cat">TrueSize</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Excellent shirt</div>
+<div class="r-body">I love this oversized fit shirt, my son is out of the 5T but not quite in the S-6/7 so this XS - 4/5 is perfect. The shirt feels substantial and high quality. I definitely recommend this shirt</div>
+</div></div></div>
+</div></div>
+<div class="sgroup pri-low" id="style-PRE6WG"><div class="sg-head">
+<img class="thumb" src="https://target.scene7.com/is/image/Target/GUEST_54177fd5-fc8e-4e5f-962a-96f44853cd7c?wid=120&amp;hei=120&amp;fmt=jpeg" alt="PRE6WG" loading="lazy">
+<div><div class="sno"><a href="https://www.target.com/p/-/A-93073678" target="_blank" rel="noopener noreferrer">PRE6WG</a> <span class="pri low">LOW</span></div>
+<div class="sg-chips"><span class="chip price">$5</span><span class="chip pos-c">POS 1</span><span class="chip neg-c">NEG 0</span><span class="chip tot">이번 1건</span><span class="chip avg">사이트 평점 4.9</span></div>
+</div></div><div class="sg-cards">
+<div class="review pos"><div class="r-meta"><span class="r-date">04/06</span><span class="badge pos-bg">POS</span><span class="r-cat">Comfort</span><span class="stars">★★★★★</span></div>
+<div class="r-flex"><div class="r-main">
+<div class="r-title">Mint</div>
+<div class="r-body">Super comfy and cute, just as pictured. My son is slim, so he wears a small even though he is 8. He could probably wear a medium too, but he prefers fitted over baggy.</div>
+</div></div></div>
+</div></div>
+<footer>생성: 2026-08-28 · 출처: salest.sae-a.com 게스트 리뷰 · 누적 249건</footer>
+</div></body></html>
