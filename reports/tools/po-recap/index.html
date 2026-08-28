@@ -9,7 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root{
-    --bg:#f3f2f6; --card:#ffffff; --ink:#1d1c22; --muted:#9a99a2;
+    --bg:#f3f2f6; --card:#ffffff; --ink:#1d1c22; --muted:#6e6d77;
     --line:#e7e5ee; --accent:#0277bd; --ok:#00695c; --okbg:#eef6f5;
     --bad:#CC0000; --badbg:#fdf3f3; --warn:#8a4b00; --warnbg:#fff8ee;
   ;--body:#4a4954;--pos:#00695c;--neg:#CC0000;--tool-deep:#014b7e;--man-deep:#00544c;--gf-deep:#4527a0;--amber-deep:#8a4b00;--amber-tint:#fff8ee;--r-sm:8px;--r-md:10px;--r-lg:14px;--r-xl:16px;--sh-1:0 1px 2px rgba(20,18,30,.06);--sh-2:0 8px 22px rgba(20,18,30,.11);--tool:#0277bd}
@@ -18,6 +18,13 @@
 .d76wrap{padding:28px 20px 60px}
   .wrap{max-width:1080px; margin:0 auto;}
   h1{font-size:21px; font-weight:700; margin-bottom:4px;}
+
+  /* 3a — tint 히어로 · 아이브로. 다른 도구 페이지와 같은 규격 */
+  .hero{background:#eef4fa;border-radius:16px;padding:22px 24px;margin-bottom:20px}
+  .hero .eyebrow{font-size:11px;letter-spacing:.16em;font-weight:700;color:var(--tool-deep)}
+  .hero h1{font-size:26px;line-height:1.25;letter-spacing:-.01em;margin:6px 0 0}
+  .hero .sub{color:#4a4954;font-size:13px;margin:6px 0 0;line-height:1.6}
+  @media(max-width:640px){.hero{padding:18px}.hero h1{font-size:21px}}
   .sub{color:var(--muted); font-size:13px; margin-bottom:22px; line-height:1.6;}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
   @media(max-width:640px){.grid{grid-template-columns:1fr;}}
@@ -30,7 +37,7 @@
   .filelist div{padding:1px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .btnrow{display:flex; gap:10px; align-items:center; margin-bottom:22px; flex-wrap:wrap;}
   button.run{background:var(--accent); color:#fff; border:none; border-radius:10px; padding:11px 26px; font-size:14px; font-weight:600; cursor:pointer;}
-  button.run:disabled{background:#b9c4d6; cursor:not-allowed;}
+  button.run:disabled{background:#e7e5ee; color:#676670; cursor:not-allowed;}
   button.clear{background:none; border:1px solid var(--line); border-radius:10px; padding:10px 18px; font-size:13px; color:var(--muted); cursor:pointer;}
   .status{font-size:13px; color:var(--muted);}
   .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:18px;}
@@ -65,10 +72,13 @@
 <div class="d76wrap">
 
 <div class="wrap">
-  <h1>Order Recap ↔ PO Report 자동 검증</h1>
-  <div class="sub">
+  <div class="hero">
+    <div class="eyebrow">TOOLS</div>
+    <h1>📋 Order Recap ↔ PO Report 자동 검증</h1>
+    <div class="sub">
     오더리캡(xlsx)과 Target PO Report(Excel/PDF)를 올리면 PO별로 <b>Ship Window 날짜 · 총수량 · Amount · 사이즈별 수량</b>을 자동 대조합니다.<br>
     모든 처리는 이 화면(브라우저) 안에서만 이루어지며 파일이 외부로 전송되지 않습니다.
+    </div>
   </div>
 
   <div class="grid">
