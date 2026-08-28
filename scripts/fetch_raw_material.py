@@ -86,13 +86,10 @@ def build(market, weekly):
         d = q(sym)
         tiles.append(tile(key, label, d.get('price'), d.get('changePct'), 'USD/bbl', note))
 
-    # 'Raw' 는 주간 리포트가 마지막으로 갱신된 날. updatedAt 의 날짜 부분이다.
     return {
         'tiles': [t for t in tiles if t['price'] is not None],
-        'schedule': (market or {}).get('schedule') or '',
         'snapshotDate': (market or {}).get('snapshotDateKST') or '',
         'marketDataDate': (market or {}).get('marketDataDate') or '',
-        'rawDate': ((weekly or {}).get('updatedAt') or '')[:10],
     }
 
 
@@ -121,8 +118,8 @@ def main():
         return 0
     with io.open(OUT, 'w', encoding='utf-8', newline='\n') as f:
         f.write(new)
-    print('%d개 타일 기록 (시장 %s / 주간 %s)'
-          % (len(payload['tiles']), payload['marketDataDate'], payload['rawDate']))
+    print('%d개 타일 기록 (스냅샷 %s / 시장 %s)'
+          % (len(payload['tiles']), payload['snapshotDate'], payload['marketDataDate']))
     return 0
 
 

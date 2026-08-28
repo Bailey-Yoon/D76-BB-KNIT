@@ -100,13 +100,13 @@ a.card.row .code{font-size:11.5px;color:var(--muted);font-family:"SF Mono",Conso
 .rm .lbl .n{font-size:15px;font-weight:700;color:var(--amber-deep)}
 .rm .lbl .c{font-size:12px;color:#8a5a1e;margin-top:2px;line-height:1.5}
 .rm .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
-/* 개수가 홀수면 마지막 타일이 혼자 남아 옆이 빈다 — 두 칸을 쓰게 한다 */
-.rm .grid .t:last-child:nth-child(odd){grid-column:1/-1;display:flex;
+/* 머리 타일(U.S. Cotton)은 두 칸을 쓴다 — 나머지 6개가 2열로 떨어진다 */
+.rm .grid .t:first-child{grid-column:1/-1;display:flex;
   align-items:baseline;flex-wrap:wrap;gap:0 12px}
-.rm .grid .t:last-child:nth-child(odd) .nm{flex:0 0 auto}
-.rm .grid .t:last-child:nth-child(odd) .sub{flex:1 1 auto;min-height:0;margin-top:0}
-.rm .grid .t:last-child:nth-child(odd) .v{margin-top:0}
-.rm .grid .t:last-child:nth-child(odd) .ch{margin-top:0;margin-left:auto}
+.rm .grid .t:first-child .nm{flex:0 0 auto}
+.rm .grid .t:first-child .sub{flex:1 1 auto;min-height:0;margin-top:0}
+.rm .grid .t:first-child .v{margin-top:0;font-size:24px}
+.rm .grid .t:first-child .ch{margin-top:0;margin-left:auto}
 .rm .t{background:var(--card);border-radius:var(--r-md);padding:12px 13px;box-shadow:var(--sh-1)}
 .rm .t .nm{font-size:12.5px;font-weight:700;line-height:1.3}
 .rm .t .sub{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.45;min-height:15px}
@@ -126,10 +126,10 @@ a.card.row .code{font-size:11.5px;color:var(--muted);font-family:"SF Mono",Conso
   .rail{position:static}
   .rm .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
   /* 2열 레일에서만 쓰던 보정 — 여러 열이 되면 통짜 막대로 늘어난다 */
-  .rm .grid .t:last-child:nth-child(odd){grid-column:auto;display:block}
-  .rm .grid .t:last-child:nth-child(odd) .sub{min-height:15px;margin-top:3px}
-  .rm .grid .t:last-child:nth-child(odd) .v{margin-top:8px}
-  .rm .grid .t:last-child:nth-child(odd) .ch{margin-top:6px;margin-left:0}
+  .rm .grid .t:first-child{grid-column:auto;display:block}
+  .rm .grid .t:first-child .sub{min-height:15px;margin-top:3px}
+  .rm .grid .t:first-child .v{margin-top:8px;font-size:21px}
+  .rm .grid .t:first-child .ch{margin-top:6px;margin-left:0}
 }
 
 footer{max-width:1120px;margin:0 auto;padding:0 20px 50px;text-align:center;
@@ -417,10 +417,8 @@ footer{max-width:1120px;margin:0 auto;padding:0 20px 50px;text-align:center;
       }).join('');
 
       var meta = [];
-      if (d.schedule) meta.push('KST ' + d.schedule.replace(' KST', '') + ' Daily Fixed');
       if (d.snapshotDate) meta.push('Snapshot ' + d.snapshotDate);
-      if (d.marketDataDate) meta.push('Market data ' + d.marketDataDate);
-      if (d.rawDate) meta.push('Raw ' + d.rawDate);
+      if (d.marketDataDate) meta.push('Updated ' + d.marketDataDate);
       f.innerHTML = esc(meta.join(' \u00b7 '));
     })
     .catch(function () {
