@@ -90,6 +90,48 @@ a.card.row{flex-direction:row;align-items:center;gap:14px;min-height:74px;paddin
 a.card.row .t{font-size:16px}
 a.card.row .code{font-size:11.5px;color:var(--muted);font-family:"SF Mono",Consolas,"D2Coding",monospace}
 
+/* 본문 + 우측 레일. 레일은 따라다니고, 좁아지면 본문 아래로 내려간다 */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start}
+.cols .main{min-width:0}
+.rail{position:sticky;top:64px;display:flex;flex-direction:column;gap:14px}
+
+/* 원자재 — 섹션과 같은 tint 면 규칙, 색만 앰버 계열 */
+.rm{background:var(--amber-tint);border-radius:var(--r-xl);padding:18px}
+.rm .lbl .n{font-size:15px;font-weight:700;color:var(--amber-deep)}
+.rm .lbl .c{font-size:12px;color:#8a5a1e;margin-top:2px;line-height:1.5}
+.rm .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+/* 개수가 홀수면 마지막 타일이 혼자 남아 옆이 빈다 — 두 칸을 쓰게 한다 */
+.rm .grid .t:last-child:nth-child(odd){grid-column:1/-1;display:flex;
+  align-items:baseline;flex-wrap:wrap;gap:0 12px}
+.rm .grid .t:last-child:nth-child(odd) .nm{flex:0 0 auto}
+.rm .grid .t:last-child:nth-child(odd) .sub{flex:1 1 auto;min-height:0;margin-top:0}
+.rm .grid .t:last-child:nth-child(odd) .v{margin-top:0}
+.rm .grid .t:last-child:nth-child(odd) .ch{margin-top:0;margin-left:auto}
+.rm .t{background:var(--card);border-radius:var(--r-md);padding:12px 13px;box-shadow:var(--sh-1)}
+.rm .t .nm{font-size:12.5px;font-weight:700;line-height:1.3}
+.rm .t .sub{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.45;min-height:15px}
+.rm .t .v{font-size:21px;font-weight:700;letter-spacing:-.02em;margin-top:8px;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.rm .t .v .u{font-size:10.5px;font-weight:600;color:var(--sub);margin-left:3px;letter-spacing:0}
+.rm .t .ch{font-size:11.5px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums}
+.rm .t .ch.up{color:var(--amber-deep)}      /* 원가 상승 — 화살표로도 구분된다 */
+.rm .t .ch.dn{color:var(--pos)}
+.rm .t .ch.flat{color:var(--muted)}
+.rm .foot{margin-top:11px;font-size:10.5px;color:#8a5a1e;line-height:1.6}
+.rm .fail{margin-top:0;font-size:11.5px;color:var(--body);line-height:1.6;
+  background:var(--card);border-radius:var(--r-md);padding:11px 12px}
+
+@media(max-width:1080px){
+  .cols{grid-template-columns:1fr}
+  .rail{position:static}
+  .rm .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  /* 2열 레일에서만 쓰던 보정 — 여러 열이 되면 통짜 막대로 늘어난다 */
+  .rm .grid .t:last-child:nth-child(odd){grid-column:auto;display:block}
+  .rm .grid .t:last-child:nth-child(odd) .sub{min-height:15px;margin-top:3px}
+  .rm .grid .t:last-child:nth-child(odd) .v{margin-top:8px}
+  .rm .grid .t:last-child:nth-child(odd) .ch{margin-top:6px;margin-left:0}
+}
+
 footer{max-width:1120px;margin:0 auto;padding:0 20px 50px;text-align:center;
   color:var(--muted);font-size:11.5px;line-height:1.75}
 
@@ -101,6 +143,8 @@ footer{max-width:1120px;margin:0 auto;padding:0 20px 50px;text-align:center;
   .fx{width:100%;justify-content:space-between;gap:10px}
   .fx .v{font-size:28px}
   .fx .note{display:none}
+  .rm{padding:15px}
+  .rm .grid{grid-template-columns:1fr 1fr}
   a.card{min-height:0;padding:18px}
   a.card .t{font-size:17px}
   a.card .foot{gap:14px}
@@ -130,6 +174,9 @@ footer{max-width:1120px;margin:0 auto;padding:0 20px 50px;text-align:center;
     <div class="note" id="fxnote">중간시장 환율 · 은행 고시와 다를 수 있음</div>
   </div>
 </div>
+
+<div class="cols">
+<div class="main">
 
 <div class="sec s-track">
   <div class="lbl">
@@ -283,6 +330,21 @@ footer{max-width:1120px;margin:0 auto;padding:0 20px 50px;text-align:center;
   </div>
 </div>
 
+</div><!-- /.main -->
+
+<aside class="rail">
+  <section class="rm" id="rm">
+    <div class="lbl">
+      <div class="n">RAW MATERIAL</div>
+      <div class="c">면화 · 폴리에스터 · 원유 시세</div>
+    </div>
+    <div class="grid" id="rmGrid"></div>
+    <div class="note" id="rmNote"></div>
+    <div class="foot" id="rmFoot"></div>
+  </section>
+</aside>
+</div><!-- /.cols -->
+
 </div>
 
 <footer>
@@ -318,6 +380,55 @@ footer{max-width:1120px;margin:0 auto;padding:0 20px 50px;text-align:center;
       n.textContent = '환율 조회 실패 — 새로고침 시 재시도';
     }
   }
+})();
+
+/* 원자재 — GitHub Actions 가 매일 떠 두는 스냅샷을 같은 출처에서 읽는다.
+   원본 API 에는 CORS 헤더가 없어 브라우저에서 직접 부를 수 없다. */
+(function () {
+  var g = document.getElementById('rmGrid'),
+      n = document.getElementById('rmNote'),
+      f = document.getElementById('rmFoot');
+
+  function esc(t) {
+    return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function fmt(v) {
+    return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function chg(p) {
+    if (p == null) return '<div class="ch flat">—</div>';
+    var up = p > 0.005, dn = p < -0.005;
+    var cls = up ? 'up' : (dn ? 'dn' : 'flat');
+    var arw = up ? '\u25b2' : (dn ? '\u25bc' : '\u2013');
+    return '<div class="ch ' + cls + '">' + arw + ' ' + Math.abs(p).toFixed(2) + '%</div>';
+  }
+
+  fetch('data/raw-material.json', { cache: 'no-cache' })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) {
+      g.innerHTML = (d.tiles || []).map(function (t) {
+        return '<div class="t"' + (t.comment ? ' title="' + esc(t.comment) + '"' : '') + '>' +
+          '<div class="nm">' + esc(t.label) + '</div>' +
+          '<div class="sub">' + esc(t.note) + '</div>' +
+          '<div class="v">' + fmt(t.price) + '<span class="u">' + esc(t.unit) + '</span></div>' +
+          chg(t.changePct) + '</div>';
+      }).join('');
+
+      var meta = [];
+      if (d.schedule) meta.push('KST ' + d.schedule.replace(' KST', '') + ' Daily Fixed');
+      if (d.snapshotDate) meta.push('Snapshot ' + d.snapshotDate);
+      if (d.marketDataDate) meta.push('Market data ' + d.marketDataDate);
+      if (d.rawDate) meta.push('Raw ' + d.rawDate);
+      f.innerHTML = esc(meta.join(' \u00b7 '));
+    })
+    .catch(function () {
+      g.innerHTML = '';
+      n.innerHTML = '<div class="fail">\uc2dc\uc138\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4. ' +
+        '\uc7a0\uc2dc \ub4a4 \uc0c8\ub85c\uace0\uce68\ud574 \uc8fc\uc138\uc694.</div>';
+      f.innerHTML = '';
+    });
 })();
 </script>
 </body>

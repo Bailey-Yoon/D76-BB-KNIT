@@ -1,0 +1,71 @@
+{
+ "marketDataDate": "2026-08-27",
+ "rawDate": "2026-08-28",
+ "schedule": "08:00 KST",
+ "snapshotDate": "2026-08-28",
+ "tiles": [
+  {
+   "changePct": 3.589855250339831,
+   "comment": "",
+   "key": "usCotton",
+   "label": "U.S. Cotton",
+   "note": "ICE Dec-26 선물",
+   "price": 92.33999633789062,
+   "unit": "¢/lb"
+  },
+  {
+   "changePct": 1.6,
+   "comment": "중국 내 국가 비축 분 면화 경매가 장기간(25일 연속) 매진",
+   "key": "chinaCotton",
+   "label": "China Cotton",
+   "note": "주간 리포트",
+   "price": 122.83,
+   "unit": "¢/lb"
+  },
+  {
+   "changePct": 0.8,
+   "comment": "평년 대비 15%가량 강우량이 부족할 것으로 전망되는 몬순(우기) 우려",
+   "key": "indiaCotton",
+   "label": "India Cotton",
+   "note": "주간 리포트",
+   "price": 92.3,
+   "unit": "¢/lb"
+  },
+  {
+   "changePct": 1.44,
+   "comment": "면화 가격 급등에 따른 합성섬유 대체 수요유입",
+   "key": "psf",
+   "label": "PSF",
+   "note": "주간 리포트",
+   "price": 52.85,
+   "unit": "¢/lb"
+  },
+  {
+   "changePct": 2.98,
+   "comment": "수요 증가 시 방적 공정을 거치며 상승폭이 커지는 특징",
+   "key": "dty",
+   "label": "DTY",
+   "note": "주간 리포트",
+   "price": 66.68,
+   "unit": "¢/lb"
+  },
+  {
+   "changePct": 1.6538890008963587,
+   "comment": "",
+   "key": "wti",
+   "label": "WTI Crude",
+   "note": "NYMEX",
+   "price": 83.58999633789062,
+   "unit": "USD/bbl"
+  },
+  {
+   "changePct": 0.8879854749663086,
+   "comment": "",
+   "key": "brent",
+   "label": "Brent Crude",
+   "note": "Global benchmark",
+   "price": 88.62000274658203,
+   "unit": "USD/bbl"
+  }
+ ]
+}
