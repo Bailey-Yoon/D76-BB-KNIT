@@ -1,157 +1,174 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<title>D76 · 배경 지우기</title>
 <link rel="icon" href="/D76-BB-KNIT/favicon.svg">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>D76 · 배경 지우기</title>
 <style>
-:root{--tool:#0277bd;--tool2:#014b7e;--tint:#eef4fa;--ink:#1d1c22;--sub:#6a6a72;--muted:#9a99a2;
-  --bg:#f3f2f6;--card:#fff;--bar:#1b1b22;--line:#e7e5ee;--warn:#ef6c00;--ok:#00695c;--body:#4a4954;--pos:#00695c;--neg:#CC0000;--tool-deep:#014b7e;--man-deep:#00544c;--gf-deep:#4527a0;--amber-deep:#8a4b00;--amber-tint:#fff8ee;--r-sm:8px;--r-md:10px;--r-lg:14px;--r-xl:16px;--sh-1:0 1px 2px rgba(20,18,30,.06);--sh-2:0 8px 22px rgba(20,18,30,.11)}
+/* 토큰 정본: _shared/d76_design.css */
+:root{--tool:#0277bd;--tool-tint:#eef4fa;--tool-deep:#014b7e;--amber:#ef6c00;--amber-tint:#fff8ee;
+  --amber-deep:#8a4b00;--pos:#00695c;--neg:#CC0000;
+  --ink:#1d1c22;--body:#4a4954;--sub:#6a6a72;--muted:#9a99a2;
+  --bg:#f3f2f6;--card:#fff;--bar:#1b1b22;--line:#e7e5ee;
+  --r-sm:8px;--r-md:10px;--r-lg:14px;--r-xl:16px;
+  --sh-1:0 1px 2px rgba(20,18,30,.06);--sh-2:0 8px 22px rgba(20,18,30,.11)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
-.topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;font-size:13px;padding:11px 20px;
-  display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.topbar a{text-decoration:none}
-.topbar a.brand{color:#fff;font-weight:700}
-.topbar a.sec{color:#9ecdf0}
-.topbar .lbl{margin-left:auto;opacity:.6;font-size:12px}
-.fab{position:fixed;right:18px;bottom:18px;z-index:9999;background:var(--bar);color:#fff;text-decoration:none;
-  width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;
-  box-shadow:0 4px 14px rgba(0,0,0,.35)}
-.wrap{max-width:980px;margin:0 auto;padding:24px 20px 70px}
-header{background:#eef4fa;color:#014b7e;border-radius:14px;
-  padding:24px 28px;margin-bottom:18px}
-header h1{font-size:21px;margin-bottom:6px;color:var(--ink);color:var(--ink)}
-header .meta{font-size:13px;line-height:1.6;color:var(--sub);color:var(--sub)}
+body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:var(--r-sm)}
 
-.panel{background:var(--card);border-radius:16px;padding:22px 24px;margin-bottom:20px;box-shadow:0 1px 2px rgba(20,18,30,.06)}
-.panel > h2{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;
+  font-size:13px;padding:11px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.topbar a{color:#fff;text-decoration:none}
+.topbar .brand{font-weight:700}
+.topbar .sep{opacity:.3}
+.topbar .here{color:#9fd4f5}
+.topbar .live{margin-left:auto;font-size:12px;opacity:.55}
+@media(max-width:640px){ .topbar{font-size:12px;padding:10px 14px} .topbar .live{display:none} }
+.fab{position:fixed;right:18px;bottom:18px;z-index:99;width:52px;height:52px;border-radius:50%;
+  background:var(--bar);color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:20px;text-decoration:none;box-shadow:var(--sh-2)}
 
-/* ── 업로드 ───────────────────────────────────── */
-#drop{border:2px dashed #c3d4e6;border-radius:14px;background:#fafcff;padding:38px 22px;text-align:center;
-  cursor:pointer;transition:border-color .12s,background .12s}
-#drop:hover,#drop.over{border-color:var(--tool);background:var(--tint)}
+.wrap{max-width:1120px;margin:0 auto;padding:26px 20px 56px}
+
+/* 히어로 — tint 면 + 아이브로 + 우측 내려받기 (시안 5g) */
+.hero{background:var(--tool-tint);border-radius:var(--r-xl);padding:22px 24px;margin-bottom:20px;
+  display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+.hero .eyebrow{font-size:11px;letter-spacing:.16em;font-weight:700;color:var(--tool-deep)}
+.hero h1{font-size:26px;line-height:1.25;letter-spacing:-.01em;margin:6px 0}
+.hero .meta{font-size:13px;color:var(--sub);line-height:1.6}
+
+/* 2열 — 왼쪽 컨트롤 · 오른쪽 캔버스. 업로드 전에도 이 틀이 보인다 */
+.edit{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.panel{background:var(--card);border-radius:var(--r-xl);padding:22px 24px;
+  display:flex;flex-direction:column;gap:16px}
+.panel h2{font-size:11px;color:var(--sub);font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.grp{display:flex;flex-direction:column;gap:10px}
+
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1 1 auto;font:inherit;font-size:13px;font-weight:700;padding:11px 12px;min-height:44px;
+  border-radius:var(--r-md);cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--sub);
+  transition:background .12s,color .12s,border-color .12s}
+.seg button:hover{border-color:var(--tool);color:var(--tool-deep)}
+.seg button[aria-pressed="true"]{background:var(--tool);border-color:var(--tool);color:#fff}
+
+.opt label{display:block;font-size:12.5px;color:var(--body);font-weight:700;margin-bottom:8px}
+.opt .num{font-family:"SF Mono",Consolas,"D2Coding",monospace;color:var(--tool-deep)}
+.opt input[type=range]{width:100%;accent-color:var(--tool);min-height:44px}
+.opt p{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.6}
+
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:inherit;font-size:13px;font-weight:700;padding:11px 16px;min-height:44px;border-radius:var(--r-md);
+  cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--body);
+  transition:border-color .12s,color .12s,background .12s}
+.btn:hover:not(:disabled){border-color:var(--tool);color:var(--tool-deep)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--tool);border-color:var(--tool);color:#fff}
+.btn.primary:hover:not(:disabled){background:var(--tool-deep);border-color:var(--tool-deep);color:#fff}
+
+/* 캔버스 영역 — 항상 자리를 지킨다 */
+.canvaswrap{display:flex;flex-direction:column;gap:12px;position:sticky;top:64px}
+.stage{background:conic-gradient(#e6e7e3 90deg,#fff 90deg 180deg,#e6e7e3 180deg 270deg,#fff 270deg) 0 0/18px 18px;
+  border:1px solid var(--line);border-radius:var(--r-lg);padding:12px;min-height:340px;
+  display:flex;align-items:center;justify-content:center}
+#cv{max-width:100%;max-height:58vh;touch-action:none;cursor:crosshair;display:block}
+#uploadPanel{width:100%}
+#drop{border:2px dashed #c3d4e6;border-radius:var(--r-lg);background:rgba(255,255,255,.72);
+  padding:44px 22px;text-align:center;cursor:pointer;transition:border-color .12s,background .12s}
+#drop:hover,#drop.over{border-color:var(--tool);background:var(--tool-tint)}
 #drop .big{font-size:34px;line-height:1}
 #drop .t{font-size:15px;font-weight:700;margin-top:10px}
 #drop .d{font-size:12.5px;color:var(--sub);margin-top:6px;line-height:1.6}
 input[type=file]{display:none}
 
-/* ── 편집 ─────────────────────────────────────── */
-#editor{display:none}
-.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.seg button{font:inherit;font-size:13px;font-weight:700;padding:11px 16px;min-height:44px;border-radius:10px;cursor:pointer;
-  border:1px solid var(--line);background:var(--bg);color:var(--sub);transition:background .12s,color .12s,border-color .12s}
-.seg button:hover{border-color:var(--tool);color:var(--tool2)}
-.seg button[aria-pressed="true"]{background:var(--tool);border-color:var(--tool);color:#fff}
-
-.opt{background:#f7fafd;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
-.opt label{display:block;font-size:12.5px;color:var(--sub);font-weight:600;margin-bottom:8px}
-.opt .num{font-family:"SF Mono",Consolas,"D2Coding",monospace;color:var(--tool2)}
-.opt input[type=range]{width:100%;accent-color:var(--tool)}
-.opt p{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.6}
-
-/* 투명 영역이 보이도록 체커보드 */
-.stage{background:conic-gradient(#e6e7e3 90deg,#fff 90deg 180deg,#e6e7e3 180deg 270deg,#fff 270deg) 0 0/18px 18px;
-  border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;justify-content:center;margin-bottom:14px}
-#cv{max-width:100%;max-height:56vh;touch-action:none;cursor:crosshair;display:block}
-
-.tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
-.btn{font:inherit;font-size:13px;font-weight:700;padding:11px 16px;min-height:44px;border-radius:10px;cursor:pointer;border:1px solid var(--line);
-  background:#fff;color:var(--sub);transition:border-color .12s,color .12s,background .12s}
-.btn:hover:not(:disabled){border-color:var(--tool);color:var(--tool2)}
-.btn:disabled{opacity:.45;cursor:default}
-.btn.primary{background:var(--tool);border-color:var(--tool);color:#fff;font-size:14px;font-weight:600;padding:11px 22px}
-.btn.primary:hover{background:var(--tool2);border-color:var(--tool2);color:#fff}
-.left{margin-left:auto;font-family:"SF Mono",Consolas,"D2Coding",monospace;font-size:11.5px;color:var(--muted)}
-
-#msg{font-size:12.5px;line-height:1.6;padding:11px 15px;border-radius:10px;margin-top:12px;display:none}
-#msg.ok{display:block;background:#e8f5e9;border-left:4px solid var(--ok);color:#1b5e20}
-#msg.warn{display:block;background:#fff8e1;border-left:4px solid var(--warn);color:#7a4b00}
-
-.out{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:4px}
-.out .note{font-size:11.5px;color:var(--muted);line-height:1.55}
-footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;line-height:1.8}
-@media(max-width:640px){header{padding:20px 22px}.panel{padding:18px 18px}#cv{max-height:44vh}}
-:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:8px}
-
-/* 5g — 컨트롤을 왼쪽 열로 모아 캔버스가 항상 보이게 한다 */
-.edit{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
-.panel.side{margin-bottom:0}
-.canvaswrap{display:flex;flex-direction:column;gap:12px;position:sticky;top:64px}
-.canvaswrap .stage{margin-bottom:0}
 .canvasbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.canvasbar .left{margin-right:auto}
-.canvaswrap .note{font-size:11.5px;color:var(--muted);line-height:1.55}
-#cv{max-height:62vh}
+.canvasbar .left{margin-right:auto;font-family:"SF Mono",Consolas,"D2Coding",monospace;
+  font-size:11.5px;color:var(--muted)}
+#outnote{font-size:11.5px;color:var(--muted);line-height:1.55}
+
+#msg{font-size:12.5px;line-height:1.6;padding:11px 15px;border-radius:var(--r-md);display:none}
+#msg.ok{display:block;background:#eef6f5;color:#00544c}
+#msg.warn{display:block;background:var(--amber-tint);color:var(--amber-deep)}
+
+/* 이미지가 없을 땐 컨트롤을 흐리게 — 무엇이 잠겼는지 보이게 */
+#shell[data-ready="0"] .panel .grp{opacity:.45;pointer-events:none}
+footer{margin-top:26px;text-align:center;color:var(--muted);font-size:11.5px;line-height:1.8}
 @media(max-width:1024px){ .edit{grid-template-columns:1fr} .canvaswrap{position:static} }
-@media(max-width:640px){ #cv{max-height:44vh} }
+@media(max-width:640px){ .hero{padding:18px} .hero h1{font-size:22px} .panel{padding:18px}
+  #cv{max-height:44vh} .stage{min-height:240px} }
 </style>
 </head>
 <body>
 <div class="topbar">
   <a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a>
-  <span style="opacity:.35">|</span>
-  <a class="sec" href="/D76-BB-KNIT/reports/tools/">🧮 Tools</a>
-  <span class="lbl">배경 지우기</span>
+  <span class="sep">|</span>
+  <a class="here" href="/D76-BB-KNIT/reports/tools/">🧮 Tools</a>
+  <span class="live">배경 지우기</span>
 </div>
 <a class="fab" href="/D76-BB-KNIT/" title="D76 Hub">📊</a>
 
-<div class="wrap">
-<header>
-  <h1>✂️ 배경 지우기</h1>
-  <div class="meta">사진을 올리고 배경을 지운 뒤 투명 PNG로 내려받습니다. 브라우저 안에서만 처리되어 이미지가 서버로 올라가지 않습니다.</div>
-</header>
-
-<div class="panel" id="uploadPanel">
-  <h2>이미지</h2>
-  <div id="drop" tabindex="0" role="button" aria-label="이미지 선택 또는 끌어다 놓기">
-    <div class="big">🖼️</div>
-    <div class="t">이미지를 끌어다 놓거나 클릭해서 선택</div>
-    <div class="d">붙여넣기(Ctrl+V)도 됩니다 · PNG · JPG · WEBP</div>
+<div class="wrap" id="shell" data-ready="0">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">TOOLS</div>
+      <h1>✂️ 배경 지우기</h1>
+      <div class="meta">업로드 없이 브라우저에서 처리 — 투명 PNG로 내려받기</div>
+    </div>
+    <button class="btn primary" id="dl" disabled>투명 PNG 내려받기</button>
   </div>
-  <input type="file" id="file" accept="image/*">
-</div>
 
-<div id="editor">
   <div class="edit">
-    <div class="panel side">
-      <h2>방식</h2>
-      <div class="seg" id="modes">
-        <button data-mode="auto" aria-pressed="true">자동</button>
-        <button data-mode="pick" aria-pressed="false">색 찍어 지우기</button>
-        <button data-mode="erase" aria-pressed="false">지우개</button>
-        <button data-mode="restore" aria-pressed="false">되살리기</button>
+    <div class="panel">
+      <h2>모드</h2>
+      <div class="grp">
+        <div class="seg" id="modes">
+          <button data-mode="auto" aria-pressed="true">자동</button>
+          <button data-mode="pick" aria-pressed="false">색 찍기</button>
+          <button data-mode="erase" aria-pressed="false">지우개</button>
+          <button data-mode="restore" aria-pressed="false">되살리기</button>
+        </div>
+        <div class="opt" id="opt"></div>
       </div>
-      <div class="opt" id="opt"></div>
 
-      <h2 style="margin-top:4px">다듬기</h2>
-      <div class="tools">
-        <button class="btn" id="erode">테두리 한 겹 깎기</button>
-        <button class="btn" id="feather">가장자리 부드럽게</button>
-        <button class="btn" id="undo" disabled>되돌리기</button>
-        <button class="btn" id="reset">처음으로</button>
+      <h2>다듬기</h2>
+      <div class="grp">
+        <div class="btns">
+          <button class="btn" id="erode">테두리 깎기</button>
+          <button class="btn" id="feather">가장자리 부드럽게</button>
+          <button class="btn" id="undo" disabled>되돌리기</button>
+          <button class="btn" id="reset">처음으로</button>
+        </div>
+        <div id="msg"></div>
       </div>
-      <div id="msg"></div>
     </div>
 
     <div class="canvaswrap">
-      <div class="stage"><canvas id="cv"></canvas></div>
+      <div class="stage">
+        <div id="uploadPanel">
+          <div id="drop" tabindex="0" role="button" aria-label="이미지 선택 또는 끌어다 놓기">
+            <div class="big">🖼️</div>
+            <div class="t">이미지를 끌어다 놓거나 클릭해서 선택</div>
+            <div class="d">붙여넣기(Ctrl+V)도 됩니다 · PNG · JPG · WEBP</div>
+          </div>
+        </div>
+        <div id="editor" style="display:none"><canvas id="cv"></canvas></div>
+      </div>
       <div class="canvasbar">
-        <span class="left" id="left">100% 남음</span>
-        <button class="btn primary" id="dl">투명 PNG로 내려받기</button>
+        <span class="left" id="left">이미지를 올려 주세요</span>
         <button class="btn" id="again">다른 이미지</button>
       </div>
-      <div class="note" id="outnote"></div>
+      <div id="outnote"></div>
     </div>
   </div>
+
+  <input type="file" id="file" accept="image/*">
 </div>
 
 <footer>
   Sae-A Target11 · D76 Tools<br>
   이미지는 업로드되지 않고 브라우저 안에서만 처리됩니다
 </footer>
-</div>
 
 <script>
 (function () {
@@ -175,6 +192,13 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;lin
     painting: false,
     lastPt: null
   };
+
+  // 이미지가 올라오기 전에는 다듬기·내려받기를 잠근다 (st.work 가 없어 터진다)
+  function setReady(on) {
+    ['erode', 'feather', 'reset', 'dl'].forEach(function (id) { $(id).disabled = !on; });
+    if (!on) $('undo').disabled = true;
+    document.getElementById('shell').setAttribute('data-ready', on ? '1' : '0');
+  }
 
   /* ── 히스토리 ───────────────────────────────── */
   function snapshot() {
@@ -376,6 +400,7 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;lin
 
       $('uploadPanel').style.display = 'none';
       $('editor').style.display = 'block';
+      setReady(true);
       $('undo').disabled = true;
       setMode('auto');
       paint();
@@ -497,6 +522,7 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;lin
     st.img = null; st.work = null; st.orig = null; st.history = [];
     $('editor').style.display = 'none';
     $('uploadPanel').style.display = 'block';
+    setReady(false);
     $('file').value = '';
     say('');
   });
@@ -536,6 +562,7 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;lin
   }
 
   renderOptions();
+  setReady(false);
 })();
 </script>
 </body>
