@@ -9,19 +9,19 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root{
-    --bg:#f4f6f9; --card:#ffffff; --ink:#1a2333; --muted:#66738a;
-    --line:#e3e8ef; --accent:#1f5eff; --ok:#0e8a4c; --okbg:#e8f6ee;
-    --bad:#c62828; --badbg:#fdecec; --warn:#b26a00; --warnbg:#fff4e0;
-  }
+    --bg:#f3f2f6; --card:#ffffff; --ink:#1d1c22; --muted:#9a99a2;
+    --line:#e7e5ee; --accent:#0277bd; --ok:#00695c; --okbg:#eef6f5;
+    --bad:#CC0000; --badbg:#fdf3f3; --warn:#8a4b00; --warnbg:#fff8ee;
+  ;--body:#4a4954;--pos:#00695c;--neg:#CC0000;--tool-deep:#014b7e;--man-deep:#00544c;--gf-deep:#4527a0;--amber-deep:#8a4b00;--amber-tint:#fff8ee;--r-sm:8px;--r-md:10px;--r-lg:14px;--r-xl:16px;--sh-1:0 1px 2px rgba(20,18,30,.06);--sh-2:0 8px 22px rgba(20,18,30,.11);--tool:#0277bd}
   *{box-sizing:border-box; margin:0; padding:0;}
-  body{font-family:'Segoe UI','Malgun Gothic',sans-serif; background:var(--bg); color:var(--ink); margin:0;}
+  body{font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif; background:var(--bg); color:var(--ink); margin:0;}
 .d76wrap{padding:28px 20px 60px}
   .wrap{max-width:1080px; margin:0 auto;}
   h1{font-size:21px; font-weight:700; margin-bottom:4px;}
   .sub{color:var(--muted); font-size:13px; margin-bottom:22px; line-height:1.6;}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
-  @media(max-width:760px){.grid{grid-template-columns:1fr;}}
-  .drop{background:var(--card); border:2px dashed var(--line); border-radius:12px; padding:22px 18px; text-align:center; cursor:pointer; transition:.15s;}
+  @media(max-width:640px){.grid{grid-template-columns:1fr;}}
+  .drop{background:var(--card); border:2px dashed var(--line); border-radius:14px; padding:22px 18px; text-align:center; cursor:pointer; transition:.15s;}
   .drop:hover,.drop.over{border-color:var(--accent); background:#f0f5ff;}
   .drop h3{font-size:14px; margin-bottom:5px;}
   .drop p{font-size:12px; color:var(--muted); line-height:1.5;}
@@ -29,11 +29,11 @@
   .filelist{margin-top:8px; font-size:11px; color:var(--muted); max-height:110px; overflow:auto; text-align:left;}
   .filelist div{padding:1px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .btnrow{display:flex; gap:10px; align-items:center; margin-bottom:22px; flex-wrap:wrap;}
-  button.run{background:var(--accent); color:#fff; border:none; border-radius:9px; padding:11px 26px; font-size:14px; font-weight:600; cursor:pointer;}
+  button.run{background:var(--accent); color:#fff; border:none; border-radius:10px; padding:11px 26px; font-size:14px; font-weight:600; cursor:pointer;}
   button.run:disabled{background:#b9c4d6; cursor:not-allowed;}
-  button.clear{background:none; border:1px solid var(--line); border-radius:9px; padding:10px 18px; font-size:13px; color:var(--muted); cursor:pointer;}
+  button.clear{background:none; border:1px solid var(--line); border-radius:10px; padding:10px 18px; font-size:13px; color:var(--muted); cursor:pointer;}
   .status{font-size:13px; color:var(--muted);}
-  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:18px;}
   .card h2{font-size:15px; margin-bottom:3px;}
   .card .meta{font-size:12px; color:var(--muted); margin-bottom:13px;}
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
@@ -56,10 +56,12 @@
   .tablebox{max-height:560px; overflow:auto; border:1px solid var(--line); border-radius:8px;}
   .empty{padding:36px; text-align:center; color:var(--muted); font-size:13px;}
   .err{background:var(--badbg); color:var(--bad); border-radius:8px; padding:10px 14px; font-size:12.5px; margin-bottom:14px; line-height:1.6;}
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:8px}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar,#1b1b22);color:#fff;font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;padding:11px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.topbar a{color:#fff;text-decoration:none}.topbar .brand{font-weight:700}.topbar .sep{opacity:.3}.topbar .live{margin-left:auto;font-size:12px;opacity:.55}@media(max-width:640px){.topbar{font-size:12px;padding:10px 14px}.topbar .live{display:none}}.fab{position:fixed;right:18px;bottom:18px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--bar,#1b1b22);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;text-decoration:none;box-shadow:0 8px 22px rgba(20,18,30,.11)}
 </style>
 </head>
 <body>
-<div style="position:sticky;top:0;z-index:9999;background:#1b1b22;color:#fff;font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;padding:11px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;"><a href="/D76-BB-KNIT/" style="color:#fff;text-decoration:none;font-weight:700;">📊 D76 Hub</a><span style="opacity:.35">|</span><a href="/D76-BB-KNIT/reports/tools/" style="color:#9ecdf0;text-decoration:none;">🧮 Tools</a><span style="margin-left:auto;opacity:.6;font-size:12px">PO Recap Checker</span></div><a href="/D76-BB-KNIT/" title="D76 Hub" style="position:fixed;right:18px;bottom:18px;z-index:9999;background:#1b1b22;color:#fff;text-decoration:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 14px rgba(0,0,0,.35);">📊</a>
+<div class="topbar"><a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a><span class="sep">|</span><a class="here" href="/D76-BB-KNIT/reports/tools/">🧮 Tools</a><span class="live">PO Recap Checker</span></div><a class="fab" href="/D76-BB-KNIT/" title="D76 Hub">📊</a>
 <div class="d76wrap">
 
 <div class="wrap">

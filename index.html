@@ -1,196 +1,287 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<title>D76 Research Dashboard</title>
 <link rel="icon" href="/D76-BB-KNIT/favicon.svg">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>D76 Research Dashboard</title>
 <style>
-:root{--tcom:#CC0000;--gf:#5e35b1;--gf2:#311b92;--man:#00695c;--tool:#0277bd;--tool2:#01579b;--amber:#ef6c00;
-  --ink:#1d1c22;--sub:#6a6a72;--muted:#9a99a2;--bg:#f3f2f6;--card:#ffffff;--bar:#1b1b22;--line:#e7e5ee}
+/* 토큰 정본: _shared/d76_design.css — 값을 고칠 땐 거기부터 */
+:root{
+  --tcom:#CC0000; --tcom-tint:#fdf3f3; --tcom-deep:#8f0000;
+  --gf:#5e35b1;   --gf-tint:#f6f3fc;   --gf-deep:#4527a0;
+  --man:#00695c;  --man-tint:#eef6f5;  --man-deep:#00544c;
+  --tool:#0277bd; --tool-tint:#eef4fa; --tool-deep:#014b7e;
+  --amber:#ef6c00;--amber-tint:#fff8ee;--amber-deep:#8a4b00;
+  --pos:#00695c;  --neg:#CC0000;
+  --ink:#1d1c22; --body:#4a4954; --sub:#6a6a72; --muted:#9a99a2;
+  --bg:#f3f2f6;  --card:#fff;  --bar:#1b1b22; --line:#e7e5ee;
+  --r-sm:8px; --r-md:10px; --r-lg:14px; --r-xl:16px;
+  --sh-1:0 1px 2px rgba(20,18,30,.06);
+  --sh-2:0 8px 22px rgba(20,18,30,.11);
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
-.topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;font-size:13px;padding:12px 20px;display:flex;gap:14px;align-items:center}
-.topbar .brand{font-weight:700;color:#fff;text-decoration:none;font-size:14px}
-.topbar .live{margin-left:auto;opacity:.75;font-size:12px}
-.wrap{max-width:1120px;margin:0 auto;padding:22px 20px 56px}
+body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+a{color:var(--tool);text-decoration:none}
+a:hover{color:var(--tool-deep)}
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:var(--r-sm)}
+.wrap{max-width:1120px;margin:0 auto;padding:26px 20px 56px}
 
-/* ── 히어로 + 환율 ─────────────────────────────── */
-.hero{background:linear-gradient(135deg,#2b2a33 0%,#111 100%);color:#fff;border-radius:16px;padding:22px 26px;margin-bottom:14px;
-  display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
-.hero h1{font-size:21px;margin-bottom:5px}
-.hero .meta{opacity:.75;font-size:12.5px;line-height:1.6}
-.fx{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:12px 16px;min-width:236px}
-.fx .lbl{font-size:10px;letter-spacing:.14em;opacity:.55;text-transform:uppercase;font-weight:600}
-.fx .pair{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-top:5px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.14)}
-.fx .pair b{font-size:14px;letter-spacing:.02em}
-.fx .when{font-size:10px;opacity:.55;font-variant-numeric:tabular-nums;white-space:nowrap}
-.fx .row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-top:8px}
-.fx .unit{font-size:11.5px;opacity:.65}
-.fx .v{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums}
-.fx .note{font-size:9.5px;opacity:.45;margin-top:6px;line-height:1.45}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;
+  font-size:13px;padding:11px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.topbar a{color:#fff;text-decoration:none}
+.topbar .brand{font-weight:700}
+.topbar .live{margin-left:auto;font-size:12px;opacity:.55}
+@media(max-width:640px){ .topbar{font-size:12px;padding:10px 14px} .topbar .live{display:none} }
 
-/* ── 지표 스트립 ───────────────────────────────── */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px;margin-bottom:20px}
-.stat{background:var(--card);border-radius:11px;padding:12px 14px;border-left:4px solid var(--muted);box-shadow:0 1px 3px rgba(20,18,30,.06)}
-.stat .l{font-size:11px;color:var(--sub)}
-.stat .v{font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums;line-height:1.2}
-.stat .s{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.4}
-.stat.tcom{border-color:var(--tcom)}.stat.gf{border-color:var(--gf)}.stat.dn .s{color:var(--tcom)}
+/* 허브 히어로 — 다크 그라데이션 폐지, 환율을 흰 타일로 승격 */
+.hero{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+.hero.home{background:transparent;padding:0;margin-bottom:26px}
+.hero .eyebrow{font-size:11px;letter-spacing:.16em;font-weight:700;color:var(--sub)}
+.hero.home h1{font-size:30px;line-height:1.25;letter-spacing:-.015em;margin:6px 0}
+.hero .meta{font-size:13px;color:var(--sub);line-height:1.6}
 
-/* ── 섹션: 좌측 라벨 + 우측 카드 흐름 ──────────── */
-.board{background:var(--card);border-radius:16px;box-shadow:0 1px 3px rgba(20,18,30,.06);overflow:hidden}
-.sec{display:grid;grid-template-columns:132px 1fr;gap:18px;padding:16px 20px;border-top:1px solid var(--line)}
-.sec:first-child{border-top:0}
-.sec .lbl{padding-top:3px}
-.sec .lbl .n{font-size:12.5px;font-weight:700;letter-spacing:.02em;display:flex;align-items:center;gap:7px}
-.sec .lbl .n::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
-.sec .lbl .c{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.5;padding-left:15px}
-.sec.s-track .lbl .n::before{background:var(--tcom)}
-.sec.s-tool  .lbl .n::before{background:var(--tool)}
-.sec.s-man   .lbl .n::before{background:var(--man)}
-.sec.s-an    .lbl .n::before{background:var(--gf)}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:10px}
+.fx{background:var(--card);border-radius:var(--r-lg);padding:14px 20px;
+  display:flex;align-items:center;gap:18px;box-shadow:var(--sh-1)}
+.fx .lbl{font-size:11px;letter-spacing:.14em;font-weight:700;color:var(--muted)}
+.fx .when{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.fx .unit{font-size:13px;color:var(--sub)}
+.fx .v{font-size:34px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fx .note{font-size:10.5px;color:var(--muted);line-height:1.45;max-width:150px}
 
-a.card{display:block;background:var(--bg);border-radius:11px;padding:13px 15px;text-decoration:none;color:var(--ink);
-  border-left:4px solid var(--muted);transition:transform .12s,box-shadow .12s,background .12s}
-a.card:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(20,18,30,.12);background:#fff}
-a.card .t{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px;line-height:1.35}
-a.card .t .ico{font-size:16px;flex:none}
-a.card .d{font-size:11.5px;color:var(--sub);line-height:1.55;margin-top:5px}
-a.card .tag{display:inline-block;margin-top:8px;font-size:10.5px;padding:2px 8px;border-radius:9px;background:#eeecf3;color:#555;
-  font-variant-numeric:tabular-nums}
-a.card.tcom{border-left-color:var(--tcom)} a.card.tcom .tag{background:#fdecea;color:var(--tcom)}
-a.card.gf{border-left-color:var(--gf)}     a.card.gf .tag{background:#ede7f6;color:var(--gf2)}
-a.card.man{border-left-color:var(--man)}   a.card.man .tag{background:#e0f2f1;color:var(--man)}
-a.card.tool{border-left-color:var(--tool)} a.card.tool .tag{background:#e3f2fd;color:var(--tool2);
-  font-family:"SF Mono",Consolas,"D2Coding",monospace;font-size:10px}
+/* 섹션 색 면이 그룹을 만든다 — 흰 카드 래퍼(.board) 폐지 */
+.sec{border-radius:var(--r-xl);padding:20px 22px;margin-bottom:26px;
+  display:flex;flex-direction:column;gap:14px}
+.sec.s-track{background:var(--tcom-tint)} .sec.s-an{background:var(--gf-tint)}
+.sec.s-man{background:var(--man-tint)}    .sec.s-tool{background:var(--tool-tint)}
+.sec .lbl{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.sec .lbl .n{font-size:16px;font-weight:700}
+.sec .lbl .c{font-size:12.5px}
+.sec.s-track .lbl .n{color:var(--tcom-deep)} .sec.s-track .lbl .c{color:#a06060}
+.sec.s-an .lbl .n{color:var(--gf-deep)}     .sec.s-an .lbl .c{color:#7a6aa8}
+.sec.s-man .lbl .n{color:var(--man-deep)}   .sec.s-man .lbl .c{color:#5b8a85}
+.sec.s-tool .lbl .n{color:var(--tool-deep)} .sec.s-tool .lbl .c{color:#4b7ba0}
+.sec .lbl .aside{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
+.sec .lbl .aside > div{background:var(--card);border-radius:var(--r-md);padding:8px 14px}
+.sec .lbl .aside .k{font-size:10.5px;color:var(--muted);display:block}
+.sec .lbl .aside .v{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.cards.two{grid-template-columns:repeat(auto-fill,minmax(380px,1fr))}
 
-footer{margin-top:26px;text-align:center;color:var(--muted);font-size:11.5px;line-height:1.75}
+a.card{display:flex;flex-direction:column;gap:10px;background:var(--card);
+  border-radius:var(--r-lg);padding:20px 22px;min-height:124px;color:var(--ink);
+  text-decoration:none;transition:box-shadow .14s,transform .14s}
+a.card:hover{box-shadow:var(--sh-2);transform:translateY(-2px);color:var(--ink)}
+a.card .head{display:flex;align-items:flex-start;gap:12px}
+a.card .ico{font-size:27px;line-height:1;flex:none}
+a.card .t{font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.3}
+a.card .d{font-size:13px;color:var(--sub);line-height:1.6;margin-top:3px}
+a.card .tag{margin-left:auto;font-size:11px;font-weight:700;color:#fff;background:var(--muted);
+  padding:4px 9px;border-radius:var(--r-sm);white-space:nowrap;flex:none}
+a.card.tcom .tag{background:var(--tcom)} a.card.gf .tag{background:var(--gf)}
+a.card.man .tag{background:var(--man)}   a.card.tool .tag{background:var(--tool)}
+a.card .foot{display:flex;gap:20px;flex-wrap:wrap;border-top:1px solid var(--line);
+  padding-top:12px;margin-top:auto}
+a.card .foot b{font-size:19px;font-variant-numeric:tabular-nums;display:block}
+a.card .foot .dn b{color:var(--neg)}
+a.card .foot span{font-size:11.5px;color:var(--sub);display:block}
+a.card.row{flex-direction:row;align-items:center;gap:14px;min-height:74px;padding:18px 20px}
+a.card.row .t{font-size:16px}
+a.card.row .code{font-size:11.5px;color:var(--muted);font-family:"SF Mono",Consolas,"D2Coding",monospace}
 
-@media(max-width:680px){
-  .sec{grid-template-columns:1fr;gap:9px;padding:15px 16px}
-  .sec .lbl .c{padding-left:15px}
-  .hero{padding:19px 20px}
-  .fx{min-width:0;width:100%}
+footer{max-width:1120px;margin:0 auto;padding:0 20px 50px;text-align:center;
+  color:var(--muted);font-size:11.5px;line-height:1.75}
+
+@media(max-width:640px){
+  .sec{padding:16px 16px;border-radius:var(--r-lg)}
+  .sec .lbl .aside{margin-left:0;width:100%}
+  .cards,.cards.two{grid-template-columns:1fr}
+  .hero.home h1{font-size:25px}
+  .fx{width:100%;justify-content:space-between;gap:10px}
+  .fx .v{font-size:28px}
+  .fx .note{display:none}
+  a.card{min-height:0;padding:18px}
+  a.card .t{font-size:17px}
+  a.card .foot{gap:14px}
 }
 </style>
 </head>
 <body>
 <div class="topbar">
-  <a class="brand" href="./">📊 D76 Research Hub</a>
+  <a class="brand" href="./">📊 D76 Research Dashboard</a>
   <span class="live">Target Dept 76 · Cat &amp; Jack · 격주 갱신</span>
 </div>
+
 <div class="wrap">
 
-<div class="hero">
+<div class="hero home">
   <div>
+    <div class="eyebrow">SAE-A TARGET11</div>
     <h1>D76 Research Dashboard</h1>
-    <div class="meta">Target Dept 76 (Big Kids Boy) · Cat &amp; Jack 리서치 게시판<br>
-    최신 회차: <b>2026-08-03 ~ 08-18 (W13)</b> · 최종 게시: <b>2026-08-27</b></div>
+    <div class="meta">Target Dept 76 (Big Kids Boy) · Cat &amp; Jack 리서치 게시판</div>
   </div>
   <div class="fx">
-    <div class="lbl">Exchange Rate</div>
-    <div class="pair"><b>USD → KRW</b><span class="when" id="fxwhen">…</span></div>
-    <div class="row"><span class="unit">1 USD</span><span class="v" id="fxv">…</span></div>
-    <div class="note" id="fxnote">중간시장 환율 · 은행 고시/송금 환율과 다를 수 있음</div>
+    <div>
+      <div class="lbl">USD → KRW</div>
+      <div class="when" id="fxwhen">…</div>
+    </div>
+    <div class="v" id="fxv">…</div>
+    <div class="note" id="fxnote">중간시장 환율 · 은행 고시와 다를 수 있음</div>
   </div>
 </div>
 
-<div class="stats">
-  <div class="stat tcom"><div class="l">076 카탈로그</div><div class="v">105</div><div class="s">111 → 105 (−6)</div></div>
-  <div class="stat tcom"><div class="l">신상 (NEW)</div><div class="v">5</div><div class="s">전부 신규 클래스 076-17</div></div>
-  <div class="stat tcom dn"><div class="l">가격 변동</div><div class="v">19</div><div class="s">전부 인하 · 클리어런스</div></div>
-  <div class="stat tcom"><div class="l">DROPPED</div><div class="v">21</div><div class="s">재등장 10</div></div>
-  <div class="stat gf"><div class="l">신규 리뷰</div><div class="v">97</div><div class="s">누적 223건</div></div>
-  <div class="stat gf"><div class="l">NEG 불만</div><div class="v">18</div><div class="s">주의: WR8X75 (9건)</div></div>
+<div class="sec s-track">
+  <div class="lbl">
+    <div class="n">격주 트래킹</div>
+    <div class="c">2주 단위 자동 수집</div>
+    <div class="aside">
+      <div><span class="k">최신 회차</span><span class="v">W13 · 08-18</span></div>
+      <div><span class="k">최종 게시</span><span class="v">2026-08-28</span></div>
+    </div>
+  </div>
+  <div class="cards two">
+    <a class="card tcom" href="reports/tcom/">
+      <div class="head">
+        <span class="ico">🛒</span>
+        <div>
+          <div class="t">T.COM 카탈로그 트래킹</div>
+          <div class="d">Cat &amp; Jack 076 Boys — 신상 · DROPPED · 재등장 · 가격변동</div>
+        </div>
+        <span class="tag">W13</span>
+      </div>
+      <div class="foot">
+        <div><b>105</b><span>카탈로그</span></div>
+        <div><b>5</b><span>신상</span></div>
+        <div class="dn"><b>19</b><span>가격 인하</span></div>
+        <div><b>21</b><span>DROPPED</span></div>
+      </div>
+    </a>
+    <a class="card gf" href="reports/feedback/">
+      <div class="head">
+        <span class="ico">💬</span>
+        <div>
+          <div class="t">Guest Feedback</div>
+          <div class="d">게스트 리뷰 수집 · POS/NEG 분석 · 패턴 연계성 · 스타일별 코멘트</div>
+        </div>
+        <span class="tag">08-18</span>
+      </div>
+      <div class="foot">
+        <div><b>97</b><span>신규 리뷰</span></div>
+        <div><b>223</b><span>누적</span></div>
+        <div class="dn"><b>18</b><span>NEG 불만</span></div>
+      </div>
+    </a>
+  </div>
 </div>
 
-<div class="board">
-
-  <div class="sec s-track">
-    <div class="lbl"><div class="n">격주 트래킹</div><div class="c">2주 단위 자동 수집</div></div>
-    <div class="cards">
-      <a class="card tcom" href="reports/tcom/">
-        <div class="t"><span class="ico">🛒</span>T.COM 카탈로그 트래킹</div>
-        <div class="d">Cat &amp; Jack 076 Boys — 신상 · DROPPED · 재등장 · 가격변동 격주 비교</div>
-        <span class="tag">최신: W13 · 08-03 ~ 08-18</span>
-      </a>
-      <a class="card gf" href="reports/feedback/">
-        <div class="t"><span class="ico">💬</span>Guest Feedback</div>
-        <div class="d">게스트 리뷰 수집 · POS/NEG 분석 · 패턴 연계성 · 스타일별 코멘트</div>
-        <span class="tag">최신: 08-04 ~ 08-18 · 누적 223</span>
-      </a>
-    </div>
+<div class="sec s-man">
+  <div class="lbl">
+    <div class="n">Manual</div>
+    <div class="c">프로세스 변경 시 갱신</div>
   </div>
-
-  <div class="sec s-man">
-    <div class="lbl"><div class="n">Manual</div><div class="c">프로세스 변경 시 갱신</div></div>
-    <div class="cards">
-      <a class="card man" href="reports/manual/ASAPMCE/">
-        <div class="t"><span class="ico">📘</span>ASAP/MCE Process Manual</div>
-        <div class="d">Submit Question Tree · Vendor Lookup · 용어 정의</div>
-        <span class="tag">Manual</span>
-      </a>
-      <a class="card man" href="reports/manual/FloorReady/">
-        <div class="t"><span class="ico">📐</span>Floor Ready</div>
-        <div class="d">Floor Ready 기준서 — TOPS · BOTTOMS 두 문서를 웹에서 바로 확인</div>
-        <span class="tag">Updated 2026-08-20</span>
-      </a>
-      <a class="card man" href="reports/manual/ProductDevGuide/">
-        <div class="t"><span class="ico">📗</span>Product Development Guide</div>
-        <div class="d">Target 아동복 제품 개발 가이드 — 트림 · 코드 · 루프 · 봉제 기준 (목차 이동 · 원본 다운로드)</div>
-        <span class="tag">A&amp;A Target Children's Apparel</span>
-      </a>
-    </div>
+  <div class="cards">
+    <a class="card man" href="reports/manual/ASAPMCE/">
+      <div class="head">
+        <span class="ico">📘</span>
+        <div>
+          <div class="t">ASAP/MCE Process Manual</div>
+          <div class="d">Submit Question Tree · Vendor Lookup · 용어 정의</div>
+        </div>
+      </div>
+    </a>
+    <a class="card man" href="reports/manual/FloorReady/">
+      <div class="head">
+        <span class="ico">📐</span>
+        <div>
+          <div class="t">Floor Ready</div>
+          <div class="d">Floor Ready 기준서 — TOPS · BOTTOMS</div>
+        </div>
+        <span class="tag">08-20</span>
+      </div>
+    </a>
+    <a class="card man" href="reports/manual/ProductDevGuide/">
+      <div class="head">
+        <span class="ico">📗</span>
+        <div>
+          <div class="t">Product Development Guide</div>
+          <div class="d">아동복 제품 개발 가이드 — 트림 · 코드 · 루프 · 봉제 기준</div>
+        </div>
+      </div>
+    </a>
   </div>
+</div>
 
-  <div class="sec s-tool">
-    <div class="lbl"><div class="n">Tools</div><div class="c">입력 시 즉시 환산</div></div>
-    <div class="cards">
-      <a class="card tool" href="reports/tools/fabric-weight/">
-        <div class="t"><span class="ico">🧵</span>원단 중량 / LBS단가 환산</div>
-        <div class="d">전폭 · 평량으로 야드당 중량을 구하고 파운드 단가를 kg · yd 단가로 환산</div>
-        <span class="tag">$/lbs · FW · G/SM → G/YD · $/Kg · $/YD</span>
-      </a>
-      <a class="card tool" href="reports/tools/binding-consumption/">
-        <div class="t"><span class="ico">📏</span>바인딩 소요량 계산</div>
-        <div class="d">원단 유효폭에서 나오는 조각 수로 완제품 1장당 소요 야드를 산출</div>
-        <span class="tag">q'ty · h · w · C/W → Cons.</span>
-      </a>
-      <a class="card tool" href="reports/tools/fabric-shipment/">
-        <div class="t"><span class="ico">🚚</span>Fabric Shipment Status</div>
-        <div class="d">Vertical → CA COP 원단 출고 현황 — 국가별 Drive 폴더 바로가기</div>
-        <span class="tag">NIC · GT</span>
-      </a>
-      <a class="card tool" href="reports/tools/po-recap/">
-        <div class="t"><span class="ico">📋</span>PO Recap Checker</div>
-        <div class="d">Order Recap ↔ PO Report 자동 대조 — 수량·단가 불일치 검출</div>
-        <span class="tag">xlsx · PDF → 대조</span>
-      </a>
-      <a class="card tool" href="reports/tools/bg-remover/">
-        <div class="t"><span class="ico">✂️</span>배경 지우기</div>
-        <div class="d">사진 배경을 지우고 투명 PNG로 내려받기 — 업로드 없이 브라우저에서 처리</div>
-        <span class="tag">이미지 → 투명 PNG</span>
-      </a>
-      <a class="card tool" href="reports/tools/typhoon/">
-        <div class="t"><span class="ico">🌀</span>태풍 추적</div>
-        <div class="d">기상청 태풍 상세정보 — 경로 · 강풍반경 · 위성영상</div>
-        <span class="tag">기상청 날씨누리</span>
-      </a>
-    </div>
+<div class="sec s-tool">
+  <div class="lbl">
+    <div class="n">Tools</div>
+    <div class="c">입력 시 즉시 환산</div>
   </div>
+  <div class="cards">
+    <a class="card tool row" href="reports/tools/fabric-weight/">
+      <span class="ico">🧵</span>
+      <div>
+        <div class="t">원단 중량 / LBS단가 환산</div>
+        <div class="code">$/lbs · FW · G/SM → G/YD · $/Kg · $/YD</div>
+      </div>
+    </a>
+    <a class="card tool row" href="reports/tools/binding-consumption/">
+      <span class="ico">📏</span>
+      <div>
+        <div class="t">바인딩 소요량 계산</div>
+        <div class="code">q'ty · h · w · C/W → Cons.</div>
+      </div>
+    </a>
+    <a class="card tool row" href="reports/tools/fabric-shipment/">
+      <span class="ico">🚚</span>
+      <div>
+        <div class="t">Fabric Shipment Status</div>
+        <div class="code">NIC · GT — Drive 바로가기</div>
+      </div>
+    </a>
+    <a class="card tool row" href="reports/tools/po-recap/">
+      <span class="ico">📋</span>
+      <div>
+        <div class="t">PO Recap Checker</div>
+        <div class="code">Order Recap ↔ PO Report 대조</div>
+      </div>
+      <span class="tag">외부</span>
+    </a>
+    <a class="card tool row" href="reports/tools/bg-remover/">
+      <span class="ico">✂️</span>
+      <div>
+        <div class="t">배경 지우기</div>
+        <div class="code">이미지 → 투명 PNG</div>
+      </div>
+    </a>
+    <a class="card tool row" href="reports/tools/typhoon/">
+      <span class="ico">🌀</span>
+      <div>
+        <div class="t">태풍 추적</div>
+        <div class="code">기상청 — 경로 · 강풍반경</div>
+      </div>
+      <span class="tag">외부</span>
+    </a>
+  </div>
+</div>
 
-  <div class="sec s-an">
-    <div class="lbl"><div class="n">특별 분석</div><div class="c">비정기 단발 리포트</div></div>
-    <div class="cards">
-      <a class="card gf" href="reports/feedback/Dept76_Fit_ClassicVsOversized_1Y_v2.html">
-        <div class="t"><span class="ico">📐</span>Fit 비교: Classic vs Oversized</div>
-        <div class="d">최근 1년 리뷰 기반 핏 선호 분석 (v2)</div>
-        <span class="tag">Special Report</span>
-      </a>
-    </div>
+<div class="sec s-an">
+  <div class="lbl">
+    <div class="n">특별 분석</div>
+    <div class="c">비정기 단발 리포트</div>
   </div>
+  <div class="cards">
+    <a class="card gf" href="reports/feedback/Dept76_Fit_ClassicVsOversized_1Y_v2.html">
+      <div class="head">
+        <span class="ico">📐</span>
+        <div>
+          <div class="t">Fit 비교: Classic vs Oversized</div>
+          <div class="d">최근 1년 리뷰 기반 핏 선호 분석 (v2)</div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
 
 </div>
 
@@ -198,7 +289,6 @@ footer{margin-top:26px;text-align:center;color:var(--muted);font-size:11.5px;lin
   Sae-A Target11 · 자동 생성 게시판 — 새 회차는 격주로 이 페이지에 추가됩니다.<br>
   데이터 출처: Target.com 공개 카탈로그 · 게스트 리뷰 (파싱 데이터) · 환율: open.er-api.com (일별 갱신)
 </footer>
-</div>
 
 <script>
 (async function(){

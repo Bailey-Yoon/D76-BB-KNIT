@@ -7,26 +7,26 @@
 body { font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
        background:#f7f8fa; color:#222; line-height:1.5; padding-bottom:60px; }
 .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-header { background: linear-gradient(135deg, #5e35b1 0%, #311b92 100%);
+header { background: #f6f3fc;
          color: white; padding: 30px 24px; border-radius: 12px; margin-bottom: 24px; }
 header h1 { font-size: 1.7rem; margin-bottom: 8px; }
 header .meta { font-size: 0.92rem; opacity: 0.9; line-height:1.7; }
 section { background:white; padding:20px 24px; border-radius:10px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
-section h2 { font-size:1.15rem; margin-bottom:12px; color:#311b92; }
+section h2 { font-size:1.15rem; margin-bottom:12px; color:#4527a0; }
 section .sub { font-size:0.86rem; color:#666; margin-bottom:10px; }
 .kpi-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:14px; margin-bottom:18px; }
-.kpi { background:white; padding:18px; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+.kpi { background:#fff; padding:16px 18px; border-radius:14px; box-shadow:0 1px 2px rgba(20,18,30,.06); }
 .kpi-label { font-size:0.82rem; color:#666; margin-bottom:6px; }
 .kpi-value { font-size:1.9rem; font-weight:700; line-height:1.1; }
 .kpi-sub { font-size:0.78rem; color:#888; margin-top:4px; }
-.insight-box { background:linear-gradient(135deg,#fff8e1 0%,#ffecb3 100%);
+.insight-box { background:#fff8ee;
               border-left:4px solid #ef6c00; padding:18px 22px; border-radius:8px; margin-bottom:18px; }
 .insight-box h2 { font-size:1.1rem; color:#bf360c; margin-bottom:10px; }
 .insight-box ol { padding-left: 22px; }
 .insight-box li { margin-bottom:8px; font-size:0.93rem; }
 .pattern-table { width:100%; border-collapse:collapse; font-size:0.9rem; }
 .pattern-table th, .pattern-table td { padding:10px; text-align:left; border-bottom:1px solid #eee; }
-.pattern-table th { background:#f3eaff; color:#311b92; font-weight:600; }
+.pattern-table th { background:#f3eaff; color:#4527a0; font-weight:600; }
 .style-chip { display:inline-block; background:#ede7f6; color:#4527a0;
               padding:3px 9px; border-radius:14px; font-family:"SF Mono",Consolas,monospace;
               font-size:0.82rem; text-decoration:none; margin:2px 4px 2px 0; }
@@ -36,21 +36,21 @@ section .sub { font-size:0.86rem; color:#666; margin-bottom:10px; }
                 scroll-margin-top: 20px; }
 .sg-header { display:flex; align-items:center; gap:14px; padding-bottom:12px;
               border-bottom:1px solid #eee; margin-bottom:14px; flex-wrap:wrap; }
-.sg-thumb { width:60px; height:60px; object-fit:cover; border-radius:6px; border:1px solid #ddd; }
+.sg-thumb { width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #ddd; }
 .sg-info { flex:1; min-width:200px; }
 .sg-styleno { font-family:"SF Mono",Consolas,monospace; font-weight:700;
-                font-size:1.15rem; color:#311b92; }
+                font-size:1.15rem; color:#4527a0; }
 .sg-name { font-size:0.85rem; color:#555; }
 .sg-stats { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
-.chip { padding:3px 10px; border-radius:12px; font-size:0.8rem; font-weight:600; }
+.chip { padding:3px 10px; border-radius:14px; font-size:0.8rem; font-weight:600; }
 .chip-pos { background:#ddedea; color:#0a6e57; }
-.chip-neg { background:#fbe4e4; color:#b1130b; }
+.chip-neg { background:#fbe4e4; color:#CC0000; }
 .chip-total { background:#ede7f6; color:#4527a0; }
 .chip-date { font-size:0.78rem; color:#888; padding:3px 6px; }
 .sg-cards { display:flex; flex-direction:column; gap:10px; }
 .card { padding:12px 14px; border-radius:8px; border-left:3px solid; }
-.card.pos { background:#f7fbf7; border-left-color:#2e7d32; }
-.card.neg { background:#fef7f7; border-left-color:#c62828; }
+.card.pos { background:#f7fbf7; border-left-color:#00695c; }
+.card.neg { background:#fef7f7; border-left-color:#CC0000; }
 .card-head { display:flex; gap:8px; align-items:center; margin-bottom:6px; flex-wrap:wrap; }
 .card-date { font-size:0.82rem; color:#666; font-weight:600; }
 .card-badge { color:white; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:700; }
@@ -62,13 +62,15 @@ section .sub { font-size:0.86rem; color:#666; margin-bottom:10px; }
 .pat-tag { display:inline-block; background:#fff3cd; color:#856404;
             padding:2px 8px; border-radius:10px; font-size:0.72rem; margin-right:4px; }
 .cross-box { background:#f3eaff; border-left:3px solid #5e35b1;
-              margin-top:8px; padding:8px 10px; border-radius:6px; font-size:0.85rem; }
+              margin-top:8px; padding:8px 10px; border-radius:8px; font-size:0.85rem; }
 .cross-box a { color:#4527a0; font-family:"SF Mono",Consolas,monospace;
                  text-decoration:none; font-weight:600; }
 footer { text-align:center; color:#999; font-size:0.82rem; margin-top:20px; padding:16px; }
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:8px}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar,#1b1b22);color:#fff;font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;padding:11px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.topbar a{color:#fff;text-decoration:none}.topbar .brand{font-weight:700}.topbar .sep{opacity:.3}.topbar .live{margin-left:auto;font-size:12px;opacity:.55}@media(max-width:640px){.topbar{font-size:12px;padding:10px 14px}.topbar .live{display:none}}.fab{position:fixed;right:18px;bottom:18px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--bar,#1b1b22);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;text-decoration:none;box-shadow:0 8px 22px rgba(20,18,30,.11)}
 </style></head>
 <body>
-<div style="position:sticky;top:0;z-index:100;background:#1b1b22;color:#fff;font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;padding:11px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;"><a href="/D76-BB-KNIT/" style="color:#fff;text-decoration:none;font-weight:700;">📊 D76 Hub</a><span style="opacity:.35">|</span><a href="/D76-BB-KNIT/reports/feedback/" style="color:#cfc9e8;text-decoration:none;">💬 Guest Feedback 목록</a></div><a href="/D76-BB-KNIT/" title="D76 Hub" style="position:fixed;right:18px;bottom:18px;z-index:9999;background:#1b1b22;color:#fff;text-decoration:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 14px rgba(0,0,0,.35);">📊</a>
+<div class="topbar"><a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a><span class="sep">|</span><a class="here" href="/D76-BB-KNIT/reports/feedback/">💬 Guest Feedback 목록</a></div><a class="fab" href="/D76-BB-KNIT/" title="D76 Hub">📊</a>
 
 <div class="container">
   <header>
@@ -92,14 +94,14 @@ footer { text-align:center; color:#999; font-size:0.82rem; margin-top:20px; padd
     <div class="kpi-value">5개</div>
     <div class="kpi-sub">/ Dept 76 마스터 47</div>
   </div>
-  <div class="kpi" style="border-top:4px solid #2e7d32">
+  <div class="kpi" style="border-top:4px solid #00695c">
     <div class="kpi-label">POS</div>
-    <div class="kpi-value" style="color:#2e7d32">4건</div>
+    <div class="kpi-value" style="color:#00695c">4건</div>
     <div class="kpi-sub">호평</div>
   </div>
-  <div class="kpi" style="border-top:4px solid #c62828">
+  <div class="kpi" style="border-top:4px solid #CC0000">
     <div class="kpi-label">NEG</div>
-    <div class="kpi-value" style="color:#c62828">2건</div>
+    <div class="kpi-value" style="color:#CC0000">2건</div>
     <div class="kpi-sub">불만</div>
   </div>
 </div>
@@ -138,7 +140,7 @@ footer { text-align:center; color:#999; font-size:0.82rem; margin-top:20px; padd
 <div class="card pos">
   <div class="card-head">
     <span class="card-date">6/9</span>
-    <span class="card-badge" style="background:#2e7d32">POS</span>
+    <span class="card-badge" style="background:#00695c">POS</span>
     <span class="card-cat">Style</span>
     <span class="card-stars">★★★★★</span>
   </div>
@@ -151,7 +153,7 @@ footer { text-align:center; color:#999; font-size:0.82rem; margin-top:20px; padd
 <div class="card neg">
   <div class="card-head">
     <span class="card-date">6/2</span>
-    <span class="card-badge" style="background:#c62828">NEG</span>
+    <span class="card-badge" style="background:#CC0000">NEG</span>
     <span class="card-cat">Value</span>
     <span class="card-stars">★☆☆☆☆</span>
   </div>
@@ -181,7 +183,7 @@ footer { text-align:center; color:#999; font-size:0.82rem; margin-top:20px; padd
 <div class="card neg">
   <div class="card-head">
     <span class="card-date">6/12</span>
-    <span class="card-badge" style="background:#c62828">NEG</span>
+    <span class="card-badge" style="background:#CC0000">NEG</span>
     <span class="card-cat">Value</span>
     <span class="card-stars">★☆☆☆☆</span>
   </div>
@@ -211,7 +213,7 @@ footer { text-align:center; color:#999; font-size:0.82rem; margin-top:20px; padd
 <div class="card pos">
   <div class="card-head">
     <span class="card-date">6/1</span>
-    <span class="card-badge" style="background:#2e7d32">POS</span>
+    <span class="card-badge" style="background:#00695c">POS</span>
     <span class="card-cat">Quality</span>
     <span class="card-stars">★★★★★</span>
   </div>
@@ -241,7 +243,7 @@ footer { text-align:center; color:#999; font-size:0.82rem; margin-top:20px; padd
 <div class="card pos">
   <div class="card-head">
     <span class="card-date">6/9</span>
-    <span class="card-badge" style="background:#2e7d32">POS</span>
+    <span class="card-badge" style="background:#00695c">POS</span>
     <span class="card-cat">Comfort</span>
     <span class="card-stars">★★★★★</span>
   </div>
@@ -271,7 +273,7 @@ footer { text-align:center; color:#999; font-size:0.82rem; margin-top:20px; padd
 <div class="card pos">
   <div class="card-head">
     <span class="card-date">6/3</span>
-    <span class="card-badge" style="background:#2e7d32">POS</span>
+    <span class="card-badge" style="background:#00695c">POS</span>
     <span class="card-cat">Comfort</span>
     <span class="card-stars">★★★★★</span>
   </div>

@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>D76 · Fabric Shipment Status</title>
 <style>
-:root{--tool:#0277bd;--tool2:#01579b;--tint:#e3f2fd;--ink:#222;--sub:#666;--muted:#9a99a2;
-  --bg:#f2f5fa;--card:#fff;--bar:#1b1b22;--line:#e6e9f0}
+:root{--tool:#0277bd;--tool2:#014b7e;--tint:#eef4fa;--ink:#1d1c22;--sub:#6a6a72;--muted:#9a99a2;
+  --bg:#f3f2f6;--card:#fff;--bar:#1b1b22;--line:#e7e5ee;--body:#4a4954;--pos:#00695c;--neg:#CC0000;--tool-deep:#014b7e;--man-deep:#00544c;--gf-deep:#4527a0;--amber-deep:#8a4b00;--amber-tint:#fff8ee;--r-sm:8px;--r-md:10px;--r-lg:14px;--r-xl:16px;--sh-1:0 1px 2px rgba(20,18,30,.06);--sh-2:0 8px 22px rgba(20,18,30,.11)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
 .topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;font-size:13px;padding:11px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
@@ -19,21 +19,21 @@ body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",s
   width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;
   box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .wrap{max-width:880px;margin:0 auto;padding:24px 20px 70px}
-header{background:linear-gradient(135deg,var(--tool) 0%,var(--tool2) 100%);color:#fff;border-radius:14px;
+header{background:#eef4fa;color:#014b7e;border-radius:14px;
   padding:24px 28px;margin-bottom:18px}
-header h1{font-size:21px;margin-bottom:6px}
-header .meta{opacity:.88;font-size:13px;line-height:1.6}
+header h1{font-size:21px;margin-bottom:6px;color:var(--ink);color:var(--ink)}
+header .meta{font-size:13px;line-height:1.6;color:var(--sub);color:var(--sub)}
 
-.panel{background:var(--card);border-radius:12px;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.panel{background:var(--card);border-radius:14px;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 2px rgba(20,18,30,.06)}
 .panel > h2{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px}
 
 .picks{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
-a.pick{display:flex;align-items:center;gap:16px;background:var(--tint);border:1px solid #cfe4f7;border-radius:12px;
+a.pick{display:flex;align-items:center;gap:16px;background:var(--tint);border:1px solid #cfe4f7;border-radius:14px;
   padding:18px 20px;text-decoration:none;color:var(--ink);transition:transform .12s,box-shadow .12s,background .12s}
-a.pick:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(2,119,189,.2);background:#fff;border-color:var(--tool)}
+a.pick:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(20,18,30,.11);background:#fff;border-color:var(--tool)}
 /* 국기 이모지는 Windows Chromium 에서 regional indicator 를 못 그려 "NI" 처럼 글자로 새는 경우가
    있어 쓰지 않는다. 항상 같게 보이는 코드 뱃지로 대체. */
-a.pick .badge{flex:none;width:54px;height:54px;border-radius:12px;background:var(--tool);color:#fff;
+a.pick .badge{flex:none;width:54px;height:54px;border-radius:14px;background:var(--tool);color:#fff;
   display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;letter-spacing:.04em}
 a.pick .txt{min-width:0}
 a.pick .code{display:block;font-size:18px;font-weight:700;color:var(--tool2);line-height:1.2}
@@ -43,8 +43,9 @@ a.pick .go{margin-left:auto;font-size:19px;color:var(--tool);flex:none}
 .note{font-size:12.5px;color:var(--sub);line-height:1.8}
 .note b{color:var(--tool2)}
 footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;line-height:1.8}
-@media(max-width:520px){header{padding:20px 22px}.panel{padding:17px 18px}a.pick{padding:15px 16px;gap:13px}
-  a.pick .badge{width:46px;height:46px;font-size:15px}a.pick .code{font-size:17px}}
+@media(max-width:640px){header{padding:20px 22px}.panel{padding:17px 18px}a.pick{padding:15px 16px;gap:13px}
+  a.pick .badge{width:52px;height:52px;font-size:15px}a.pick .code{font-size:17px}}
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:8px}
 </style>
 </head>
 <body>

@@ -2,49 +2,55 @@
 <html lang="ko"><head>
 <link rel="icon" href="/D76-BB-KNIT/favicon.svg"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>D76 · GF 2026-07-14~08-03</title><style>
-body{font-family:-apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;background:#f4f2fa;margin:0;color:#222}
+body{font-family:-apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;background:#f3f2f6;margin:0;color:#222}
 .wrap{max-width:1080px;margin:0 auto;padding:20px}
-header{background:linear-gradient(135deg,#5e35b1 0%,#311b92 100%);color:#fff;border-radius:14px;padding:26px 30px;margin-bottom:18px}
-header h1{margin:0 0 8px;font-size:22px} header .meta{opacity:.85;font-size:13px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
-.kpi{background:#fff;border-radius:10px;padding:14px 16px;border-left:4px solid #5e35b1;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.kpi.o{border-color:#ef6c00}.kpi.g{border-color:#2e7d32}.kpi.r{border-color:#c62828}
+header{background:#f6f3fc;color:#4527a0;border-radius:14px;padding:26px 30px;margin-bottom:18px}
+header h1{margin:0 0 8px;font-size:22px;color:var(--ink)} header .meta{font-size:13px;color:var(--sub)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,18,30,.06)}
+.kpi.o{border-color:#ef6c00}.kpi.g{border-color:#00695c}.kpi.r{border-color:#CC0000}
 .kpi .v{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:#666}
-.insight{background:linear-gradient(135deg,#fff8e1 0%,#ffecb3 100%);border-left:4px solid #ef6c00;border-radius:10px;padding:16px 20px;margin-bottom:18px;font-size:14px;line-height:1.7}
+.insight{background:#fff8ee;border-left:4px solid #ef6c00;border-radius:10px;padding:16px 20px;margin-bottom:18px;font-size:14px;line-height:1.7}
 .nav{margin-bottom:18px;line-height:2.2}
 .nav a{display:inline-block;padding:3px 10px;border-radius:20px;font-family:"SF Mono", Consolas, monospace;font-size:12px;text-decoration:none;margin-right:4px}
-.nav a.high{background:#fbe4e4;color:#b1130b}.nav a.medium{background:#fff3cd;color:#856404}.nav a.low{background:#ddedea;color:#0a6e57}
+.nav a.high{background:#fbe4e4;color:#CC0000}.nav a.medium{background:#fff3cd;color:#856404}.nav a.low{background:#ddedea;color:#0a6e57}
 table.pt{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;margin-bottom:18px;font-size:13px}
 table.pt th{background:#ede7f6;color:#4527a0;padding:9px 12px;text-align:left}table.pt td{padding:9px 12px;border-top:1px solid #eee}
-.sgroup{background:#fff;border-radius:12px;margin-bottom:16px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.sgroup.pri-high{border-left:5px solid #c62828}.sgroup.pri-medium{border-left:5px solid #ef6c00}.sgroup.pri-low{border-left:5px solid #2e7d32}
+.sgroup{border-radius:16px;margin-bottom:16px;padding:18px 20px;background:#f3f2f6;box-shadow:none}
+.sgroup.pri-high{background:#fdf3f3}.sgroup.pri-medium{background:#fff8ee}.sgroup.pri-low{background:#eef6f5}
 .sg-head{display:flex;gap:14px;align-items:center;margin-bottom:10px}
 .thumb{width:60px;height:60px;border-radius:8px;object-fit:cover;background:#eee}
 .thumb.ph{display:flex;align-items:center;justify-content:center;color:#aaa;font-size:20px}
-.sno{font-family:"SF Mono", Consolas, monospace;font-size:18px;font-weight:700;color:#311b92}
-.pri{font-size:10px;padding:2px 7px;border-radius:10px;vertical-align:middle}
-.pri.high{background:#fbe4e4;color:#b1130b}.pri.medium{background:#fff3cd;color:#856404}.pri.low{background:#ddedea;color:#0a6e57}
+.sno{font-family:"SF Mono", Consolas, monospace;font-size:18px;font-weight:700;color:#4527a0}
+.pri{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;vertical-align:middle}
+.pri.high{background:#CC0000;color:#fff}.pri.medium{background:#ef6c00;color:#fff}.pri.low{background:#00695c;color:#fff}
 .chip{font-size:11px;padding:2px 8px;border-radius:10px;margin-right:5px}
-.chip.pos-c{background:#ddedea;color:#0a6e57}.chip.neg-c{background:#fbe4e4;color:#b1130b}
+.chip.pos-c{background:#ddedea;color:#0a6e57}.chip.neg-c{background:#fbe4e4;color:#CC0000}
 .chip.tot{background:#ede7f6;color:#4527a0}.chip.avg{background:#e3f2fd;color:#0d47a1}.chip.price{background:#f5f5f5;color:#333}
 .review{border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px}
 .review.pos{background:#f7fbf7}.review.neg{background:#fef7f7}
 .r-meta{display:flex;gap:8px;align-items:center;margin-bottom:4px;font-size:12px}
-.r-date{color:#666}.badge{padding:1px 7px;border-radius:9px;font-size:10px;font-weight:700}
-.badge.pos-bg{background:#ddedea;color:#0a6e57}.badge.neg-bg{background:#fbe4e4;color:#b1130b}
-.r-cat{background:#f0f0f0;padding:1px 7px;border-radius:9px;font-size:10px}
+.r-date{color:#666}.badge{padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.badge.pos-bg{background:#ddedea;color:#0a6e57}.badge.neg-bg{background:#fbe4e4;color:#CC0000}
+.r-cat{background:#f0f0f0;padding:1px 7px;border-radius:10px;font-size:10px}
 .stars{color:#f9a825;font-size:12px}.stars .empty{color:#ddd}
 .r-title{font-weight:600;margin-bottom:2px}.r-body{line-height:1.55}
 .r-flex{display:flex;gap:10px}.r-main{flex:1}
-.rp{width:74px;height:74px;object-fit:cover;border-radius:6px}
-.pats{margin-top:5px}.pat{background:#fff3cd;color:#856404;font-size:10px;padding:2px 7px;border-radius:9px;margin-right:4px}
+.rp{width:74px;height:74px;object-fit:cover;border-radius:8px}
+.pats{margin-top:5px}.pat{background:#fff3cd;color:#856404;font-size:10px;padding:2px 7px;border-radius:10px;margin-right:4px}
 .cross{margin-top:5px;font-size:11px;color:#555}
-.chip-x{font-family:"SF Mono", Consolas, monospace;background:#ede7f6;color:#4527a0;padding:1px 7px;border-radius:9px;text-decoration:none;font-size:11px;margin-right:3px}
+.chip-x{font-family:"SF Mono", Consolas, monospace;background:#ede7f6;color:#4527a0;padding:1px 7px;border-radius:10px;text-decoration:none;font-size:11px;margin-right:3px}
 h2{font-size:17px;margin:24px 0 10px}
 footer{color:#888;font-size:12px;margin:26px 0 10px;text-align:center}
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:8px}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar,#1b1b22);color:#fff;font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;padding:11px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.topbar a{color:#fff;text-decoration:none}.topbar .brand{font-weight:700}.topbar .sep{opacity:.3}.topbar .live{margin-left:auto;font-size:12px;opacity:.55}@media(max-width:640px){.topbar{font-size:12px;padding:10px 14px}.topbar .live{display:none}}.fab{position:fixed;right:18px;bottom:18px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--bar,#1b1b22);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;text-decoration:none;box-shadow:0 8px 22px rgba(20,18,30,.11)}
+
+/* 4b — 색 면 안의 리뷰 타일은 그림자 없음 (면 자체가 그룹을 만든다) */
+.sgroup .review{background:#fff;border-radius:12px;box-shadow:none}
+.sgroup .chip{background:#fff}
 </style></head>
 <body>
-<div style="position:sticky;top:0;z-index:100;background:#1b1b22;color:#fff;font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;padding:11px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;"><a href="/D76-BB-KNIT/" style="color:#fff;text-decoration:none;font-weight:700;">📊 D76 Hub</a><span style="opacity:.35">|</span><a href="/D76-BB-KNIT/reports/feedback/" style="color:#cfc9e8;text-decoration:none;">💬 Guest Feedback 목록</a></div><a href="/D76-BB-KNIT/" title="D76 Hub" style="position:fixed;right:18px;bottom:18px;z-index:9999;background:#1b1b22;color:#fff;text-decoration:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 14px rgba(0,0,0,.35);">📊</a>
+<div class="topbar"><a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a><span class="sep">|</span><a class="here" href="/D76-BB-KNIT/reports/feedback/">💬 Guest Feedback 목록</a></div><a class="fab" href="/D76-BB-KNIT/" title="D76 Hub">📊</a>
 <div class="wrap">
 <header><h1>📍 Dept 76 게스트 피드백 리포트 — 7/14 ~ 8/3</h1>
 <div class="meta">기간: 2026-07-14 ~ 2026-08-03 (21일) · 수집일: 2026-08-03 · 오늘자 데이터 기준 · 브랜드: Cat &amp; Jack</div></header>

@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>D76 · 바인딩 소요량 계산</title>
 <style>
-:root{--tool:#0277bd;--tool2:#01579b;--tint:#e3f2fd;--ink:#222;--sub:#666;--muted:#9a99a2;
-  --bg:#f2f5fa;--card:#fff;--bar:#1b1b22;--line:#e6e9f0;--warn:#ef6c00;--bad:#c62828}
+:root{--tool:#0277bd;--tool2:#014b7e;--tint:#eef4fa;--ink:#1d1c22;--sub:#6a6a72;--muted:#9a99a2;
+  --bg:#f3f2f6;--card:#fff;--bar:#1b1b22;--line:#e7e5ee;--warn:#ef6c00;--bad:#CC0000;--body:#4a4954;--pos:#00695c;--neg:#CC0000;--tool-deep:#014b7e;--man-deep:#00544c;--gf-deep:#4527a0;--amber-deep:#8a4b00;--amber-tint:#fff8ee;--r-sm:8px;--r-md:10px;--r-lg:14px;--r-xl:16px;--sh-1:0 1px 2px rgba(20,18,30,.06);--sh-2:0 8px 22px rgba(20,18,30,.11);--amber:#ef6c00}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
 .topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;font-size:13px;padding:11px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
@@ -19,50 +19,58 @@ body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",s
   width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;
   box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .wrap{max-width:880px;margin:0 auto;padding:24px 20px 70px}
-header{background:linear-gradient(135deg,var(--tool) 0%,var(--tool2) 100%);color:#fff;border-radius:14px;
+header{background:#eef4fa;color:#014b7e;border-radius:14px;
   padding:24px 28px;margin-bottom:18px}
-header h1{font-size:21px;margin-bottom:6px}
-header .meta{opacity:.88;font-size:13px;line-height:1.6}
+header h1{font-size:21px;margin-bottom:6px;color:var(--ink);color:var(--ink)}
+header .meta{font-size:13px;line-height:1.6;color:var(--sub);color:var(--sub)}
 
-.panel{background:var(--card);border-radius:12px;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.panel{background:var(--card);border-radius:14px;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 2px rgba(20,18,30,.06)}
 .panel > h2{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px}
 
 .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
 .f label{display:block;font-size:12.5px;color:var(--sub);margin-bottom:5px;font-weight:600}
-.f .ig{display:flex;align-items:center;background:#fff;border:1px solid var(--line);border-radius:9px;
+.f .ig{display:flex;align-items:center;min-height:44px;background:#fff;border:1px solid var(--line);border-radius:10px;
   transition:border-color .12s,box-shadow .12s}
-.f .ig:focus-within{border-color:var(--tool);box-shadow:0 0 0 3px rgba(2,119,189,.13)}
-.f input{flex:1;min-width:0;border:0;outline:0;background:none;padding:11px 12px;font:inherit;font-size:15px;
+.f .ig:focus-within{border-color:var(--tool);box-shadow:0 0 0 4px rgba(2,119,189,.12)}
+.f input{flex:1;min-width:0;border:0;outline:0;background:none;padding:12px;font:inherit;font-size:15px;
   font-variant-numeric:tabular-nums;color:var(--ink)}
 .f .u{padding:0 12px 0 4px;font-size:12px;color:var(--muted);white-space:nowrap}
 .f .hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5}
 
 .outs{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}
 .out{background:var(--tint);border-radius:10px;padding:14px 16px;border-left:4px solid var(--tool)}
-.out.main{background:linear-gradient(135deg,#e1f5fe 0%,#cfe8fb 100%);border-left-color:var(--tool2)}
+.out.main{background:#eef4fa;border-left-color:var(--tool2)}
 .out .l{font-size:12px;color:var(--tool2);font-weight:600}
 .out .v{font-size:26px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;line-height:1.15;word-break:break-all}
 .out .u{font-size:11.5px;color:var(--sub);margin-top:3px}
 
 .formula{font-size:12.5px;line-height:2;color:var(--sub)}
 .formula code{font-family:"SF Mono",Consolas,"D2Coding",monospace;font-size:12px;background:#f4f6fa;
-  border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:#37474f;display:inline-block;margin:1px 0}
+  border:1px solid var(--line);border-radius:8px;padding:2px 7px;color:#37474f;display:inline-block;margin:1px 0}
 .formula b{color:var(--tool2)}
 .formula .row{padding:7px 0;border-bottom:1px solid var(--line)}
 .formula .row:last-child{border-bottom:0}
 .formula .note{font-size:11.5px;color:var(--muted);line-height:1.65;margin-top:10px}
 
-.warn{background:#fff8e1;border-left:4px solid var(--warn);border-radius:9px;padding:12px 16px;
+.warn{background:#fff8e1;border-left:4px solid var(--warn);border-radius:10px;padding:12px 16px;
   font-size:13px;line-height:1.6;color:#7a4b00;margin-top:14px}
 .warn.bad{background:#fdecea;border-left-color:var(--bad);color:#8e1b16}
 .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
-button{font:inherit;font-size:13px;padding:9px 16px;border-radius:9px;cursor:pointer;border:1px solid var(--line);
+button{font:inherit;font-size:13px;font-weight:700;padding:11px 18px;min-height:44px;border-radius:10px;cursor:pointer;border:1px solid var(--line);
   background:#fff;color:var(--sub);transition:background .12s,color .12s,border-color .12s}
 button:hover{border-color:var(--tool);color:var(--tool2)}
 button.primary{background:var(--tool);border-color:var(--tool);color:#fff}
 button.primary:hover{background:var(--tool2);border-color:var(--tool2);color:#fff}
 footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;line-height:1.8}
-@media(max-width:520px){.out .v{font-size:22px}header{padding:20px 22px}.panel{padding:17px 18px}}
+@media(max-width:640px){.out .v{font-size:22px}header{padding:20px 22px}.panel{padding:17px 18px}}
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:8px}
+
+/* 5f — 경고를 색만으로 알리지 않는다: 보더 + 필드 아래 문장 + 결과 위 경고 줄 */
+.f .ig[data-invalid="1"]{border:2px solid var(--amber);box-shadow:none}
+.f .fieldmsg{display:none;font-size:11.5px;color:var(--amber-deep);margin-top:5px;line-height:1.5}
+.f[data-invalid="1"] .fieldmsg{display:block}
+.f[data-invalid="1"] .hint{display:none}
+.out .v.void{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -87,6 +95,7 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;lin
       <label for="qty">q'ty / pc</label>
       <div class="ig"><input id="qty" type="number" step="any" min="0" value="1" inputmode="decimal"><span class="u">ea</span></div>
       <div class="hint">완제품 1장당 필요 수량</div>
+      <div class="fieldmsg">0보다 큰 값이어야 합니다</div>
     </div>
     <div class="f">
       <label for="h">height</label>
@@ -97,11 +106,13 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;lin
       <label for="w">width</label>
       <div class="ig"><input id="w" type="number" step="any" min="0" value="20" inputmode="decimal"><span class="u">inch</span></div>
       <div class="hint">바인딩 폭 방향</div>
+      <div class="fieldmsg">원단 유효폭보다 좁아야 합니다</div>
     </div>
     <div class="f">
       <label for="cw">Fabric C/W</label>
       <div class="ig"><input id="cw" type="number" step="any" min="0" value="68" inputmode="decimal"><span class="u">inch</span></div>
       <div class="hint">원단 재단 유효폭</div>
+      <div class="fieldmsg">바인딩 폭보다 넓어야 합니다</div>
     </div>
   </div>
 </div>
@@ -165,6 +176,15 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;lin
     return String(Math.round(n * 1e6) / 1e6);
   }
 
+  function mark(id, bad) {
+    var input = $(id);
+    var ig = input.parentNode;          // .ig
+    var field = ig.parentNode;          // .f
+    ig.setAttribute('data-invalid', bad ? '1' : '0');
+    field.setAttribute('data-invalid', bad ? '1' : '0');
+    input.setAttribute('aria-invalid', bad ? 'true' : 'false');
+  }
+
   function calc() {
     var qty = parseFloat($('qty').value);
     var h = parseFloat($('h').value);
@@ -203,6 +223,15 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;lin
     }
     $('warn').innerHTML = msgs.length
       ? '<div class="warn' + (bad ? ' bad' : '') + '">' + msgs.join('<br>') + '</div>' : '';
+
+    // 어느 칸이 문제인지 그 자리에서도 알린다 (색만으로 전달하지 않기 위해 문장을 함께)
+    mark('w',  !missing && (!(w > 0) || cut < 1));
+    mark('cw', !missing && cut < 1);
+    mark('qty',!missing && !(qty > 0));
+    // 결과가 무효일 때는 숫자를 회색으로 내려 오해를 막는다
+    ['o_qyd','o_qg','o_cons'].forEach(function (id) {
+      $(id).classList.toggle('void', $(id).textContent === '—');
+    });
   }
 
   ins.forEach(function (id) { $(id).addEventListener('input', calc); });

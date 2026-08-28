@@ -2,51 +2,65 @@
 <html lang="ko"><head>
 <link rel="icon" href="/D76-BB-KNIT/favicon.svg"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>D76 · GF 누적 브리핑</title><style>
-body{font-family:-apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;background:#f4f2fa;margin:0;color:#222}
+body{font-family:-apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;background:#f3f2f6;margin:0;color:#222}
 .wrap{max-width:1080px;margin:0 auto;padding:20px}
-header{background:linear-gradient(135deg,#5e35b1 0%,#311b92 100%);color:#fff;border-radius:14px;padding:26px 30px;margin-bottom:18px}
-header h1{margin:0 0 8px;font-size:22px} header .meta{opacity:.85;font-size:13px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
-.kpi{background:#fff;border-radius:10px;padding:14px 16px;border-left:4px solid #5e35b1;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.kpi.o{border-color:#ef6c00}.kpi.g{border-color:#2e7d32}.kpi.r{border-color:#c62828}
+header{background:#f6f3fc;color:#4527a0;border-radius:14px;padding:26px 30px;margin-bottom:18px}
+header h1{margin:0 0 8px;font-size:22px;color:var(--ink)} header .meta{font-size:13px;color:var(--sub)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,18,30,.06)}
+.kpi.o{border-color:#ef6c00}.kpi.g{border-color:#00695c}.kpi.r{border-color:#CC0000}
 .kpi .v{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:#666}
-.insight{background:linear-gradient(135deg,#fff8e1 0%,#ffecb3 100%);border-left:4px solid #ef6c00;border-radius:10px;padding:16px 20px;margin-bottom:18px;font-size:14px;line-height:1.7}
+.insight{background:#fff8ee;border-left:4px solid #ef6c00;border-radius:10px;padding:16px 20px;margin-bottom:18px;font-size:14px;line-height:1.7}
 .nav{margin-bottom:18px;line-height:2.2}
 .nav a{display:inline-block;padding:3px 10px;border-radius:20px;font-family:"SF Mono", Consolas, monospace;font-size:12px;text-decoration:none;margin-right:4px}
-.nav a.high{background:#fbe4e4;color:#b1130b}.nav a.medium{background:#fff3cd;color:#856404}.nav a.low{background:#ddedea;color:#0a6e57}
+.nav a.high{background:#fbe4e4;color:#CC0000}.nav a.medium{background:#fff3cd;color:#856404}.nav a.low{background:#ddedea;color:#0a6e57}
 table.pt{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;margin-bottom:18px;font-size:13px}
 table.pt th{background:#ede7f6;color:#4527a0;padding:9px 12px;text-align:left}table.pt td{padding:9px 12px;border-top:1px solid #eee}
-.sgroup{background:#fff;border-radius:12px;margin-bottom:16px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.sgroup.pri-high{border-left:5px solid #c62828}.sgroup.pri-medium{border-left:5px solid #ef6c00}.sgroup.pri-low{border-left:5px solid #2e7d32}
+.sgroup{background:#fff;border-radius:14px;margin-bottom:16px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,18,30,.06)}
+.sgroup.pri-high{border-left:5px solid #CC0000}.sgroup.pri-medium{border-left:5px solid #ef6c00}.sgroup.pri-low{border-left:5px solid #00695c}
 .sg-head{display:flex;gap:14px;align-items:center;margin-bottom:10px}
 .thumb{width:60px;height:60px;border-radius:8px;object-fit:cover;background:#eee}
 .thumb.ph{display:flex;align-items:center;justify-content:center;color:#aaa;font-size:20px}
-.sno{font-family:"SF Mono", Consolas, monospace;font-size:18px;font-weight:700;color:#311b92}
-.pri{font-size:10px;padding:2px 7px;border-radius:10px;vertical-align:middle}
-.pri.high{background:#fbe4e4;color:#b1130b}.pri.medium{background:#fff3cd;color:#856404}.pri.low{background:#ddedea;color:#0a6e57}
+.sno{font-family:"SF Mono", Consolas, monospace;font-size:18px;font-weight:700;color:#4527a0}
+.pri{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;vertical-align:middle}
+.pri.high{background:#CC0000;color:#fff}.pri.medium{background:#ef6c00;color:#fff}.pri.low{background:#00695c;color:#fff}
 .chip{font-size:11px;padding:2px 8px;border-radius:10px;margin-right:5px}
-.chip.pos-c{background:#ddedea;color:#0a6e57}.chip.neg-c{background:#fbe4e4;color:#b1130b}
+.chip.pos-c{background:#ddedea;color:#0a6e57}.chip.neg-c{background:#fbe4e4;color:#CC0000}
 .chip.tot{background:#ede7f6;color:#4527a0}.chip.avg{background:#e3f2fd;color:#0d47a1}.chip.price{background:#f5f5f5;color:#333}
 .review{border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px}
 .review.pos{background:#f7fbf7}.review.neg{background:#fef7f7}
 .r-meta{display:flex;gap:8px;align-items:center;margin-bottom:4px;font-size:12px}
-.r-date{color:#666}.badge{padding:1px 7px;border-radius:9px;font-size:10px;font-weight:700}
-.badge.pos-bg{background:#ddedea;color:#0a6e57}.badge.neg-bg{background:#fbe4e4;color:#b1130b}
-.r-cat{background:#f0f0f0;padding:1px 7px;border-radius:9px;font-size:10px}
+.r-date{color:#666}.badge{padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.badge.pos-bg{background:#ddedea;color:#0a6e57}.badge.neg-bg{background:#fbe4e4;color:#CC0000}
+.r-cat{background:#f0f0f0;padding:1px 7px;border-radius:10px;font-size:10px}
 .stars{color:#f9a825;font-size:12px}.stars .empty{color:#ddd}
 .r-title{font-weight:600;margin-bottom:2px}.r-body{line-height:1.55}
 .r-flex{display:flex;gap:10px}.r-main{flex:1}
-.rp{width:74px;height:74px;object-fit:cover;border-radius:6px}
-.pats{margin-top:5px}.pat{background:#fff3cd;color:#856404;font-size:10px;padding:2px 7px;border-radius:9px;margin-right:4px}
+.rp{width:74px;height:74px;object-fit:cover;border-radius:8px}
+.pats{margin-top:5px}.pat{background:#fff3cd;color:#856404;font-size:10px;padding:2px 7px;border-radius:10px;margin-right:4px}
 .cross{margin-top:5px;font-size:11px;color:#555}
-.chip-x{font-family:"SF Mono", Consolas, monospace;background:#ede7f6;color:#4527a0;padding:1px 7px;border-radius:9px;text-decoration:none;font-size:11px;margin-right:3px}
+.chip-x{font-family:"SF Mono", Consolas, monospace;background:#ede7f6;color:#4527a0;padding:1px 7px;border-radius:10px;text-decoration:none;font-size:11px;margin-right:3px}
 h2{font-size:17px;margin:24px 0 10px}
 footer{color:#888;font-size:12px;margin:26px 0 10px;text-align:center}
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:8px}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar,#1b1b22);color:#fff;font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;padding:11px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.topbar a{color:#fff;text-decoration:none}.topbar .brand{font-weight:700}.topbar .sep{opacity:.3}.topbar .live{margin-left:auto;font-size:12px;opacity:.55}@media(max-width:640px){.topbar{font-size:12px;padding:10px 14px}.topbar .live{display:none}}.fab{position:fixed;right:18px;bottom:18px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--bar,#1b1b22);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;text-decoration:none;box-shadow:0 8px 22px rgba(20,18,30,.11)}
+
+/* 5b — 관찰 항목을 타일로 끊어 읽기 부담을 낮춘다 */
+.insight{background:#fff8ee;border-radius:16px;padding:20px 22px;margin-bottom:20px;
+  border-left:0;display:flex;flex-direction:column;gap:12px}
+.insight b.h{font-size:14px;color:#8a4b00}
+.obslist{display:flex;flex-direction:column;gap:8px}
+.obs{display:flex;gap:12px;background:#fff;border-radius:10px;padding:13px 15px}
+.obs .n{flex:none;width:22px;height:22px;border-radius:50%;background:#ef6c00;color:#fff;
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.obs .c{font-size:13.5px;line-height:1.85;color:#4a4954}
+header .hbadge{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#ef6c00;
+  padding:4px 9px;border-radius:8px;margin-bottom:8px}
 </style></head>
 <body>
-<div style="position:sticky;top:0;z-index:100;background:#1b1b22;color:#fff;font-family:-apple-system,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;padding:11px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;"><a href="/D76-BB-KNIT/" style="color:#fff;text-decoration:none;font-weight:700;">📊 D76 Hub</a><span style="opacity:.35">|</span><a href="/D76-BB-KNIT/reports/feedback/" style="color:#cfc9e8;text-decoration:none;">💬 Guest Feedback 목록</a></div><a href="/D76-BB-KNIT/" title="D76 Hub" style="position:fixed;right:18px;bottom:18px;z-index:9999;background:#1b1b22;color:#fff;text-decoration:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 14px rgba(0,0,0,.35);">📊</a>
+<div class="topbar"><a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a><span class="sep">|</span><a class="here" href="/D76-BB-KNIT/reports/feedback/">💬 Guest Feedback 목록</a></div><a class="fab" href="/D76-BB-KNIT/" title="D76 Hub">📊</a>
 <div class="wrap">
-<header><h1>📍 Dept 76 (Big Kids Boy) 게스트 피드백 브리핑</h1>
+<header><div class="hbadge">누적 · 상시 갱신</div><h1>📍 Dept 76 (Big Kids Boy) 게스트 피드백 브리핑</h1>
 <div class="meta">브랜드: Cat &amp; Jack · 최근 3개월 (2026-05-18 ~ 2026-08-18) · 수집일: 2026-08-18 · 사이트 6M 기준 전체 평점 4.29 (총 223 ratings · POS 181 / NEG 42)</div></header>
 <div class="kpis">
 <div class="kpi"><div class="v">118건</div><div class="l">최근 3개월 리뷰 (누적 DB 기준)</div></div>
@@ -54,12 +68,7 @@ footer{color:#888;font-size:12px;margin:26px 0 10px;text-align:center}
 <div class="kpi g"><div class="v">93건</div><div class="l">POS 호평</div></div>
 <div class="kpi r"><div class="v">25건</div><div class="l">NEG 불만</div></div>
 </div>
-<div class="insight"><b>🔍 주요 관찰</b><br>
-1. <b>WR8X75</b> (Acadia 그래픽 티, $7) — NEG 9건 최다: 디자인 고증 오류(그리즐리/엘크) + "100% 코튼 표기 vs 실물 92%+8% RP" 소재 표기 불일치. 사이트 평점 3.6 최하위권.<br>
-2. <b>100% 코튼 코어 티 라인 호평 집중</b> — Z2MPYW($5)·0L20WW($7)·X0E248($7) "100% Cotton!" 반복 언급. 소재 민감 고객 수요 뚜렷.<br>
-3. <b>사이즈 큼 (Runs big/oversized)</b> 패턴이 MRWRK5·35R076·0L20WW 등 복수 스타일에서 교차 — 오버사이즈 컨셉 호평과 별개로 사이즈 차트 안내 이슈 지속.<br>
-4. <b>Z2MPYW</b> 화이트 티 — "dingy/creamy white" 컬러 불일치 NEG 2건 vs 가성비 호평 다수 병존.<br>
-5. 호평 핵심 키워드: <b>100% 코튼 · 소프트 원단 · 가성비 · 오버사이즈 핏</b>. 주의: 1K6ML6 필링 1건, 할로윈 그래픽(MRWRK5) "성인스러운 디자인" 반응 1건.</div>
+<div class="insight"><b class="h">🔍 주요 관찰</b><div class="obslist"><div class="obs"><span class="n">1</span><div class="c"><b>WR8X75</b> (Acadia 그래픽 티, $7) — NEG 9건 최다: 디자인 고증 오류(그리즐리/엘크) + "100% 코튼 표기 vs 실물 92%+8% RP" 소재 표기 불일치. 사이트 평점 3.6 최하위권.</div></div><div class="obs"><span class="n">2</span><div class="c"><b>100% 코튼 코어 티 라인 호평 집중</b> — Z2MPYW($5)·0L20WW($7)·X0E248($7) "100% Cotton!" 반복 언급. 소재 민감 고객 수요 뚜렷.</div></div><div class="obs"><span class="n">3</span><div class="c"><b>사이즈 큼 (Runs big/oversized)</b> 패턴이 MRWRK5·35R076·0L20WW 등 복수 스타일에서 교차 — 오버사이즈 컨셉 호평과 별개로 사이즈 차트 안내 이슈 지속.</div></div><div class="obs"><span class="n">4</span><div class="c"><b>Z2MPYW</b> 화이트 티 — "dingy/creamy white" 컬러 불일치 NEG 2건 vs 가성비 호평 다수 병존.</div></div><div class="obs"><span class="n">5</span><div class="c">호평 핵심 키워드: <b>100% 코튼 · 소프트 원단 · 가성비 · 오버사이즈 핏</b>. 주의: 1K6ML6 필링 1건, 할로윈 그래픽(MRWRK5) "성인스러운 디자인" 반응 1건.</div></div></div></div>
 <h2>🧭 스타일 바로가기 (우선순위순)</h2>
 <div class="nav"><a href="#style-WR8X75" class="high">WR8X75</a><a href="#style-0LY3PM" class="high">0LY3PM</a><a href="#style-2MYY30" class="high">2MYY30</a><a href="#style-002LWK" class="high">002LWK</a><a href="#style-2MYE26" class="high">2MYE26</a><a href="#style-ELP7Z3" class="high">ELP7Z3</a><a href="#style-Z2MPYW" class="medium">Z2MPYW</a><a href="#style-1K25E3" class="medium">1K25E3</a><a href="#style-1K6ML6" class="medium">1K6ML6</a><a href="#style-KL3M19" class="medium">KL3M19</a><a href="#style-MRWRK5" class="medium">MRWRK5</a><a href="#style-P6P7YE" class="medium">P6P7YE</a><a href="#style-X0E248" class="medium">X0E248</a><a href="#style-0L20WW" class="low">0L20WW</a><a href="#style-35R076" class="low">35R076</a><a href="#style-54W419" class="low">54W419</a><a href="#style-71M71G" class="low">71M71G</a><a href="#style-E76K38" class="low">E76K38</a><a href="#style-L0702W" class="low">L0702W</a><a href="#style-L0E6R6" class="low">L0E6R6</a><a href="#style-MR0M8W" class="low">MR0M8W</a><a href="#style-PRE6WG" class="low">PRE6WG</a><a href="#style-X2967P" class="low">X2967P</a><a href="#style-YP4MYZ" class="low">YP4MYZ</a></div>
 <h2>🔗 패턴 연계성 (최근 3개월, 2개 스타일 이상)</h2>

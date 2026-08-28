@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>D76 · 배경 지우기</title>
 <style>
-:root{--tool:#0277bd;--tool2:#01579b;--tint:#e3f2fd;--ink:#222;--sub:#666;--muted:#9a99a2;
-  --bg:#f2f5fa;--card:#fff;--bar:#1b1b22;--line:#e6e9f0;--warn:#ef6c00;--ok:#2e7d32}
+:root{--tool:#0277bd;--tool2:#014b7e;--tint:#eef4fa;--ink:#1d1c22;--sub:#6a6a72;--muted:#9a99a2;
+  --bg:#f3f2f6;--card:#fff;--bar:#1b1b22;--line:#e7e5ee;--warn:#ef6c00;--ok:#00695c;--body:#4a4954;--pos:#00695c;--neg:#CC0000;--tool-deep:#014b7e;--man-deep:#00544c;--gf-deep:#4527a0;--amber-deep:#8a4b00;--amber-tint:#fff8ee;--r-sm:8px;--r-md:10px;--r-lg:14px;--r-xl:16px;--sh-1:0 1px 2px rgba(20,18,30,.06);--sh-2:0 8px 22px rgba(20,18,30,.11)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
 .topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;font-size:13px;padding:11px 20px;
@@ -20,16 +20,16 @@ body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",s
   width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;
   box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .wrap{max-width:980px;margin:0 auto;padding:24px 20px 70px}
-header{background:linear-gradient(135deg,var(--tool) 0%,var(--tool2) 100%);color:#fff;border-radius:14px;
+header{background:#eef4fa;color:#014b7e;border-radius:14px;
   padding:24px 28px;margin-bottom:18px}
-header h1{font-size:21px;margin-bottom:6px}
-header .meta{opacity:.88;font-size:13px;line-height:1.6}
+header h1{font-size:21px;margin-bottom:6px;color:var(--ink);color:var(--ink)}
+header .meta{font-size:13px;line-height:1.6;color:var(--sub);color:var(--sub)}
 
-.panel{background:var(--card);border-radius:12px;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.panel{background:var(--card);border-radius:14px;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 2px rgba(20,18,30,.06)}
 .panel > h2{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px}
 
 /* ── 업로드 ───────────────────────────────────── */
-#drop{border:2px dashed #c3d4e6;border-radius:12px;background:#fafcff;padding:38px 22px;text-align:center;
+#drop{border:2px dashed #c3d4e6;border-radius:14px;background:#fafcff;padding:38px 22px;text-align:center;
   cursor:pointer;transition:border-color .12s,background .12s}
 #drop:hover,#drop.over{border-color:var(--tool);background:var(--tint)}
 #drop .big{font-size:34px;line-height:1}
@@ -40,7 +40,7 @@ input[type=file]{display:none}
 /* ── 편집 ─────────────────────────────────────── */
 #editor{display:none}
 .seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.seg button{font:inherit;font-size:13px;font-weight:600;padding:9px 15px;border-radius:9px;cursor:pointer;
+.seg button{font:inherit;font-size:13px;font-weight:700;padding:11px 16px;min-height:44px;border-radius:10px;cursor:pointer;
   border:1px solid var(--line);background:var(--bg);color:var(--sub);transition:background .12s,color .12s,border-color .12s}
 .seg button:hover{border-color:var(--tool);color:var(--tool2)}
 .seg button[aria-pressed="true"]{background:var(--tool);border-color:var(--tool);color:#fff}
@@ -57,7 +57,7 @@ input[type=file]{display:none}
 #cv{max-width:100%;max-height:56vh;touch-action:none;cursor:crosshair;display:block}
 
 .tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
-.btn{font:inherit;font-size:12.5px;padding:8px 14px;border-radius:8px;cursor:pointer;border:1px solid var(--line);
+.btn{font:inherit;font-size:13px;font-weight:700;padding:11px 16px;min-height:44px;border-radius:10px;cursor:pointer;border:1px solid var(--line);
   background:#fff;color:var(--sub);transition:border-color .12s,color .12s,background .12s}
 .btn:hover:not(:disabled){border-color:var(--tool);color:var(--tool2)}
 .btn:disabled{opacity:.45;cursor:default}
@@ -65,14 +65,27 @@ input[type=file]{display:none}
 .btn.primary:hover{background:var(--tool2);border-color:var(--tool2);color:#fff}
 .left{margin-left:auto;font-family:"SF Mono",Consolas,"D2Coding",monospace;font-size:11.5px;color:var(--muted)}
 
-#msg{font-size:12.5px;line-height:1.6;padding:11px 15px;border-radius:9px;margin-top:12px;display:none}
+#msg{font-size:12.5px;line-height:1.6;padding:11px 15px;border-radius:10px;margin-top:12px;display:none}
 #msg.ok{display:block;background:#e8f5e9;border-left:4px solid var(--ok);color:#1b5e20}
 #msg.warn{display:block;background:#fff8e1;border-left:4px solid var(--warn);color:#7a4b00}
 
 .out{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:4px}
 .out .note{font-size:11.5px;color:var(--muted);line-height:1.55}
 footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;line-height:1.8}
-@media(max-width:520px){header{padding:20px 22px}.panel{padding:17px 18px}#cv{max-height:44vh}}
+@media(max-width:640px){header{padding:20px 22px}.panel{padding:17px 18px}#cv{max-height:44vh}}
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:8px}
+
+/* 5g — 컨트롤을 왼쪽 열로 모아 캔버스가 항상 보이게 한다 */
+.edit{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
+.panel.side{margin-bottom:0}
+.canvaswrap{display:flex;flex-direction:column;gap:12px;position:sticky;top:64px}
+.canvaswrap .stage{margin-bottom:0}
+.canvasbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.canvasbar .left{margin-right:auto}
+.canvaswrap .note{font-size:11.5px;color:var(--muted);line-height:1.55}
+#cv{max-height:62vh}
+@media(max-width:1024px){ .edit{grid-template-columns:1fr} .canvaswrap{position:static} }
+@media(max-width:640px){ #cv{max-height:44vh} }
 </style>
 </head>
 <body>
@@ -101,34 +114,35 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:11.5px;lin
 </div>
 
 <div id="editor">
-  <div class="panel">
-    <h2>방식</h2>
-    <div class="seg" id="modes">
-      <button data-mode="auto" aria-pressed="true">자동</button>
-      <button data-mode="pick" aria-pressed="false">색 찍어 지우기</button>
-      <button data-mode="erase" aria-pressed="false">지우개</button>
-      <button data-mode="restore" aria-pressed="false">되살리기</button>
+  <div class="edit">
+    <div class="panel side">
+      <h2>방식</h2>
+      <div class="seg" id="modes">
+        <button data-mode="auto" aria-pressed="true">자동</button>
+        <button data-mode="pick" aria-pressed="false">색 찍어 지우기</button>
+        <button data-mode="erase" aria-pressed="false">지우개</button>
+        <button data-mode="restore" aria-pressed="false">되살리기</button>
+      </div>
+      <div class="opt" id="opt"></div>
+
+      <h2 style="margin-top:4px">다듬기</h2>
+      <div class="tools">
+        <button class="btn" id="erode">테두리 한 겹 깎기</button>
+        <button class="btn" id="feather">가장자리 부드럽게</button>
+        <button class="btn" id="undo" disabled>되돌리기</button>
+        <button class="btn" id="reset">처음으로</button>
+      </div>
+      <div id="msg"></div>
     </div>
-    <div class="opt" id="opt"></div>
 
-    <div class="stage"><canvas id="cv"></canvas></div>
-
-    <div class="tools">
-      <button class="btn" id="erode">테두리 한 겹 깎기</button>
-      <button class="btn" id="feather">가장자리 부드럽게</button>
-      <button class="btn" id="undo" disabled>되돌리기</button>
-      <button class="btn" id="reset">처음으로</button>
-      <span class="left" id="left">100% 남음</span>
-    </div>
-    <div id="msg"></div>
-  </div>
-
-  <div class="panel">
-    <h2>내려받기</h2>
-    <div class="out">
-      <button class="btn primary" id="dl">투명 PNG로 내려받기</button>
-      <button class="btn" id="again">다른 이미지</button>
-      <span class="note" id="outnote"></span>
+    <div class="canvaswrap">
+      <div class="stage"><canvas id="cv"></canvas></div>
+      <div class="canvasbar">
+        <span class="left" id="left">100% 남음</span>
+        <button class="btn primary" id="dl">투명 PNG로 내려받기</button>
+        <button class="btn" id="again">다른 이미지</button>
+      </div>
+      <div class="note" id="outnote"></div>
     </div>
   </div>
 </div>
