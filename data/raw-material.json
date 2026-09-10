@@ -1,68 +1,80 @@
 {
- "marketDataDate": "2026-08-27",
- "snapshotDate": "2026-08-28",
+ "degraded": false,
+ "marketDataDate": "2026-09-10",
+ "snapshotDate": "2026-09-10",
+ "sources": [
+  "vercel",
+  "yahoo"
+ ],
  "tiles": [
   {
-   "changePct": 3.589855250339831,
+   "changePct": 0.8920300137836472,
    "comment": "",
    "key": "usCotton",
    "label": "U.S. Cotton",
    "note": "ICE Dec-26 선물",
-   "price": 92.33999633789062,
+   "price": 87.09,
+   "source": "yahoo:CTZ26.NYB",
    "unit": "¢/lb"
   },
   {
-   "changePct": 1.6,
-   "comment": "중국 내 국가 비축 분 면화 경매가 장기간(25일 연속) 매진",
+   "changePct": 0.75,
+   "comment": "F/W 시즌 대비 비축 구매 현상.",
    "key": "chinaCotton",
    "label": "China Cotton",
    "note": "주간 리포트",
-   "price": 122.83,
+   "price": 123.75,
+   "source": "vercel:weekly",
    "unit": "¢/lb"
   },
   {
-   "changePct": 0.8,
-   "comment": "평년 대비 15%가량 강우량이 부족할 것으로 전망되는 몬순(우기) 우려",
+   "changePct": 1.04,
+   "comment": "강우량 부족으로 인한 수확량 감소 기인",
    "key": "indiaCotton",
    "label": "India Cotton",
    "note": "주간 리포트",
-   "price": 92.3,
+   "price": 93.26,
+   "source": "vercel:weekly",
    "unit": "¢/lb"
   },
   {
-   "changePct": 1.44,
-   "comment": "면화 가격 급등에 따른 합성섬유 대체 수요유입",
+   "changePct": 2.92,
+   "comment": "지정학적 불안으로 인한 국제유가 상승과 면화 가격 상승으로 인한 대체 수요 유입",
    "key": "psf",
    "label": "PSF",
    "note": "주간 리포트",
-   "price": 52.85,
+   "price": 54.39,
+   "source": "vercel:weekly",
    "unit": "¢/lb"
   },
   {
-   "changePct": 2.98,
-   "comment": "수요 증가 시 방적 공정을 거치며 상승폭이 커지는 특징",
+   "changePct": 2.04,
+   "comment": "직물, 편물 업체들의 가동율이 상승되며 구매 심리 개선됨",
    "key": "dty",
    "label": "DTY",
    "note": "주간 리포트",
-   "price": 66.68,
+   "price": 68.04,
+   "source": "vercel:weekly",
    "unit": "¢/lb"
   },
   {
-   "changePct": 1.6538890008963587,
+   "changePct": 3.8052254833426042,
    "comment": "",
    "key": "wti",
    "label": "WTI Crude",
    "note": "NYMEX",
-   "price": 83.58999633789062,
+   "price": 96.57,
+   "source": "yahoo:CL=F",
    "unit": "USD/bbl"
   },
   {
-   "changePct": 0.8879854749663086,
+   "changePct": 3.4415869016258496,
    "comment": "",
    "key": "brent",
    "label": "Brent Crude",
    "note": "Global benchmark",
-   "price": 88.62000274658203,
+   "price": 101.29,
+   "source": "yahoo:BZ=F",
    "unit": "USD/bbl"
   }
  ]
