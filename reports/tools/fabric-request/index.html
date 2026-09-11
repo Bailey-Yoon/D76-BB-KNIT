@@ -115,7 +115,11 @@ a:hover{color:var(--tool-deep)}
    잡지 못해 첫 행이 헤더 뒤로 밀려 들어간다 (실측: 헤더 245~292 인데
    첫 행이 248 에서 시작). separate 로 바꾸고 간격을 0 으로 둔다 —
    테두리는 어차피 아래쪽만 그리므로 겹쳐 보이지 않는다. */
-table{border-collapse:separate;border-spacing:0;width:100%;min-width:1520px;font-size:12.5px}
+/* 열 너비를 사람이 직접 끌어 조절한다. table-layout:fixed 여야 <col> 의
+   너비가 그대로 먹는다 — auto 면 브라우저가 내용을 보고 제멋대로 늘린다.
+   min-width 를 고정으로 두면 열을 좁혀도 표 전체가 안 줄어 스크롤이
+   그대로 남는다. 그래서 표 너비는 열 너비의 **합**으로 매번 다시 잡는다. */
+table{border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:12.5px}
 thead th{position:sticky;top:0;z-index:2;background:#f7f6fa;text-align:left;
   font-size:11px;letter-spacing:.03em;color:var(--sub);font-weight:700;
   padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:bottom}
@@ -124,15 +128,24 @@ thead th.num2{text-align:right;line-height:1.3}
 thead th.sortable{cursor:pointer;user-select:none}
 thead th.sortable:hover{color:var(--tool-deep)}
 thead th .ar{opacity:.45;font-size:9px}
-tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+/* 열 너비 손잡이 — 머리글 오른쪽 끝. th 가 sticky(=위치 지정 요소)라
+   absolute 자식의 기준이 되어 준다. */
+thead th{position:sticky}
+.rz{position:absolute;top:0;right:-4px;width:9px;height:100%;cursor:col-resize;
+  z-index:3;touch-action:none}
+.rz::after{content:"";position:absolute;top:6px;bottom:6px;left:4px;width:1px;
+  background:var(--line)}
+.rz:hover::after,.rz.on::after{background:var(--tool);width:2px;left:3px}
+body.rzing{cursor:col-resize;user-select:none}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5;
+  overflow:hidden;text-overflow:ellipsis;word-break:break-word}
 tbody tr:hover{background:#fafafd}
 tbody tr.done{background:#f4f8f7}
 tbody tr.done:hover{background:#eef4f3}
 .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .nw{white-space:nowrap}
-.fab{min-width:210px;max-width:290px}
-.rem{min-width:170px;max-width:260px;color:var(--body);font-size:11.5px}
-td.note{min-width:150px;max-width:190px}
+/* 너비는 이제 <col> 이 정한다. 여기선 글자 모양만 잡는다. */
+.rem{color:var(--body);font-size:11.5px}
 .mono{font-family:"SF Mono",Consolas,"D2Coding",monospace;font-size:11.5px}
 /* Style No 는 의뢰번호와 같은 글꼴·크기로 맞춘다 (.mono 와 동일) */
 .gkey{font-family:"SF Mono",Consolas,"D2Coding",monospace;font-size:11.5px}
@@ -253,9 +266,10 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
 </div>
 
 <footer>
+  <b>이 표는 팀이 함께 보는 하나의 표입니다</b> — 누가 어느 PC·폰에서 열어도 같은 내용이 보이고,
+  <b>「저장하기」를 누른 순간</b> 모두에게 반영됩니다. 누르기 전까지는 내 화면에만 있습니다.<br>
   <b>PDF 원본은 어디에도 올라가지 않습니다</b> — 브라우저 안에서 읽어 표로 옮기기만 하고 파일은 버립니다.
-  표에 쌓인 내용과 손으로 적은 기록은 <b>보는 사람의 브라우저에 각자</b> 남습니다.
-  다른 PC 로 옮기거나 다른 사람에게 넘길 때는 <b>내보내기</b>로 CSV 를 받아 <b>가져오기</b> 하세요.
+  <b>내보내기</b>는 엑셀로 볼 때 쓰세요.
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
@@ -519,24 +533,38 @@ function parseDoc(all, name) {
   return doc;
 }
 
-/* ── 저장 ───────────────────────────────────────────────────── */
-var DB = load();
+/* ── 저장 ─────────────────────────────────────────────────────
 
-function load() {
-  try {
-    var raw = localStorage.getItem(KEY);
-    if (!raw) return [];
-    var d = JSON.parse(raw);
-    return Array.isArray(d) ? d : [];
-  } catch (e) { return []; }
+   규칙 두 가지. 이것 때문에 아래 코드가 이렇게 생겼다.
+
+   ① **「저장하기」를 누르기 전에는 서버에 아무것도 안 올라간다.**
+      예전엔 0.9초 디바운스로 알아서 올렸다. 본인이 올린 적 없는 것이
+      올라가 있으니 무엇이 반영됐는지 알 수 없었다.
+   ② **화면에 보이는 건 늘 서버 것이다.** 브라우저에 남은 사본은
+      읽지도 쓰지도 않는다. 예전엔 페이지를 열 때 로컬과 서버를 합쳐서
+      **되쓰기까지** 했다 — 폰을 새로고침하면 폰에 있던 옛 값이 서버로
+      거슬러 올라가 PC 에서 방금 누른 저장을 되돌렸다. 실제로 그랬다.
+      동점일 때 로컬을 남기는 규칙(`m.upd >= t.upd`)이라 시계가 조금만
+      어긋나도 옛 값이 이겼다.
+
+   그래서 로컬 사본은 아예 지운다. 남겨 두면 언젠가 또 새어 나온다.
+   대신 저장 안 한 게 있는 채로 창을 닫으려 하면 확인창이 뜬다. */
+var DB = [];
+try { localStorage.removeItem(KEY); } catch (e) {}
+
+/* 마지막으로 서버에서 읽었을 때 각 줄이 어떤 상태였는지.
+   저장할 때 "내가 지운 줄" 과 "남이 그 사이 고친 줄" 을 가르는 데 쓴다. */
+var baseline = {};
+
+function setBaseline(rows) {
+  baseline = {};
+  rows.forEach(function (r) { baseline[rowKey(r)] = r.upd || ''; });
 }
+
+/* 고친 걸 표시만 해 둔다. 서버로는 「저장하기」 를 눌러야 나간다. */
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(DB)); }
-  catch (e) {
-    msg('err', '저장하지 못했습니다 (저장 공간 부족이거나 브라우저가 막고 있습니다). ' +
-                '내보내기로 백업해 두세요.');
-  }
-  queueSync();                 /* 공유 파일에도 반영 (연결돼 있을 때만) */
+  unsaved++;
+  paintSave();
 }
 function stamp(r) { r.upd = new Date().toISOString(); return r; }
 function rowKey(r) { return r.reqNo + '#' + r.idx; }
@@ -643,6 +671,54 @@ var HEAD = [
   ['recv',   '수취',    1], ['recvDate','수취일', 1], ['note','특이사항',0], ['', '', 0]
 ];
 var sortKey = 'date', sortAsc = false;
+
+/* ── 열 너비 ───────────────────────────────────────────────────────
+   기본값. HEAD 와 **순서·개수가 같아야** 한다.
+   이 값만 브라우저에 남긴다 — 표 내용이 아니라 보는 사람의 화면 취향이라
+   서버에 둘 이유가 없고, 사람마다 화면 크기가 다르다. */
+var COLW_KEY = 'd76_fabreq_colw_v1';
+/* 의뢰일은 2026-06-25 가 통째로 보여야 한다 — 잘리면 어느 건인지 못 고른다 */
+var COLW0 = [96, 108, 120, 72, 68, 62, 60, 190, 48, 52, 120, 54, 54, 56, 80, 130, 44, 112, 130, 34];
+var COLW = COLW0.slice();
+var COLMIN = 28;            /* 이보다 좁히면 머리글 손잡이를 다시 못 잡는다 */
+
+try {
+  var savedW = JSON.parse(localStorage.getItem(COLW_KEY) || 'null');
+  if (Array.isArray(savedW) && savedW.length === COLW0.length) {
+    COLW = savedW.map(function (w, i) {
+      var n = +w;
+      return isFinite(n) && n >= COLMIN ? n : COLW0[i];
+    });
+  }
+} catch (e) {}
+
+function saveColw() {
+  try { localStorage.setItem(COLW_KEY, JSON.stringify(COLW)); } catch (e) {}
+}
+
+/* <colgroup> 을 다시 쓰고 표 너비를 열 너비의 합으로 맞춘다.
+   합으로 잡아야 열을 좁힌 만큼 가로 스크롤이 실제로 줄어든다. */
+function applyColw() {
+  var t = document.querySelector('.tablewrap table');
+  if (!t) return;
+  var cg = t.querySelector('colgroup');
+  if (!cg) {
+    cg = document.createElement('colgroup');
+    COLW.forEach(function () { cg.appendChild(document.createElement('col')); });
+    t.insertBefore(cg, t.firstChild);
+  }
+  var cols = cg.children, sum = 0, i;
+  for (i = 0; i < COLW.length; i++) {
+    if (cols[i]) cols[i].style.width = COLW[i] + 'px';
+    sum += COLW[i];
+  }
+  t.style.width = sum + 'px';
+}
+
+function resetColw() {
+  COLW = COLW0.slice();
+  saveColw(); applyColw();
+}
 /* 숫자 열만 우측 정렬 — 머리글도 값도 오른쪽으로 붙는다 */
 var NUM2 = { reqYds: 1, reqKgs: 1, inpKgs: 1 };
 
@@ -726,6 +802,16 @@ function render() {
       : '<th>' + h[1] + '</th>';
   }).join('');
 
+  /* 손잡이는 머리글을 다시 그릴 때마다 같이 붙인다 */
+  var ths = document.getElementById('head').children;
+  for (var ci = 0; ci < ths.length; ci++) {
+    var g = document.createElement('span');
+    g.className = 'rz'; g.setAttribute('data-c', ci);
+    g.title = '끌어서 너비 조절 · 두 번 누르면 내용에 맞춤';
+    ths[ci].appendChild(g);
+  }
+  applyColw();
+
   var tb = document.getElementById('rows');
   if (!rows.length) {
     tb.innerHTML = '<tr><td colspan="' + HEAD.length + '"><div class="empty">' +
@@ -787,20 +873,23 @@ function paintHint() {
     /* 표를 내려다 보면 위쪽 저장 버튼이 화면 밖으로 나간다.
        여기에도 같은 사실을 적어 둔다. */
     if (unsaved > 0) {
-      parts.push('<b class="uns">아직 안 올라간 수정 ' + unsaved + '건</b>');
-      parts.push('<a href="#" id="hSave">지금 저장</a>');
+      parts.push('<b class="uns">저장 안 한 수정 ' + unsaved + '건 — 나만 보이는 중</b>');
+      parts.push('<a href="#" id="hSave">저장하기</a>');
     } else {
-      parts.push('<b>공유 저장소</b>에 자동 저장됩니다');
+      parts.push('저장할 것 없음 · 팀과 같은 표를 보는 중');
     }
     parts.push('<a href="#" id="hPull">지금 새로고침</a>');
   } else {
-    parts.push('이 컴퓨터에만 저장됩니다');
+    parts.push('<b class="uns">공유 저장소에 닿지 못했습니다</b>');
   }
-  el.innerHTML = parts.join(' · ');
+  el.innerHTML = parts.join(' · ') +
+    ' · <a href="#" id="hCol">열 너비 초기화</a>';
   var p = document.getElementById('hPull');
   if (p) p.onclick = function (e) { e.preventDefault(); pull(false); };
   var sv = document.getElementById('hSave');
   if (sv) sv.onclick = function (e) { e.preventDefault(); saveNow(); };
+  var cw = document.getElementById('hCol');
+  if (cw) cw.onclick = function (e) { e.preventDefault(); resetColw(); };
 }
 
 /* 저장 버튼의 얼굴.
@@ -819,8 +908,8 @@ function paintSave() {
 
   if (!on) {
     b.className = 'btn ghost'; b.disabled = true;
-    b.textContent = '이 PC 에만';
-    b.title = '공유 저장소에 연결되지 않아 이 브라우저에만 남습니다.';
+    b.textContent = '연결 안 됨';
+    b.title = '공유 저장소에 닿지 못해 지금은 저장할 수 없습니다.';
     return;
   }
   if (syncing) {
@@ -889,7 +978,81 @@ document.getElementById('reset').onclick = function () {
   render();
 };
 
+/* ── 열 너비 끌기 ──────────────────────────────────────────────────
+   포인터 이벤트로 받는다 — 마우스·터치·펜이 한 코드로 처리된다.
+   setPointerCapture 를 걸어 두면 손이 표 밖으로 나가도 끌기가 안 끊긴다. */
+(function () {
+  var head = document.getElementById('head');
+  var drag = null;
+
+  head.addEventListener('pointerdown', function (e) {
+    var g = e.target;
+    if (!g.classList || !g.classList.contains('rz')) return;
+    e.preventDefault(); e.stopPropagation();
+    var i = +g.getAttribute('data-c');
+    drag = { i: i, x: e.clientX, w0: COLW[i], el: g };
+    g.classList.add('on');
+    document.body.classList.add('rzing');
+    try { g.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+
+  head.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    /* 버튼을 뗀 채로 움직이고 있으면 끌기는 이미 끝난 것이다.
+       포인터 캡처가 어떤 이유로든 풀리면 pointerup 을 못 받는데,
+       그 상태로 두면 마우스를 머리글 위로 지나갈 때마다 열이 멋대로 늘어난다. */
+    if (!e.buttons) { end(); return; }
+    COLW[drag.i] = Math.max(COLMIN, Math.round(drag.w0 + (e.clientX - drag.x)));
+    applyColw();
+  });
+
+  function end() {
+    if (!drag) return;
+    drag.el.classList.remove('on');
+    document.body.classList.remove('rzing');
+    drag = null;
+    saveColw();
+  }
+  head.addEventListener('pointerup', end);
+  head.addEventListener('pointercancel', end);
+  /* 표 밖에서 손을 떼도 끝나야 한다 */
+  window.addEventListener('pointerup', end);
+  window.addEventListener('blur', end);
+
+  /* 두 번 누르면 그 열의 가장 긴 내용에 맞춘다.
+     보이는 행만 재어도 충분하다 — 화면 밖 행까지 재면 느리고,
+     지금 눈에 안 보이는 값 때문에 열이 넓어지면 더 이상하다. */
+  head.addEventListener('dblclick', function (e) {
+    var g = e.target;
+    if (!g.classList || !g.classList.contains('rz')) return;
+    e.preventDefault(); e.stopPropagation();
+    var i = +g.getAttribute('data-c');
+    var probe = document.createElement('span');
+    probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;' +
+      'font:12.5px system-ui,-apple-system,\'Segoe UI\',sans-serif';
+    document.body.appendChild(probe);
+    var wide = 0;
+    var cells = document.querySelectorAll('#rows tr');
+    for (var r = 0; r < cells.length && r < 200; r++) {
+      var td = cells[r].children[i];
+      if (!td) continue;
+      probe.textContent = (td.textContent || '').replace(/\s+/g, ' ').trim();
+      wide = Math.max(wide, probe.offsetWidth);
+    }
+    var th = document.getElementById('head').children[i];
+    probe.textContent = (th.textContent || '').trim();
+    wide = Math.max(wide, probe.offsetWidth);
+    document.body.removeChild(probe);
+    /* 한 칸에 유난히 긴 값이 있으면 열 하나가 화면을 다 먹는다 — 320 에서 끊는다 */
+    COLW[i] = Math.max(COLMIN, Math.min(320, wide + 22));
+    applyColw(); saveColw();
+  });
+})();
+
 document.getElementById('head').addEventListener('click', function (e) {
+  /* 손잡이는 th 안에 있으므로 closest 로는 걸러지지 않는다.
+     막지 않으면 너비를 조절할 때마다 정렬이 뒤집힌다. */
+  if (e.target.classList && e.target.classList.contains('rz')) return;
   var th = e.target.closest('th[data-k]');
   if (!th) return;
   var k = th.getAttribute('data-k');
@@ -897,7 +1060,7 @@ document.getElementById('head').addEventListener('click', function (e) {
   render();
 });
 
-/* 입력은 즉시 저장한다 — 따로 저장 버튼을 두면 안 누르고 닫는다. */
+/* 입력하면 고쳤다고 표시만 해 둔다. 서버로는 「저장하기」 를 눌러야 나간다. */
 var tbody = document.getElementById('rows');
 function find(k) {
   for (var i = 0; i < DB.length; i++) if (rowKey(DB[i]) === k) return DB[i];
@@ -1648,14 +1811,13 @@ async function connectGraph(clientId) {
     if (!USE_ALL) offerFullScope();
   }
 
-  var theirs = await graphRead();
-  if (theirs.length) {
-    DB = mergeRows(DB, theirs);
-    try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
-    msg('ok', '공유 파일을 읽었습니다 — 합쳐서 ' + DB.length + '줄');
-  }
+  /* 여기도 합치지 않고 갈아 끼운다 — 이유는 위 '저장' 주석 참조.
+     붙자마자 되쓰지도 않는다. 저장은 「저장하기」 를 눌러야 일어난다. */
+  DB = await graphRead();
+  setBaseline(DB);
+  unsaved = 0;
+  msg('ok', '공유 파일에서 ' + DB.length + '줄을 읽었습니다');
   render();
-  await graphWrite(DB);
   failedOnce = false;
   try { localStorage.removeItem('d76_fabreq_failed'); } catch (e) {}
   paintSync('ok');
@@ -1735,26 +1897,14 @@ async function connectKv(quiet) {
   saveG();
   var loaded = await kvLoad();
   kvVer = loaded.v;
-  var theirsRaw = loaded.csv;
-  var theirs = theirsRaw.trim() ? csvToRows(theirsRaw) : [];
-  if (theirs.length) {
-    DB = mergeRows(DB, theirs);
-    try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
-    if (!quiet) msg('ok', '공유 저장소를 읽었습니다 — 합쳐서 ' + DB.length + '줄');
-  }
+  /* 서버 것으로 **갈아 끼운다**. 합치지 않는다 — 합치면 이 브라우저에
+     남아 있던 옛 값이 되살아나고, 되쓰기까지 하면 남의 최신 저장을
+     덮어쓴다. 켤 때 보이는 건 언제나 서버에 있는 그대로여야 한다. */
+  DB = loaded.csv.trim() ? csvToRows(loaded.csv) : [];
+  setBaseline(DB);
+  unsaved = 0; lastFail = null;
   render();
-  /* 페이지를 열 때마다 무조건 쓰면 버전이 의미 없이 올라가고 무료 쓰기 한도를
-     축낸다. 서버와 같으면, 그리고 양쪽 다 비어 있으면 쓰지 않는다.
-     (빈 DB 도 toCsv 하면 머리글 한 줄이 나오므로 별도로 걸러야 한다.) */
-  var bothEmpty = DB.length === 0 && !theirsRaw.trim();
-  if (!bothEmpty && toCsv(DB) !== theirsRaw) {
-    if (!(await kvWrite(DB))) {        /* 충돌이면 한 번 더 합치고 쓴다 */
-      DB = mergeRows(DB, await kvRead());
-      try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
-      render();
-      await kvWrite(DB);
-    }
-  }
+  /* 열자마자 서버에서 읽는 건 당연한 동작이라 따로 알리지 않는다 */
   failedOnce = false;
   try { localStorage.removeItem('d76_fabreq_failed'); } catch (e) {}
   paintSync('ok');
@@ -1790,24 +1940,47 @@ async function writeFile(rows) {
   lastMtime = f.lastModified;
 }
 
-/* 저장 요청을 모아서 한 번에 — 체크 한 번에 파일을 한 번씩 쓰면
-   OneDrive 가 업로드를 계속 물고 늘어진다. */
-function queueSync() {
-  if (!connected()) { paintSave(); return; }
-  unsaved++; pending = true;
-  paintSave();
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(runSync, 900);
-}
-
-/* 버튼으로 부르는 즉시 저장. 기다리는 900ms 를 건너뛴다. */
+/* 「저장하기」 — 서버로 내보내는 **유일한** 통로다. */
 function saveNow() {
-  clearTimeout(syncTimer);
   lastFail = null;
   if (!connected()) { paintSave(); return; }
   if (syncing) { pending = true; return; }
-  pending = true;
   runSync();
+}
+
+/* 예전 자동 저장이 부르던 자리. 이제는 표시만 갱신한다. */
+function queueSync() { paintSave(); }
+
+/* 서버 것을 바탕에 깔고 내가 만진 것만 얹는다.
+
+   그냥 합치면(mergeRows) 내가 **지운 줄이 되살아난다** — 서버엔 아직
+   있으니까. 그래서 마지막으로 읽었을 때의 모습(baseline)과 비교해
+   "내가 지웠고, 그 뒤로 남이 건드리지도 않은 줄" 만 진짜로 지운다.
+   남이 그 사이에 만졌으면 지우지 않고 남겨 두고 알린다 — 남의 기록을
+   조용히 없애는 것보다 되살아난 줄을 한 번 더 지우는 편이 낫다. */
+function applyMine(theirs) {
+  var out = {}, i, k;
+  for (i = 0; i < theirs.length; i++) out[rowKey(theirs[i])] = theirs[i];
+
+  var mineKeys = {};
+  for (i = 0; i < DB.length; i++) {
+    var m = DB[i]; k = rowKey(m); mineKeys[k] = 1;
+    var t = out[k];
+    if (!t) { out[k] = m; continue; }          /* 내가 새로 넣은 줄 */
+    out[k] = (m.upd || '') >= (t.upd || '') ? m : t;
+  }
+
+  var revived = 0;
+  Object.keys(baseline).forEach(function (bk) {
+    if (mineKeys[bk] || !out[bk]) return;       /* 안 지웠거나 서버에도 없음 */
+    if ((out[bk].upd || '') <= baseline[bk]) delete out[bk];
+    else revived++;                             /* 남이 그 사이 고쳤다 */
+  });
+  if (revived) {
+    msg('warn', '지우려던 ' + revived + '줄은 그 사이 다른 사람이 고쳐서 남겨 뒀습니다. ' +
+                '그래도 지우시려면 한 번 더 지우고 저장해 주세요.');
+  }
+  return Object.keys(out).map(function (x) { return out[x]; });
 }
 
 /* 저장소가 둘이라 읽기/쓰기/변경확인만 갈아끼운다. 병합 규칙은 공통이다. */
@@ -1830,27 +2003,21 @@ async function remoteWrite(rows) {
 async function runSync() {
   if (!connected() || syncing) return;
   syncing = true; pending = false;
-  /* 이번 회차가 실어 나르는 건수. 도는 동안 사용자가 더 고치면
-     그건 다음 회차 몫이라 여기서 빼지 않고 기억해 둔다. */
-  var carrying = unsaved;
   lastFail = null;
   paintSync('saving'); paintSave();
   try {
-    /* 남이 그 사이에 저장했으면 먼저 합친다 — 덮어쓰면 남의 기록이 날아간다 */
-    if (await remoteChanged()) {
-      DB = mergeRows(DB, await remoteRead());
-      try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
-      render();
-    }
+    /* 늘 서버를 먼저 읽는다. 그 위에 내가 만진 것만 얹어서 되돌려 준다. */
+    DB = applyMine(await remoteRead());
+    render();
     var okWrite = await remoteWrite(DB);
-    if (!okWrite) {
-      /* Graph 가 412 를 준 경우 — 방금 사이에 또 저장됐다. 합치고 한 번 더. */
-      DB = mergeRows(DB, await remoteRead());
-      try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
+    if (!okWrite) {                 /* 그 찰나에 또 저장됐다 — 한 번 더 */
+      DB = applyMine(await remoteRead());
       render();
-      await remoteWrite(DB);
+      okWrite = await remoteWrite(DB);
+      if (!okWrite) throw new Error('다른 사람이 동시에 저장 중입니다 — 잠시 뒤 다시 눌러 주세요');
     }
-    unsaved = Math.max(0, unsaved - carrying);
+    setBaseline(DB);
+    unsaved = 0;
     savedAt = Date.now();
     paintSync('ok');
   } catch (e) {
@@ -1859,22 +2026,31 @@ async function runSync() {
   } finally {
     syncing = false;
     paintSave();
-    /* 여기서 queueSync 를 부르면 건수가 또 올라간다 — 타이머만 다시 건다. */
-    if (pending) { clearTimeout(syncTimer); syncTimer = setTimeout(runSync, 900); }
+    if (pending) { pending = false; runSync(); }
   }
 }
 
-/* ── 바깥에서 바뀐 걸 알아채기 ─────────────────────────────────────── */
+/* ── 바깥에서 바뀐 걸 따라잡기 ─────────────────────────────────────
+   여기서도 합치지 않고 **갈아 끼운다**. 화면은 서버의 거울이어야 한다.
+   저장 안 한 수정이 있으면 손대지 않는다 — 남의 것으로 덮으면 방금 친 게
+   날아간다. 그 상태는 「저장하기 N」 버튼이 알려 준다. */
 async function pull(quiet) {
   if (!connected() || syncing) return;
-  if (quiet && typing()) return;        /* 입력 중에는 화면을 갈아엎지 않는다 */
+  if (quiet && (typing() || unsaved > 0)) return;
+  if (!quiet && unsaved > 0 &&
+      !confirm('\uc800\uc7a5\ud558\uc9c0 \uc54a\uc740 \uc218\uc815 ' + unsaved + '\uac74\uc774 \uc788\uc2b5\ub2c8\ub2e4.\n' +
+               '\uc11c\ubc84 \ub0b4\uc6a9\uc73c\ub85c \uc0c8\ub85c \uc77d\uc73c\uba74 \uadf8 \uc218\uc815\uc740 \uc0ac\ub77c\uc9d1\ub2c8\ub2e4. \uacc4\uc18d\ud560\uae4c\uc694?')) return;
   try {
     if (!(await remoteChanged())) { if (!quiet) paintSync('ok'); return; }
     var before = DB.length;
-    DB = mergeRows(DB, await remoteRead());
-    try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
+    DB = await remoteRead();
+    setBaseline(DB);
+    unsaved = 0;
     render(); paintSync('ok');
-    msg('ok', '공유 파일이 바뀌어 다시 읽었습니다 — ' + before + '줄 → ' + DB.length + '줄');
+    /* 읽어 왔다는 말은 하지 않는다. 10초마다 확인하므로 남이 뭘 고칠 때마다
+       똑같은 줄이 쌓인다. 최신을 보여 주는 건 당연한 일이라 알릴 게 없고,
+       바뀐 건 표 자체가 보여 준다. */
+    void before;
   } catch (e) { paintSync('err', e); }
 }
 
@@ -1905,14 +2081,12 @@ async function connect(create) {
     try { await idbPut('handle', h); }
     catch (e) { msg('warn', '다음 접속 때 자동 연결은 안 될 수 있습니다 — 파일은 정상 연결됐습니다.'); }
 
-    var theirs = create ? [] : await readFile();
-    if (!create && theirs.length) {
-      DB = mergeRows(DB, theirs);
-      try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
-      msg('ok', '공유 파일을 읽었습니다 — 합쳐서 ' + DB.length + '줄');
-    }
+    DB = create ? [] : await readFile();
+    setBaseline(DB);
+    unsaved = 0;
+    if (!create) msg('ok', '공유 파일에서 ' + DB.length + '줄을 읽었습니다');
     render();
-    await writeFile(DB);
+    if (create) await writeFile(DB);          /* 새 파일은 머리글만 만들어 둔다 */
     paintSync('ok');
   } catch (e) {
     if (e && e.name === 'AbortError') return;      /* 사용자가 취소 */
@@ -1945,8 +2119,8 @@ function paintSync(state, err) {
   paintHint(); paintSave();
 
   if (!on) {
-    txt.innerHTML = '공유 해제됨 — 기록이 <b>이 컴퓨터에만</b> 남습니다' +
-      '<span class="path">「공유 저장소 연결」 을 누르면 다시 팀과 같은 표를 봅니다</span>';
+    txt.innerHTML = '<b>공유 저장소에 닿지 못했습니다</b> — 지금은 저장할 수 없습니다' +
+      '<span class="path">고친 내용이 사라지지 않게, 연결된 뒤에 「저장하기」 를 눌러 주세요</span>';
     acts.innerHTML = '<button class="btn" id="scKv">공유 저장소 연결</button>' +
                      (failedOnce && FS_OK
                         ? '<button class="btn ghost" id="scOpen">대신 로컬 파일 쓰기</button>' : '');
@@ -2180,11 +2354,8 @@ window.addEventListener('beforeunload', function (e) {
   if (unsaved > 0 || syncing) { e.preventDefault(); e.returnValue = ''; return ''; }
 });
 
-/* 탭을 숨기거나 닫기 직전에 마지막으로 한 번 더 밀어 본다.
-   확인 창에서 「나가기」를 눌러도 이게 먼저 나갈 여지가 생긴다. */
-document.addEventListener('visibilitychange', function () {
-  if (document.hidden && unsaved > 0 && !syncing) saveNow();
-});
+/* 탭을 숨길 때 몰래 올리지 않는다 — 누른 적 없는 저장이 일어나면
+   무엇이 올라갔는지 알 수 없다. 확인창으로만 붙잡는다. */
 
 var POLL_MS = 10000;
 
@@ -2196,6 +2367,7 @@ function typing() {
 
 function tick() {
   if (document.hidden || syncing || pending || typing()) return;
+  if (unsaved > 0) return;      /* 저장 안 한 수정을 덮지 않는다 */
   pull(true);
 }
 setInterval(tick, POLL_MS);
