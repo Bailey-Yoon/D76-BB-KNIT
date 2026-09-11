@@ -62,6 +62,16 @@ a:hover{color:var(--tool-deep)}
 .sync .btn{font-size:12px;padding:7px 12px}
 @media(max-width:640px){ .sync .acts{margin-left:0;width:100%} }
 
+.setup{background:var(--card);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:16px;
+  box-shadow:var(--sh-1);display:flex;flex-direction:column;gap:7px}
+.setup .t{font-size:15px;font-weight:700}
+.setup .d{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:6px}
+.setup label{font-size:10.5px;letter-spacing:.06em;font-weight:700;color:var(--muted);margin-top:6px}
+.setup input{font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line);
+  border-radius:var(--r-sm);background:var(--card);color:var(--ink);width:100%}
+.setup .hint{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:2px}
+.setup .row{display:flex;gap:8px;margin-top:12px}
+
 #log{margin-bottom:16px;display:flex;flex-direction:column;gap:7px}
 .msg{font-size:12.5px;line-height:1.6;padding:10px 14px;border-radius:var(--r-md);
   background:var(--card);box-shadow:var(--sh-1)}
@@ -178,6 +188,24 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
     <div class="acts" id="syncActs"></div>
   </div>
 
+  <div class="setup" id="setup" hidden>
+    <div class="t">SharePoint · OneDrive 연결</div>
+    <div class="d">회사 계정으로 로그인해 팀 폴더의 CSV 한 장을 같이 씁니다.
+      준비가 안 되셨으면 <b>앱 등록 안내서</b>(_Backend/2_Docs/SHAREPOINT_SETUP.md)를 먼저 보세요.</div>
+    <label for="spClient">앱 ID (클라이언트 ID)</label>
+    <input id="spClient" type="text" spellcheck="false"
+           placeholder="00000000-0000-0000-0000-000000000000">
+    <label for="spUrl">팀 폴더 또는 파일의 주소</label>
+    <input id="spUrl" type="url" spellcheck="false"
+           placeholder="https://saea.sharepoint.com/sites/... 또는 OneDrive 폴더 주소">
+    <div class="hint">폴더 주소를 넣으면 그 안에 <b>Vertical_샘플작지_공유.csv</b> 를 만듭니다.
+      이미 만든 CSV 가 있으면 그 파일 주소를 넣으세요.</div>
+    <div class="row">
+      <button class="btn" id="spGo">로그인하고 연결</button>
+      <button class="btn ghost" id="spCancel">취소</button>
+    </div>
+  </div>
+
   <div id="log"></div>
 
   <div class="stats" id="stats"></div>
@@ -222,6 +250,7 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.1/lib/msal-browser.min.js"></script>
 <script>
 (function () {
 'use strict';
@@ -936,9 +965,17 @@ render();
    ════════════════════════════════════════════════════════════════════ */
 
 var FS_OK = typeof window.showOpenFilePicker === 'function';
-var handle = null;          /* FileSystemFileHandle */
-var lastMtime = 0;          /* 마지막으로 읽은 파일의 수정시각 */
+var handle = null;          /* FileSystemFileHandle — 로컬 파일 모드 */
+var lastMtime = 0;          /* 로컬 파일: 마지막으로 읽은 수정시각 */
 var syncTimer = null, syncing = false, pending = false;
+
+/* 저장소 모드: '' | 'file' | 'graph' */
+var GKEY = 'd76_fabreq_graph';
+var G = { mode: '', clientId: '', url: '', driveId: '', itemId: '',
+          name: '', etag: '', user: '' };
+try { G = Object.assign(G, JSON.parse(localStorage.getItem(GKEY) || '{}')); } catch (e) {}
+function saveG() { try { localStorage.setItem(GKEY, JSON.stringify(G)); } catch (e) {} }
+function connected() { return G.mode === 'graph' ? !!G.itemId : !!handle; }
 
 /* ── 핸들 보관 (IndexedDB) ─────────────────────────────────────────── */
 function idb() {
@@ -967,6 +1004,162 @@ function idbGet(k) {
       rq.onerror = function () { rej(rq.error); };
     });
   });
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   SharePoint / OneDrive 저장소 (Microsoft Graph)
+
+   회사 계정으로 로그인해 팀 폴더의 CSV 한 장을 같이 쓴다. 서버가 없고,
+   페이지가 브라우저에서 Graph 를 직접 부른다. 데이터는 회사 테넌트 안에 있고
+   접근 권한은 SharePoint/OneDrive 폴더 권한 그대로다.
+
+   · 앱 등록은 **SPA** 형식이어야 한다. '웹' 으로 등록하면 브라우저에서
+     cross-origin token redemption 오류가 나면서 로그인이 끝나지 않는다.
+   · 권한은 위임 `Files.ReadWrite` 로 시작한다 — **관리자 동의가 필요 없다.**
+     Shares API 의 최소 권한이 이것이다. 닿지 않는 위치면 403 이 나는데,
+     그때만 `Files.ReadWrite.All`(관리자 동의 필요)로 올린다.
+   · 비밀 키를 만들지 않는다. Authorization Code + PKCE 라 페이지에 새는 비밀이 없다.
+   ════════════════════════════════════════════════════════════════════ */
+
+var GRAPH = 'https://graph.microsoft.com/v1.0';
+var SCOPES = ['User.Read', 'Files.ReadWrite'];
+var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
+var msal = null;
+
+function msalApp() {
+  if (msal) return msal;
+  if (typeof window.msal === 'undefined') throw new Error('로그인 모듈을 불러오지 못했습니다');
+  msal = new window.msal.PublicClientApplication({
+    auth: {
+      clientId: G.clientId,
+      authority: 'https://login.microsoftonline.com/organizations',
+      /* 리디렉션 주소는 지금 열려 있는 페이지 그대로. 앱 등록의 SPA 주소와
+         글자 하나까지 같아야 한다 (끝의 / 포함). */
+      redirectUri: location.origin + location.pathname
+    },
+    cache: { cacheLocation: 'localStorage' }
+  });
+  return msal;
+}
+
+async function token(interactive) {
+  var app = msalApp();
+  if (app.initialize) await app.initialize();
+  var acc = app.getAllAccounts()[0];
+  if (acc) {
+    try {
+      var r = await app.acquireTokenSilent({ scopes: SCOPES, account: acc });
+      G.user = acc.username || ''; return r.accessToken;
+    } catch (e) { /* 조용히 실패하면 아래에서 다시 묻는다 */ }
+  }
+  if (!interactive) throw new Error('로그인이 필요합니다');
+  var res = await app.loginPopup({ scopes: SCOPES, prompt: 'select_account' });
+  G.user = (res.account && res.account.username) || '';
+  return res.accessToken;
+}
+
+async function gfetch(path, opt, interactive) {
+  var t = await token(interactive);
+  opt = opt || {};
+  opt.headers = Object.assign({ Authorization: 'Bearer ' + t }, opt.headers || {});
+  var r = await fetch(path.charAt(0) === 'h' ? path : GRAPH + path, opt);
+  if (r.status === 401) throw new Error('로그인이 만료됐습니다 — 다시 연결해 주세요');
+  if (r.status === 403) {
+    throw new Error('이 파일에 접근할 권한이 없습니다. 앱 등록에 Files.ReadWrite.All 을 ' +
+                    '추가하고 관리자 동의를 받아야 할 수 있습니다 (SHAREPOINT_SETUP.md 참조)');
+  }
+  return r;
+}
+
+/* 공유 URL → 사용 가능한 토큰. base64url 로 바꾸고 앞에 u! 를 붙인다. */
+function shareToken(url) {
+  var b64 = btoa(unescape(encodeURIComponent(url)));
+  return 'u!' + b64.replace(/=+$/, '').replace(/\//g, '_').replace(/\+/g, '-');
+}
+
+/* 주소가 폴더면 그 안의 CSV 를, 파일이면 그 파일을 쓰기 대상으로 잡는다. */
+async function resolveTarget(interactive) {
+  var r = await gfetch('/shares/' + shareToken(G.url) +
+                       '/driveItem?$select=id,name,file,folder,parentReference,eTag',
+                       {}, interactive);
+  if (!r.ok) {
+    var t = await r.text();
+    throw new Error('주소를 찾지 못했습니다 (' + r.status + ') — 폴더/파일 주소가 맞는지 확인해 주세요');
+  }
+  var it = await r.json();
+  var driveId = (it.parentReference && it.parentReference.driveId) || '';
+
+  if (it.folder) {
+    /* 폴더면 그 안의 CSV. 없으면 처음 저장할 때 만들어진다. */
+    var rr = await gfetch('/drives/' + driveId + '/items/' + it.id + ':/' +
+                          encodeURIComponent(SHARE_NAME) + ':?$select=id,name,eTag', {}, false);
+    if (rr.ok) {
+      var f = await rr.json();
+      G.driveId = driveId; G.itemId = f.id; G.name = f.name; G.etag = f.eTag || '';
+    } else {
+      /* 아직 없다 — 빈 파일을 만들어 자리를 잡는다 */
+      var mk = await gfetch('/drives/' + driveId + '/items/' + it.id + ':/' +
+                            encodeURIComponent(SHARE_NAME) + ':/content',
+                            { method: 'PUT', headers: { 'Content-Type': 'text/csv' }, body: '' }, false);
+      if (!mk.ok) throw new Error('폴더에 파일을 만들지 못했습니다 (' + mk.status + ')');
+      var nf = await mk.json();
+      G.driveId = driveId; G.itemId = nf.id; G.name = nf.name; G.etag = nf.eTag || '';
+    }
+  } else {
+    G.driveId = driveId; G.itemId = it.id; G.name = it.name; G.etag = it.eTag || '';
+  }
+  saveG();
+}
+
+async function graphRead() {
+  var r = await gfetch('/drives/' + G.driveId + '/items/' + G.itemId + '/content', {}, false);
+  if (r.status === 404) return [];
+  if (!r.ok) throw new Error('파일을 읽지 못했습니다 (' + r.status + ')');
+  var text = await r.text();
+  var m = await gfetch('/drives/' + G.driveId + '/items/' + G.itemId +
+                       '?$select=eTag,lastModifiedDateTime', {}, false);
+  if (m.ok) { var j = await m.json(); G.etag = j.eTag || ''; saveG(); }
+  return text.trim() ? csvToRows(text) : [];
+}
+
+/* If-Match 로 덮어쓰기를 막는다 — 412 가 오면 그 사이 남이 저장한 것이다. */
+async function graphWrite(rows) {
+  var h = { 'Content-Type': 'text/csv' };
+  if (G.etag) h['If-Match'] = G.etag;
+  var r = await gfetch('/drives/' + G.driveId + '/items/' + G.itemId + '/content',
+                       { method: 'PUT', headers: h, body: toCsv(rows) }, false);
+  if (r.status === 412) return false;                 /* 충돌 — 부르는 쪽에서 병합 */
+  if (!r.ok) throw new Error('저장하지 못했습니다 (' + r.status + ')');
+  var j = await r.json();
+  G.etag = j.eTag || ''; saveG();
+  return true;
+}
+
+async function graphChanged() {
+  var r = await gfetch('/drives/' + G.driveId + '/items/' + G.itemId + '?$select=eTag', {}, false);
+  if (!r.ok) return false;
+  var j = await r.json();
+  return (j.eTag || '') !== G.etag;
+}
+
+async function connectGraph(clientId, url) {
+  G.clientId = clientId.trim();
+  G.url = url.trim();
+  G.mode = 'graph';
+  msal = null;                              /* 앱 ID 가 바뀌었을 수 있다 */
+  saveG();
+  await token(true);                        /* 여기서 로그인 창이 뜬다 */
+  await resolveTarget(true);
+  var theirs = await graphRead();
+  if (theirs.length) {
+    DB = mergeRows(DB, theirs);
+    try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
+    msg('ok', '공유 파일을 읽었습니다 — 합쳐서 ' + DB.length + '줄');
+  }
+  render();
+  await graphWrite(DB);
+  paintSync('ok');
 }
 
 /* ── 줄 단위 병합 — 수정시각이 늦은 쪽을 남긴다 ────────────────────── */
@@ -1001,26 +1194,43 @@ async function writeFile(rows) {
 /* 저장 요청을 모아서 한 번에 — 체크 한 번에 파일을 한 번씩 쓰면
    OneDrive 가 업로드를 계속 물고 늘어진다. */
 function queueSync() {
-  if (!handle) return;
+  if (!connected()) return;
   pending = true;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(runSync, 900);
 }
 
+/* 저장소가 둘이라 읽기/쓰기/변경확인만 갈아끼운다. 병합 규칙은 공통이다. */
+function remoteRead()    { return G.mode === 'graph' ? graphRead() : readFile(); }
+async function remoteChanged() {
+  if (G.mode === 'graph') return graphChanged();
+  var f = await handle.getFile();
+  return f.lastModified !== lastMtime;
+}
+async function remoteWrite(rows) {
+  if (G.mode === 'graph') return graphWrite(rows);
+  await writeFile(rows); return true;
+}
+
 async function runSync() {
-  if (!handle || syncing) { return; }
+  if (!connected() || syncing) return;
   syncing = true; pending = false;
   paintSync('saving');
   try {
     /* 남이 그 사이에 저장했으면 먼저 합친다 — 덮어쓰면 남의 기록이 날아간다 */
-    var f = await handle.getFile();
-    if (f.lastModified !== lastMtime) {
-      var theirs = await readFile();
-      DB = mergeRows(DB, theirs);
+    if (await remoteChanged()) {
+      DB = mergeRows(DB, await remoteRead());
       try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
       render();
     }
-    await writeFile(DB);
+    var okWrite = await remoteWrite(DB);
+    if (!okWrite) {
+      /* Graph 가 412 를 준 경우 — 방금 사이에 또 저장됐다. 합치고 한 번 더. */
+      DB = mergeRows(DB, await remoteRead());
+      try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
+      render();
+      await remoteWrite(DB);
+    }
     paintSync('ok');
   } catch (e) {
     paintSync('err', e);
@@ -1032,13 +1242,11 @@ async function runSync() {
 
 /* ── 바깥에서 바뀐 걸 알아채기 ─────────────────────────────────────── */
 async function pull(quiet) {
-  if (!handle) return;
+  if (!connected() || syncing) return;
   try {
-    var f = await handle.getFile();
-    if (f.lastModified === lastMtime) { if (!quiet) paintSync('ok'); return; }
-    var theirs = await readFile();
+    if (!(await remoteChanged())) { if (!quiet) paintSync('ok'); return; }
     var before = DB.length;
-    DB = mergeRows(DB, theirs);
+    DB = mergeRows(DB, await remoteRead());
     try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
     render(); paintSync('ok');
     msg('ok', '공유 파일이 바뀌어 다시 읽었습니다 — ' + before + '줄 → ' + DB.length + '줄');
@@ -1066,6 +1274,7 @@ async function connect(create) {
       msg('warn', '파일 쓰기 권한을 받지 못했습니다.'); return;
     }
     handle = h;
+    G.mode = 'file'; saveG();
     /* 핸들 보관은 "다음에 열 때 자동 연결" 용 편의 기능이다.
        여기서 실패해도 이번 연결은 멀쩡하니 연결 전체를 접으면 안 된다. */
     try { await idbPut('handle', h); }
@@ -1089,9 +1298,10 @@ async function connect(create) {
 
 async function disconnect() {
   handle = null; lastMtime = 0;
+  G.mode = ''; G.driveId = ''; G.itemId = ''; G.name = ''; G.etag = ''; saveG();
   try { await idbPut('handle', null); } catch (e) {}
   paintSync('off');
-  msg('ok', '공유 파일 연결을 끊었습니다. 기록은 이 브라우저에 그대로 있습니다.');
+  msg('ok', '공유 연결을 끊었습니다. 기록은 이 브라우저에 그대로 있습니다.');
 }
 
 /* ── 막대 그리기 ───────────────────────────────────────────────────── */
@@ -1099,25 +1309,32 @@ function paintSync(state, err) {
   var bar = document.getElementById('sync');
   var txt = document.getElementById('syncTxt');
   var acts = document.getElementById('syncActs');
-  bar.className = 'sync' + (handle ? ' on' : '') + (state === 'err' ? ' stale' : '');
+  var on = connected();
+  bar.className = 'sync' + (on ? ' on' : '') + (state === 'err' ? ' stale' : '');
 
-  if (!FS_OK) {
-    txt.innerHTML = '이 브라우저는 공유 파일 연결을 지원하지 않습니다 — ' +
-                    '<b>Chrome</b> 또는 <b>Edge</b> 에서 열어 주세요. ' +
-                    '지금은 기록이 이 브라우저에만 남습니다.';
-    acts.innerHTML = '';
-    return;
-  }
-  if (!handle) {
-    txt.innerHTML = '공유 파일에 연결하지 않았습니다 — 기록이 <b>이 브라우저에만</b> 남습니다';
-    acts.innerHTML = '<button class="btn" id="scOpen">공유 파일 열기</button>' +
-                     '<button class="btn ghost" id="scNew">새 공유 파일 만들기</button>';
+  if (!on) {
+    txt.innerHTML = '공유에 연결하지 않았습니다 — 기록이 <b>이 브라우저에만</b> 남습니다';
+    acts.innerHTML =
+      '<button class="btn" id="scGraph">SharePoint 연결</button>' +
+      (FS_OK ? '<button class="btn ghost" id="scOpen">로컬 공유 파일 열기</button>' +
+               '<button class="btn ghost" id="scNew">새로 만들기</button>' : '');
+    if (!FS_OK) {
+      txt.innerHTML += '<span class="path">로컬 파일 방식은 Chrome·Edge 에서만 됩니다 — ' +
+                       'SharePoint 연결은 어느 브라우저에서나 됩니다</span>';
+    }
   } else {
     var when = state === 'saving' ? '저장하는 중…'
              : state === 'err' ? '마지막 저장 실패' + (err ? ' — ' + esc(String(err.message || err)) : '')
-             : '마지막 저장 ' + new Date(lastMtime).toLocaleTimeString('ko-KR');
-    txt.innerHTML = '<b>' + esc(handle.name) + '</b> 에 연결됨 · ' + when +
-                    '<span class="path">이 파일이 있는 OneDrive 폴더를 팀과 공유하면 같이 보게 됩니다</span>';
+             : state === 'ok' ? '저장됨' : '';
+    if (G.mode === 'graph') {
+      txt.innerHTML = '<b>' + esc(G.name || SHARE_NAME) + '</b> · SharePoint · ' + when +
+        '<span class="path">' + esc(G.user || '') +
+        ' — 이 파일이 있는 폴더를 팀과 공유하면 같이 보게 됩니다</span>';
+    } else {
+      txt.innerHTML = '<b>' + esc(handle.name) + '</b> · 로컬 공유 파일 · ' +
+        (state === 'ok' ? '마지막 저장 ' + new Date(lastMtime).toLocaleTimeString('ko-KR') : when) +
+        '<span class="path">이 파일이 있는 OneDrive 폴더를 팀과 공유하면 같이 보게 됩니다</span>';
+    }
     acts.innerHTML = '<button class="btn ghost" id="scPull">지금 다시 읽기</button>' +
                      '<button class="btn ghost" id="scOff">연결 해제</button>';
   }
@@ -1126,10 +1343,17 @@ function paintSync(state, err) {
 
 function wireSync() {
   var m = {
-    scOpen: function () { connect(false); },
-    scNew:  function () { connect(true); },
-    scPull: function () { pull(false); },
-    scOff:  disconnect
+    scOpen:  function () { connect(false); },
+    scNew:   function () { connect(true); },
+    scPull:  function () { pull(false); },
+    scOff:   disconnect,
+    scGraph: function () {
+      var box = document.getElementById('setup');
+      box.hidden = false;
+      document.getElementById('spClient').value = G.clientId || '';
+      document.getElementById('spUrl').value = G.url || '';
+      document.getElementById('spClient').focus();
+    }
   };
   Object.keys(m).forEach(function (id) {
     var el = document.getElementById(id);
@@ -1139,6 +1363,28 @@ function wireSync() {
 
 /* ── 시작할 때 지난 연결 복원 ──────────────────────────────────────── */
 (async function () {
+  /* SharePoint 로 쓰던 사람은 로그인 세션이 살아 있으면 그대로 이어 붙는다 */
+  if (G.mode === 'graph' && G.clientId && G.itemId) {
+    try {
+      await token(false);
+      await pull(true);
+      paintSync('ok');
+      return;
+    } catch (e) {
+      paintSync('off');
+      document.getElementById('syncTxt').innerHTML =
+        'SharePoint 공유 파일 <b>' + esc(G.name || '') + '</b> 이 설정돼 있습니다 — 다시 로그인해 주세요';
+      document.getElementById('syncActs').innerHTML =
+        '<button class="btn" id="scRelogin">다시 로그인</button>' +
+        '<button class="btn ghost" id="scOff">연결 해제</button>';
+      document.getElementById('scRelogin').onclick = async function () {
+        try { await token(true); await pull(true); paintSync('ok'); }
+        catch (e2) { msg('err', '로그인하지 못했습니다: ' + esc(String(e2.message || e2))); }
+      };
+      document.getElementById('scOff').onclick = disconnect;
+      return;
+    }
+  }
   if (!FS_OK) { paintSync('off'); return; }
   var h = null;
   try { h = await idbGet('handle'); } catch (e) {}
@@ -1167,6 +1413,30 @@ function wireSync() {
   };
   document.getElementById('scNew').onclick = function () { connect(true); };
 })();
+
+/* ── SharePoint 설정 대화상자 ───────────────────────────────────── */
+document.getElementById('spCancel').onclick = function () {
+  document.getElementById('setup').hidden = true;
+};
+document.getElementById('spGo').onclick = async function () {
+  var cid = document.getElementById('spClient').value.trim();
+  var url = document.getElementById('spUrl').value.trim();
+  document.getElementById('log').innerHTML = '';
+  if (!/^[0-9a-f-]{36}$/i.test(cid)) {
+    msg('warn', '앱 ID 가 형식에 맞지 않습니다 — 36자리 GUID 여야 합니다.'); return;
+  }
+  if (!/^https?:\/\//i.test(url)) {
+    msg('warn', '폴더 또는 파일의 전체 주소(https://…)를 넣어 주세요.'); return;
+  }
+  this.disabled = true;
+  try {
+    await connectGraph(cid, url);
+    document.getElementById('setup').hidden = true;
+  } catch (e) {
+    G.mode = ''; saveG(); paintSync('off');
+    msg('err', '연결하지 못했습니다: ' + esc(String(e.message || e)));
+  } finally { this.disabled = false; }
+};
 
 /* 탭으로 돌아올 때 남이 바꿨는지 확인한다 */
 document.addEventListener('visibilitychange', function () {
