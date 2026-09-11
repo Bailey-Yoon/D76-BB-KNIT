@@ -144,6 +144,8 @@ tr.done .chk{color:var(--pos)}
 
 .empty{padding:46px 20px;text-align:center;color:var(--sub);font-size:13.5px;line-height:1.8}
 .note-hint{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.7}
+.note-hint a{color:var(--tool);text-decoration:underline;text-underline-offset:2px}
+.note-hint a:hover{color:var(--tool-deep)}
 footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color:var(--muted);line-height:1.8}
 
 @media(max-width:640px){
@@ -735,11 +737,36 @@ function render() {
     }).join('');
   }
 
-  document.getElementById('hint').textContent = tot
-    ? '보이는 항목 ' + rows.length + ' / 전체 ' + tot +
-      ' · 수취 체크·수취일·특이사항은 입력하는 즉시 저장됩니다.'
-    : '';
+  hintCount = tot ? '보이는 항목 ' + rows.length + ' / 전체 ' + tot : '';
+  paintHint();
 }
+var hintCount = '';
+
+/* 표 아래 한 줄에 개수와 저장 상태를 같이 적는다. 막대를 없앴으니
+   「다시 읽기」·「연결 해제」 도 여기에 작은 글씨로 둔다. */
+function paintHint() {
+  var el = document.getElementById('hint');
+  if (!el) return;
+  if (!hintCount) { el.innerHTML = ''; return; }
+  /* ⚠️ render() 는 동기화 코드(var G …)보다 먼저 한 번 돈다. 그때 connected()
+     를 그냥 부르면 G 가 아직 undefined 라 페이지가 통째로 죽는다.
+     연결 상태는 나중에 paintSync 가 다시 그려 주므로 여기선 조용히 넘어간다. */
+  var ok = false;
+  try { ok = connected(); } catch (e) {}
+  var parts = [esc(hintCount)];
+  if (ok) {
+    parts.push('<b>공유 저장소</b>에 자동 저장됩니다');
+    parts.push('<a href="#" id="hPull">다시 읽기</a>');
+    parts.push('<a href="#" id="hOff">공유 끄기</a>');
+  } else {
+    parts.push('이 컴퓨터에만 저장됩니다');
+  }
+  el.innerHTML = parts.join(' · ');
+  var p = document.getElementById('hPull'), o = document.getElementById('hOff');
+  if (p) p.onclick = function (e) { e.preventDefault(); pull(false); };
+  if (o) o.onclick = function (e) { e.preventDefault(); disconnect(); };
+}
+
 function tile(l, v, cls) {
   return '<div class="stat ' + cls + '"><span class="l">' + l + '</span>' +
          '<span class="v">' + v + '</span></div>';
@@ -1800,6 +1827,11 @@ function paintSync(state, err) {
   var acts = document.getElementById('syncActs');
   var on = connected();
   bar.className = 'sync' + (on ? ' on' : '') + (state === 'err' ? ' stale' : '');
+
+  /* 잘 돌아가는 동안에는 막대를 띄우지 않는다. 자동으로 붙으니 알릴 게 없고,
+     초록 줄이 늘 떠 있으면 화면만 차지한다. 문제가 생겼을 때만 나온다. */
+  bar.hidden = on && state !== 'err';
+  paintHint();
 
   if (!on) {
     txt.innerHTML = '공유 해제됨 — 기록이 <b>이 컴퓨터에만</b> 남습니다' +
