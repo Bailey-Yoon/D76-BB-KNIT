@@ -940,8 +940,11 @@ var FS_OK = typeof window.showOpenFilePicker === 'function';
 var handle = null;          /* FileSystemFileHandle — 로컬 파일 모드 */
 var lastMtime = 0;          /* 로컬 파일: 마지막으로 읽은 수정시각 */
 var syncTimer = null, syncing = false, pending = false;
-/* 한 번 실패해야 "대신 로컬 파일" 을 내건다 — 평소엔 버튼 하나만 보이게 */
+/* 한 번 실패해야 "대신 로컬 파일" 을 내건다 — 평소엔 버튼 하나만 보이게.
+   새로고침해도 남아야 한다. 관리자 동의를 기다리는 며칠 동안 매번
+   실패를 한 번씩 겪게 만들 이유가 없다. */
 var failedOnce = false;
+try { failedOnce = localStorage.getItem('d76_fabreq_failed') === '1'; } catch (e) {}
 
 /* 저장소 모드: '' | 'file' | 'graph' */
 var GKEY = 'd76_fabreq_graph';
@@ -1344,6 +1347,8 @@ async function connectGraph(clientId, url) {
   }
   render();
   await graphWrite(DB);
+  failedOnce = false;
+  try { localStorage.removeItem('d76_fabreq_failed'); } catch (e) {}
   paintSync('ok');
 }
 
@@ -1539,7 +1544,16 @@ function wireSync() {
         tokCache = { v: '', exp: 0 };
         await connectGraph(DEFAULT_CLIENT, DEFAULT_URL);
       } catch (e) {
-        G.mode = ''; saveG(); failedOnce = true; paintSync('off');
+        var m = String(e && (e.message || e));
+        if (/AADSTS65001|consent_required|admin|관리자/i.test(m)) {
+          m = '관리자 승인이 필요합니다 — 이 조직은 Files.ReadWrite.All 에 대한 ' +
+              '사용자 동의를 막아 두었습니다. IT 에 관리자 동의를 요청하세요. ' +
+              '그동안은 「대신 로컬 파일 쓰기」 로 같은 폴더를 쓸 수 있습니다.';
+          e = new Error(m);
+        }
+        G.mode = ''; saveG(); failedOnce = true;
+        try { localStorage.setItem('d76_fabreq_failed', '1'); } catch (e) {}
+        paintSync('off');
         msg('err', '연결하지 못했습니다 — ' + esc(String(e.message || e)));
       } finally { b.disabled = false; }
     }
