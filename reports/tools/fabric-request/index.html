@@ -1037,6 +1037,11 @@ var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
    한 번 붙은 폴더는 G.url 에 기억해 계속 쓴다. 매번 후보를 새로 훑으면
    어느 날은 ①, 어느 날은 ② 에 적히면서 기록이 두 파일로 갈라진다. */
 var FOLDERS = [
+  /* 파일 링크(:x:)를 먼저 본다. 폴더 링크(:f:)는 403 이었는데 파일은
+     다른 객체라 결과가 다를 수 있다. 되면 그 파일에 바로 쓴다. */
+  { label: 'Teams 공유파일',
+    url: 'https://saea365.sharepoint.com/:x:/s/D76CATJACKBB/' +
+         'IQBji_eKBB9LQaPTMNnUXEtfASYCX1v3wS9AWRTRwRxsHYw?e=NUheRR' },
   { label: 'Teams 공유폴더',
     url: 'https://saea365.sharepoint.com/:f:/s/D76CATJACKBB/' +
          'IgB6vqJewMkRS44CvSGMk2KNAb-BHDryY4fWiZKR2_RVzFA?e=w0HENm' },
@@ -1357,6 +1362,13 @@ async function resolveTarget(interactive, url) {
       G.driveId = driveId; G.itemId = nf.id; G.name = nf.name; G.etag = nf.eTag || '';
     }
   } else {
+    /* 🛑 이 도구는 CSV 만 쓴다. .xlsx 에 CSV 본문을 덮어쓰면 엑셀이
+       열지 못하는 파일이 된다. 이름으로 막는다. */
+    if (!/\.csv$/i.test(it.name || '')) {
+      throw new Error('"' + (it.name || '이 파일') + '" 은 CSV 가 아닙니다 — ' +
+        '이 도구는 CSV 로만 저장합니다. 엑셀 파일(.xlsx)에 쓰면 파일이 깨집니다. ' +
+        '같은 폴더에 .csv 파일을 만들어 그 링크를 쓰거나, 폴더 링크를 주세요.');
+    }
     G.driveId = driveId; G.itemId = it.id; G.name = it.name; G.etag = it.eTag || '';
   }
   saveG();
