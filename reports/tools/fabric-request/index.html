@@ -1040,13 +1040,11 @@ var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
 
    한 번 붙은 폴더는 G.url 에 기억해 계속 쓴다. 매번 후보를 새로 훑으면
    어느 날은 ①, 어느 날은 ② 에 적히면서 기록이 두 파일로 갈라진다. */
-/* Teams 폴더가 되는지만 본다. 개인 OneDrive 폴백은 뺐다 — 폴백이 성공해
-   버리면 팀 폴더가 됐는지 안 됐는지 화면만 봐서는 알 수가 없다.
-   실패하면 실패한 채로 두고 오류를 그대로 보여준다. */
+/* Teams 폴더 하나만 본다. 폴백이 성공해 버리면 팀 폴더가 됐는지
+   안 됐는지 화면만 봐서는 알 수가 없어서, 실패하면 실패한 채로 둔다.
+   (파일 링크는 그 파일이 지워져 404 였으므로 뺐다. 새로 만들어
+   공유하면 그 링크를 여기 첫 줄에 넣고 다시 시험하면 된다.) */
 var FOLDERS = [
-  { label: 'Teams 공유파일',
-    url: 'https://saea365.sharepoint.com/:x:/s/D76CATJACKBB/' +
-         'IQBji_eKBB9LQaPTMNnUXEtfASYCX1v3wS9AWRTRwRxsHYw?e=NUheRR' },
   { label: 'Teams 공유폴더',
     url: 'https://saea365.sharepoint.com/:f:/s/D76CATJACKBB/' +
          'IgB6vqJewMkRS44CvSGMk2KNAb-BHDryY4fWiZKR2_RVzFA?e=w0HENm' }
