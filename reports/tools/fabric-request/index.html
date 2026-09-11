@@ -1536,56 +1536,45 @@ async function connectGraph(clientId) {
 
 
 /* ════════════════════════════════════════════════════════════════════
-   공유 저장소 — Upstash Redis (REST)
+   공유 저장소 — Cloudflare Worker + Workers KV
 
-   SharePoint 는 관리자 동의 없이는 못 쓰는 것으로 확인됐고, Supabase 는
-   무료 플랜이 7일 미사용이면 프로젝트를 정지시켜 격주로 쓰는 도구에 맞지
-   않는다. Upstash 는 30일 미사용까지 버티고(그마저도 백업 후 아카이브,
-   사전 경고 메일), REST 라 브라우저에서 바로 부를 수 있으며 CORS 가 열려 있다.
+   워커에 GET/POST 만 한다. 값은 KV 에 들어간다.
+   워커 코드는 `_Backend/3_Scripts/cloudflare-worker.js` 에 있다.
 
-   ⚠️ 토큰이 페이지에 박힌다. 주소를 아는 사람은 이 표를 읽고 **지울 수도**
-      있다. 회사 밖으로 나가도 되는 데이터라는 전제로 고른 방식이다.
-      기록은 브라우저에도 남고 CSV 로 내보낼 수 있으니 완전 소실은 아니다.
+   왜 이걸로 왔나
+     · SharePoint : 관리자 동의 없이는 403 (확인함)
+     · Supabase   : 무료 플랜이 7일 미사용이면 프로젝트 정지 — 격주 도구엔 부적합
+     · Upstash    : 30일 미사용이면 아카이브
+     · Airtable   : 무료 API 월 1,000회 — 체크할 때마다 저장하는 구조엔 부족
+     · Workers KV : **만료 없음**. 읽기 10만/일 · 쓰기 1천/일 · 1GB
 
-   저장 형태: 키 하나에 { v: 버전, csv: "..." } 를 JSON 으로 넣는다.
+   ⚠️ 워커 주소를 아는 사람은 이 표를 읽고 지울 수도 있다. 사외로 나가도 되는
+      데이터라는 전제로 고른 방식이다. 워커가 CORS 를 이 대시보드 주소로
+      제한하니 남의 웹페이지가 스크립트로 긁어가지는 못한다 (curl 은 가능).
+
+   저장 형태: { v: 버전, csv: "..." }.
    버전을 두는 이유는 저장 직전에 남이 바꿨는지 알기 위해서다 —
    그냥 덮어쓰면 남의 기록이 조용히 사라진다.
    ════════════════════════════════════════════════════════════════════ */
 
-var KV_URL   = '';      /* 예: https://xxxx.upstash.io  (끝에 / 없이) */
-var KV_TOKEN = '';      /* Upstash 콘솔의 REST TOKEN */
-var KV_KEY   = 'd76:fabreq:v1';
+var KV_URL = '';        /* 예: https://d76-fabreq.xxx.workers.dev */
 var kvVer = -1;         /* 마지막으로 읽은 버전 */
 
-function kvReady() { return !!(KV_URL && KV_TOKEN); }
+function kvReady() { return !!KV_URL; }
 
-async function kvCall(path, body) {
-  var opt = { headers: { Authorization: 'Bearer ' + KV_TOKEN } };
-  if (body !== undefined) { opt.method = 'POST'; opt.body = body; }
-  var r = await fetch(KV_URL.replace(/\/+$/, '') + path, opt);
-  if (r.status === 401 || r.status === 403) {
-    throw new Error('저장소 토큰이 거부됐습니다 (' + r.status + ') — 토큰을 다시 확인해 주세요');
-  }
-  if (!r.ok) throw new Error('저장소 오류 (' + r.status + ')');
-  return r.json();
-}
-
-/* 값을 읽어 {v, csv} 로 돌려준다. 없으면 {v:0, csv:''} */
 async function kvLoad() {
-  var j = await kvCall('/get/' + encodeURIComponent(KV_KEY));
-  if (!j || j.result === null || j.result === undefined || j.result === '') {
-    return { v: 0, csv: '' };
-  }
+  var r = await fetch(KV_URL, { cache: 'no-store' });
+  if (!r.ok) throw new Error('공유 저장소 오류 (' + r.status + ')');
+  var t = (await r.text()).trim();
+  if (!t) return { v: 0, csv: '' };
   try {
-    var o = JSON.parse(j.result);
-    if (o && typeof o === 'object' && typeof o.csv === 'string') {
-      return { v: +o.v || 0, csv: o.csv };
-    }
-    /* 옛 형식(문자열 CSV)도 받아 준다 */
-    return { v: 0, csv: String(j.result) };
+    var o = JSON.parse(t);
+    if (o && typeof o.csv === 'string') return { v: +o.v || 0, csv: o.csv };
+    if (o && o.error) throw new Error(o.error);
   } catch (e) {
-    return { v: 0, csv: String(j.result) };
+    if (/바인딩|error/i.test(String(e.message))) throw e;
   }
+  return { v: 0, csv: t };          /* 옛 형식(문자열 CSV)도 받아 준다 */
 }
 
 async function kvRead() {
@@ -1603,15 +1592,19 @@ async function kvWrite(rows) {
   var cur = await kvLoad();
   if (cur.v !== kvVer) return false;          /* 그 사이 남이 저장함 — 부르는 쪽에서 병합 */
   var next = { v: cur.v + 1, csv: toCsv(rows) };
-  await kvCall('/set/' + encodeURIComponent(KV_KEY), JSON.stringify(next));
+  var r = await fetch(KV_URL, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(next)
+  });
+  if (!r.ok) throw new Error('저장하지 못했습니다 (' + r.status + ')');
   kvVer = next.v;
   return true;
 }
 
 async function connectKv() {
-  if (!kvReady()) throw new Error('공유 저장소가 설정되지 않았습니다');
+  if (!kvReady()) throw new Error('공유 저장소 주소가 설정되지 않았습니다');
   G.mode = 'kv'; G.name = '공유 저장소'; G.folder = '공유 저장소';
-  G.user = ''; G.scope = ''; G.webUrl = ''; G.size = -1; G.mtime = '';
+  G.user = ''; G.scope = ''; G.webUrl = KV_URL; G.size = -1; G.mtime = '';
   saveG();
   var theirs = await kvRead();
   if (theirs.length) {
@@ -1630,6 +1623,7 @@ async function connectKv() {
   try { localStorage.removeItem('d76_fabreq_failed'); } catch (e) {}
   paintSync('ok');
 }
+
 
 /* ── 줄 단위 병합 — 수정시각이 늦은 쪽을 남긴다 ────────────────────── */
 function mergeRows(mine, theirs) {
