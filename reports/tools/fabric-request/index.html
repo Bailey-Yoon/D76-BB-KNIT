@@ -1051,39 +1051,63 @@ function msalApp() {
    연결이 통째로 끊긴다. 만료 조금 전까지는 들고 쓴다. */
 var tokCache = { v: '', exp: 0 };
 
+/* 🛑 순서가 중요하다.
+
+   예전에 Files.ReadWrite 로 한 번 동의해 두면 그 계정이 캐시에 남는다.
+   이때 "조용히 .All → 안 되면 조용히 기본" 순으로 가면, 기본 토큰이
+   **조용히 성공해 버려서 .All 동의 창이 영영 안 뜬다.** 권한을 추가해도
+   아무것도 달라지지 않는 것처럼 보인다 (실제로 그렇게 막혔다).
+
+   그래서 사용자가 버튼을 눌렀을 때는 조용한 기본 발급으로 내려가기 전에
+   **.All 동의 창을 먼저 띄운다.** 거기서 거절/실패해야 기본으로 떨어진다. */
 async function token(interactive) {
   if (tokCache.v && Date.now() < tokCache.exp) return tokCache.v;
   var app = msalApp();
   if (app.initialize) await app.initialize();
   var acc = (app.getAllAccounts() || [])[0];
-  var sets = [SCOPES_FULL, SCOPES_BASIC], i, r, last = null;
+  var last = null;
 
-  if (acc) {
-    for (i = 0; i < sets.length; i++) {
-      try {
-        r = await app.acquireTokenSilent({ scopes: sets[i], account: acc });
-        G.user = acc.username || ''; G.scope = sets[i][1]; saveG();
-        tokCache = { v: r.accessToken, exp: Date.now() + 9 * 60000 };
-        return r.accessToken;
-      } catch (e) { last = e; }
-    }
+  function keep(res, scope, account) {
+    G.user = (account && account.username) || (res.account && res.account.username) || G.user || '';
+    G.scope = scope; saveG();
+    tokCache = { v: res.accessToken, exp: Date.now() + 9 * 60000 };
+    return res.accessToken;
   }
+  function cancelled(e) {
+    return e && /user_cancelled|popup_window_error/i.test(String(e.errorCode || ''));
+  }
+  async function silent(scopes) {
+    if (!acc) throw new Error('계정 없음');
+    return app.acquireTokenSilent({ scopes: scopes, account: acc });
+  }
+  async function ask(scopes, forceConsent) {
+    var req = { scopes: scopes };
+    if (forceConsent) req.prompt = 'consent';        /* 새 권한 동의 화면을 반드시 띄운다 */
+    if (acc) { req.account = acc; return app.acquireTokenPopup(req); }
+    return app.loginPopup(req);
+  }
+
+  /* ① 전체 권한 — 조용히 */
+  try { return keep(await silent(SCOPES_FULL), 'Files.ReadWrite.All', acc); }
+  catch (e) { last = e; }
+
+  /* ② 전체 권한 — 동의 창을 띄워서 (기본으로 내려가기 전에) */
+  if (interactive) {
+    try { return keep(await ask(SCOPES_FULL, true), 'Files.ReadWrite.All', acc); }
+    catch (e) { last = e; if (cancelled(e)) throw e; }
+  }
+
+  /* ③ 기본 권한 — 조용히 */
+  try { return keep(await silent(SCOPES_BASIC), 'Files.ReadWrite', acc); }
+  catch (e) { last = e; }
+
+  /* ④ 기본 권한 — 물어서 */
+  if (interactive) {
+    try { return keep(await ask(SCOPES_BASIC, false), 'Files.ReadWrite', acc); }
+    catch (e) { last = e; }
+  }
+
   if (!interactive) throw new Error('로그인이 필요합니다 — 「Teams 공유폴더 연결」 을 눌러 주세요');
-
-  for (i = 0; i < sets.length; i++) {
-    try {
-      r = await app.loginPopup({ scopes: sets[i],
-                                 prompt: i === 0 ? 'select_account' : undefined });
-      G.user = (r.account && r.account.username) || ''; G.scope = sets[i][1]; saveG();
-      tokCache = { v: r.accessToken, exp: Date.now() + 9 * 60000 };
-      return r.accessToken;
-    } catch (e) {
-      last = e;
-      /* 사용자가 창을 닫았으면 더 조르지 않는다 */
-      if (e && /user_cancelled|popup_window_error|BrowserAuthError/i.test(
-            String(e.errorCode || e.name || ''))) break;
-    }
-  }
   throw last || new Error('로그인하지 못했습니다');
 }
 
