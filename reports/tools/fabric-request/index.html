@@ -1231,9 +1231,14 @@ async function resolveTarget(interactive) {
     if (canon) cands.push(canon);
     cands.push(G.url);
     for (var ci = 0; ci < cands.length && !it; ci++) {
+      /* Prefer: redeemSharingLink — 주소가 **진짜 공유 링크**(공유 → 링크 복사)면
+         브라우저에서 그 링크를 눌러 들어간 것과 같은 효과가 난다. 그러면 항목이
+         "나에게 공유된 것" 이 되어 낮은 권한으로도 닿을 수 있다.
+         일반 폴더 주소에는 아무 영향이 없으니 늘 붙여 둔다. */
       var r = await gfetch('/shares/' + shareToken(cands[ci]) +
                            '/driveItem?$select=id,name,file,folder,parentReference,eTag',
-                           {}, interactive && ci === 0);
+                           { headers: { Prefer: 'redeemSharingLink' } },
+                           interactive && ci === 0);
       tried.push('shares:' + r.status);
       if (r.ok) {
         it = await r.json();
