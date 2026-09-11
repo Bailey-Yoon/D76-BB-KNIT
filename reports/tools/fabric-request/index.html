@@ -2287,11 +2287,17 @@ async function runSync() {
 async function pull(quiet) {
   if (!connected() || syncing) return;
   if (quiet && (typing() || unsaved > 0)) return;
-  if (!quiet && unsaved > 0 &&
-      !confirm('\uc800\uc7a5\ud558\uc9c0 \uc54a\uc740 \uc218\uc815 ' + unsaved + '\uac74\uc774 \uc788\uc2b5\ub2c8\ub2e4.\n' +
-               '\uc11c\ubc84 \ub0b4\uc6a9\uc73c\ub85c \uc0c8\ub85c \uc77d\uc73c\uba74 \uadf8 \uc218\uc815\uc740 \uc0ac\ub77c\uc9d1\ub2c8\ub2e4. \uacc4\uc18d\ud560\uae4c\uc694?')) return;
+  /* 버리기로 했으면 **서버가 그대로여도** 다시 읽어야 한다.
+     버전만 보고 건너뛰면 「지금 새로고침」 을 눌러도 화면에 얹힌 수정이
+     그대로 남아, 버린 줄 알았던 게 다음 저장에 딸려 올라간다. */
+  var force = false;
+  if (!quiet && unsaved > 0) {
+    if (!confirm('저장하지 않은 수정 ' + unsaved + '건이 있습니다.\n' +
+                 '서버 내용으로 새로 읽으면 그 수정은 사라집니다. 계속할까요?')) return;
+    force = true;
+  }
   try {
-    if (!(await remoteChanged())) { if (!quiet) paintSync('ok'); return; }
+    if (!force && !(await remoteChanged())) { if (!quiet) paintSync('ok'); return; }
     var before = DB.length;
     DB = await remoteRead();
     setBaseline(DB);
