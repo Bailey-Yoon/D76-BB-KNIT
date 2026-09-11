@@ -1010,10 +1010,15 @@ var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
 /* 기본 공유 폴더 — 매번 주소를 붙여 넣지 않아도 되게 박아 둔다.
    다른 폴더를 쓰려면 설정 칸에서 바꾸면 된다. 주소에는 비밀이 없다
    (로그인한 사람이 그 폴더에 접근 권한이 있어야 열린다). */
-var DEFAULT_URL = 'https://saea365-my.sharepoint.com/shared?id=%2Fsites%2F' +
-  'D76CATJACKBB%2FShared%20Documents%2FD76%20Research%20Dashboard%2F' +
-  'Vertical%20Fabric%20Sample%20Request&listurl=https%3A%2F%2Fsaea365%2Esharepoint' +
-  '%2Ecom%2Fsites%2FD76CATJACKBB%2FShared%20Documents';
+/* 본인 OneDrive 의 폴더. 팀 사이트(D76CATJACKBB) 문서함은 Files.ReadWrite.All 이
+   필요한데 이 조직은 그 권한에 관리자 동의를 요구한다. 개인 OneDrive 는
+   Files.ReadWrite 만으로 되므로 동의 없이 오늘 바로 쓴다.
+   관리자 동의가 나오면 아래 주소를 팀 사이트 폴더로 되돌리면 된다:
+     https://saea365-my.sharepoint.com/shared?id=%2Fsites%2FD76CATJACKBB%2F
+     Shared%20Documents%2FD76%20Research%20Dashboard%2FVertical%20Fabric%20Sample%20Request
+     &listurl=https%3A%2F%2Fsaea365%2Esharepoint%2Ecom%2Fsites%2FD76CATJACKBB%2FShared%20Documents */
+var DEFAULT_URL = 'https://saea365-my.sharepoint.com/my?id=%2Fpersonal%2F' +
+  'bailey0403%5Fsae%2Da%5Fcom%2FDocuments%2FD76%20Research%20Dashboard';
 
 /* 기본 앱 ID. SPA 의 클라이언트 ID 는 **비밀이 아니다** — 비밀 키 없이
    Authorization Code + PKCE 로만 돌아간다. 페이지에 적혀 있어도,
@@ -1121,7 +1126,7 @@ async function token(interactive) {
     try { return keep(await ask(SCOPES_BASIC)); } catch (e) { last = e; }
   }
 
-  if (!interactive) throw new Error('로그인이 필요합니다 — 「Teams 공유폴더 연결」 을 눌러 주세요');
+  if (!interactive) throw new Error('로그인이 필요합니다 — 「OneDrive 폴더 연결」 을 눌러 주세요');
   throw last || new Error('로그인하지 못했습니다');
 }
 
@@ -1505,7 +1510,7 @@ function paintSync(state, err) {
 
   if (!on) {
     txt.innerHTML = '아직 연결 안 됨 — 기록이 <b>이 컴퓨터에만</b> 남습니다';
-    acts.innerHTML = '<button class="btn" id="scGraph">Teams 공유폴더 연결</button>' +
+    acts.innerHTML = '<button class="btn" id="scGraph">OneDrive 폴더 연결</button>' +
                      (failedOnce && FS_OK
                         ? '<button class="btn ghost" id="scOpen">대신 로컬 파일 쓰기</button>' : '');
   } else {
