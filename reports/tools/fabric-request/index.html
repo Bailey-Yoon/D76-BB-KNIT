@@ -48,6 +48,20 @@ a:hover{color:var(--tool-deep)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .drop .btn{margin-top:12px}
 
+/* ── 공유 파일 연결 막대 ── */
+.sync{background:var(--card);border-radius:var(--r-lg);padding:12px 16px;margin-bottom:16px;
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;box-shadow:var(--sh-1);font-size:12.5px}
+.sync .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.sync.on .dot{background:var(--pos)}
+.sync.stale .dot{background:var(--amber)}
+.sync .txt{color:var(--body);line-height:1.5;min-width:0}
+.sync .txt b{font-weight:700;color:var(--ink)}
+.sync .txt .path{color:var(--muted);font-size:11.5px;display:block;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:520px}
+.sync .acts{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.sync .btn{font-size:12px;padding:7px 12px}
+@media(max-width:640px){ .sync .acts{margin-left:0;width:100%} }
+
 #log{margin-bottom:16px;display:flex;flex-direction:column;gap:7px}
 .msg{font-size:12.5px;line-height:1.6;padding:10px 14px;border-radius:var(--r-md);
   background:var(--card);box-shadow:var(--sh-1)}
@@ -156,6 +170,12 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
       같은 의뢰번호를 다시 올리면 적어 둔 수취 기록은 살리고 내용만 갱신합니다</div>
     <button class="btn" id="pick">파일 선택</button>
     <input type="file" id="file" accept="application/pdf,.pdf" multiple hidden>
+  </div>
+
+  <div class="sync" id="sync">
+    <span class="dot"></span>
+    <div class="txt" id="syncTxt">공유 파일에 연결하지 않았습니다 — 기록이 이 브라우저에만 남습니다</div>
+    <div class="acts" id="syncActs"></div>
   </div>
 
   <div id="log"></div>
@@ -478,7 +498,9 @@ function save() {
     msg('err', '저장하지 못했습니다 (저장 공간 부족이거나 브라우저가 막고 있습니다). ' +
                 '내보내기로 백업해 두세요.');
   }
+  queueSync();                 /* 공유 파일에도 반영 (연결돼 있을 때만) */
 }
+function stamp(r) { r.upd = new Date().toISOString(); return r; }
 function rowKey(r) { return r.reqNo + '#' + r.idx; }
 
 /* 같은 의뢰번호를 다시 올리면 손으로 적은 것은 살리고 내용만 갱신한다. */
@@ -498,7 +520,8 @@ function merge(doc) {
       idx: it.idx, pos: it.pos, fabric: it.fabric, section: it.section, gsm: it.gsm,
       width: it.width, color: it.color, reqYds: it.reqYds, reqKgs: it.reqKgs,
       inpKgs: it.inpKgs, due: it.due, supplier: it.supplier, remark: it.remark,
-      recv: k.recv || false, recvDate: k.recvDate || '', note: k.note || ''
+      recv: k.recv || false, recvDate: k.recvDate || '', note: k.note || '',
+      upd: k.upd || new Date().toISOString()
     });
   });
   return had;
@@ -766,15 +789,15 @@ tbody.addEventListener('change', function (e) {
     r.recv = e.target.checked;
     /* 체크하면 수취일을 비워 두지 않는다 — 비면 언제 받았는지 알 수 없다. */
     if (r.recv && !r.recvDate) r.recvDate = today();
-    save(); render(); return;
+    stamp(r); save(); render(); return;
   }
   r[f] = e.target.value;
-  save();
+  stamp(r); save();
 });
 tbody.addEventListener('input', function (e) {
   if (e.target.getAttribute && e.target.getAttribute('data-f') === 'note') {
     var tr = e.target.closest('tr'), r = find(tr.getAttribute('data-k'));
-    if (r) { r.note = e.target.value; save(); }
+    if (r) { r.note = e.target.value; stamp(r); save(); }
   }
 });
 tbody.addEventListener('click', function (e) {
@@ -798,7 +821,7 @@ var CSVCOL = [
   ['pos','Pos.'], ['fabric','Fabric Info.'], ['gsm','g/㎡'], ['width','Width'],
   ['color','Color'], ['reqYds','Req(Yds)'], ['reqKgs','Req(Kgs)'], ['inpKgs','Input(Kgs)'],
   ['supplier','Supplier'], ['remark','비고'],
-  ['recv','수취'], ['recvDate','수취일'], ['note','특이사항']
+  ['recv','수취'], ['recvDate','수취일'], ['note','특이사항'], ['upd','수정시각']
 ];
 
 function csvCell(v) {
@@ -835,6 +858,28 @@ function fromCsv(text) {
   return rows.filter(function (r) { return r.join('').trim() !== ''; });
 }
 
+/* CSV 한 장을 우리 행 구조로. 머리글 이름으로 열을 찾으므로 엑셀에서
+   열 순서를 바꿔도 읽힌다. 없는 열은 빈 값이 된다. */
+function csvToRows(text) {
+  var grid = fromCsv(text);
+  if (grid.length < 2) return [];
+  var head = grid[0].map(function (h) { return h.trim(); });
+  var pos = {};
+  CSVCOL.forEach(function (c) { pos[c[0]] = head.indexOf(c[1]); });
+  if (pos.reqNo < 0) throw new Error('의뢰번호 열이 없습니다');
+  return grid.slice(1).map(function (g) {
+    var r = {};
+    CSVCOL.forEach(function (c) {
+      var v = pos[c[0]] >= 0 ? (g[pos[c[0]]] || '').trim() : '';
+      if (c[0] === 'recv') r.recv = /^(Y|y|1|true|TRUE|O)$/.test(v);
+      else if (c[0] === 'idx') r.idx = Math.max(0, (parseInt(v, 10) || 1) - 1);
+      else r[c[0]] = v;
+    });
+    r.section = ''; r.due = ''; r.file = r.file || '';
+    return r;
+  }).filter(function (r) { return r.reqNo; });
+}
+
 document.getElementById('exp').onclick = function () {
   if (!DB.length) { alert('내보낼 내용이 없습니다.'); return; }
   var blob = new Blob([toCsv(DB)], { type: 'text/csv;charset=utf-8' });
@@ -852,24 +897,7 @@ document.getElementById('impf').onchange = function (e) {
   fr.onload = function () {
     document.getElementById('log').innerHTML = '';
     try {
-      var grid = fromCsv(fr.result);
-      if (grid.length < 2) throw new Error('내용이 없습니다');
-      var head = grid[0].map(function (h) { return h.trim(); });
-      var pos = {};
-      CSVCOL.forEach(function (c) { pos[c[0]] = head.indexOf(c[1]); });
-      if (pos.reqNo < 0) throw new Error('의뢰번호 열이 없습니다');
-
-      var rows = grid.slice(1).map(function (g) {
-        var r = {};
-        CSVCOL.forEach(function (c) {
-          var v = pos[c[0]] >= 0 ? (g[pos[c[0]]] || '').trim() : '';
-          if (c[0] === 'recv') r.recv = /^(Y|y|1|true|TRUE|O)$/.test(v);
-          else if (c[0] === 'idx') r.idx = Math.max(0, (parseInt(v, 10) || 1) - 1);
-          else r[c[0]] = v;
-        });
-        r.section = ''; r.due = ''; r.file = r.file || '';
-        return r;
-      }).filter(function (r) { return r.reqNo; });
+      var rows = csvToRows(fr.result);
       if (!rows.length) throw new Error('읽을 행이 없습니다');
 
       /* 전체를 갈아엎지 않는다 — 같은 의뢰번호만 덮어쓰고 나머지는 그대로 둔다. */
@@ -890,6 +918,261 @@ document.getElementById('impf').onchange = function (e) {
 };
 
 render();
+
+/* ════════════════════════════════════════════════════════════════════
+   공유 파일 동기화 — OneDrive 폴더의 CSV 한 장을 팀이 같이 쓴다.
+
+   회사 PC 에 이미 붙어 있는 OneDrive 폴더(예:
+   `OneDrive - Sae-A Trading Co.,Ltd`)에 파일을 두면, 동기화는 OneDrive 가
+   알아서 한다. 그래서 서버도, API 도, 앱 등록도, 추가 라이선스도 없다.
+   데이터는 회사 테넌트 밖으로 나가지 않는다.
+
+   파일 핸들은 IndexedDB 에 담아 둔다. localStorage 에는 핸들을 못 넣는다
+   (구조화 복제가 안 되는 값이라 문자열로 바뀌어 버린다).
+
+   ⚠️ 동시 편집은 못 한다. 대신 줄마다 수정시각(upd)을 달아 두고,
+      저장 직전에 파일을 다시 읽어 **줄 단위로 더 최근 것**을 남긴다.
+      서로 다른 줄을 고치면 부딪히지 않고, 같은 줄을 고치면 나중 것이 남는다.
+   ════════════════════════════════════════════════════════════════════ */
+
+var FS_OK = typeof window.showOpenFilePicker === 'function';
+var handle = null;          /* FileSystemFileHandle */
+var lastMtime = 0;          /* 마지막으로 읽은 파일의 수정시각 */
+var syncTimer = null, syncing = false, pending = false;
+
+/* ── 핸들 보관 (IndexedDB) ─────────────────────────────────────────── */
+function idb() {
+  return new Promise(function (res, rej) {
+    var rq = indexedDB.open('d76_fabreq', 1);
+    rq.onupgradeneeded = function () { rq.result.createObjectStore('kv'); };
+    rq.onsuccess = function () { res(rq.result); };
+    rq.onerror = function () { rej(rq.error); };
+  });
+}
+function idbPut(k, v) {
+  return idb().then(function (db) {
+    return new Promise(function (res, rej) {
+      var tx = db.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put(v, k);
+      tx.oncomplete = res; tx.onerror = function () { rej(tx.error); };
+    });
+  });
+}
+function idbGet(k) {
+  return idb().then(function (db) {
+    return new Promise(function (res, rej) {
+      var tx = db.transaction('kv', 'readonly');
+      var rq = tx.objectStore('kv').get(k);
+      rq.onsuccess = function () { res(rq.result); };
+      rq.onerror = function () { rej(rq.error); };
+    });
+  });
+}
+
+/* ── 줄 단위 병합 — 수정시각이 늦은 쪽을 남긴다 ────────────────────── */
+function mergeRows(mine, theirs) {
+  var by = {}, i;
+  for (i = 0; i < theirs.length; i++) by[rowKey(theirs[i])] = theirs[i];
+  for (i = 0; i < mine.length; i++) {
+    var m = mine[i], k = rowKey(m), t = by[k];
+    if (!t) { by[k] = m; continue; }
+    by[k] = (m.upd || '') >= (t.upd || '') ? m : t;
+  }
+  return Object.keys(by).map(function (k) { return by[k]; });
+}
+
+/* ── 읽기 / 쓰기 ───────────────────────────────────────────────────── */
+async function readFile() {
+  var f = await handle.getFile();
+  lastMtime = f.lastModified;
+  var text = await f.text();
+  if (!text.trim()) return [];
+  return csvToRows(text);
+}
+
+async function writeFile(rows) {
+  var w = await handle.createWritable();
+  await w.write(toCsv(rows));
+  await w.close();
+  var f = await handle.getFile();
+  lastMtime = f.lastModified;
+}
+
+/* 저장 요청을 모아서 한 번에 — 체크 한 번에 파일을 한 번씩 쓰면
+   OneDrive 가 업로드를 계속 물고 늘어진다. */
+function queueSync() {
+  if (!handle) return;
+  pending = true;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(runSync, 900);
+}
+
+async function runSync() {
+  if (!handle || syncing) { return; }
+  syncing = true; pending = false;
+  paintSync('saving');
+  try {
+    /* 남이 그 사이에 저장했으면 먼저 합친다 — 덮어쓰면 남의 기록이 날아간다 */
+    var f = await handle.getFile();
+    if (f.lastModified !== lastMtime) {
+      var theirs = await readFile();
+      DB = mergeRows(DB, theirs);
+      try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
+      render();
+    }
+    await writeFile(DB);
+    paintSync('ok');
+  } catch (e) {
+    paintSync('err', e);
+  } finally {
+    syncing = false;
+    if (pending) queueSync();
+  }
+}
+
+/* ── 바깥에서 바뀐 걸 알아채기 ─────────────────────────────────────── */
+async function pull(quiet) {
+  if (!handle) return;
+  try {
+    var f = await handle.getFile();
+    if (f.lastModified === lastMtime) { if (!quiet) paintSync('ok'); return; }
+    var theirs = await readFile();
+    var before = DB.length;
+    DB = mergeRows(DB, theirs);
+    try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
+    render(); paintSync('ok');
+    msg('ok', '공유 파일이 바뀌어 다시 읽었습니다 — ' + before + '줄 → ' + DB.length + '줄');
+  } catch (e) { paintSync('err', e); }
+}
+
+/* ── 연결 ──────────────────────────────────────────────────────────── */
+async function connect(create) {
+  try {
+    var h;
+    if (create) {
+      h = await window.showSaveFilePicker({
+        suggestedName: 'Vertical_샘플작지_공유.csv',
+        types: [{ description: 'CSV', accept: { 'text/csv': ['.csv'] } }]
+      });
+    } else {
+      var picked = await window.showOpenFilePicker({
+        multiple: false,
+        types: [{ description: 'CSV', accept: { 'text/csv': ['.csv'] } }]
+      });
+      h = picked[0];
+    }
+    if (!h) return;
+    if ((await h.requestPermission({ mode: 'readwrite' })) !== 'granted') {
+      msg('warn', '파일 쓰기 권한을 받지 못했습니다.'); return;
+    }
+    handle = h;
+    /* 핸들 보관은 "다음에 열 때 자동 연결" 용 편의 기능이다.
+       여기서 실패해도 이번 연결은 멀쩡하니 연결 전체를 접으면 안 된다. */
+    try { await idbPut('handle', h); }
+    catch (e) { msg('warn', '다음 접속 때 자동 연결은 안 될 수 있습니다 — 파일은 정상 연결됐습니다.'); }
+
+    var theirs = create ? [] : await readFile();
+    if (!create && theirs.length) {
+      DB = mergeRows(DB, theirs);
+      try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
+      msg('ok', '공유 파일을 읽었습니다 — 합쳐서 ' + DB.length + '줄');
+    }
+    render();
+    await writeFile(DB);
+    paintSync('ok');
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;      /* 사용자가 취소 */
+    paintSync('err', e);
+    msg('err', '공유 파일에 연결하지 못했습니다: ' + esc(String(e.message || e)));
+  }
+}
+
+async function disconnect() {
+  handle = null; lastMtime = 0;
+  try { await idbPut('handle', null); } catch (e) {}
+  paintSync('off');
+  msg('ok', '공유 파일 연결을 끊었습니다. 기록은 이 브라우저에 그대로 있습니다.');
+}
+
+/* ── 막대 그리기 ───────────────────────────────────────────────────── */
+function paintSync(state, err) {
+  var bar = document.getElementById('sync');
+  var txt = document.getElementById('syncTxt');
+  var acts = document.getElementById('syncActs');
+  bar.className = 'sync' + (handle ? ' on' : '') + (state === 'err' ? ' stale' : '');
+
+  if (!FS_OK) {
+    txt.innerHTML = '이 브라우저는 공유 파일 연결을 지원하지 않습니다 — ' +
+                    '<b>Chrome</b> 또는 <b>Edge</b> 에서 열어 주세요. ' +
+                    '지금은 기록이 이 브라우저에만 남습니다.';
+    acts.innerHTML = '';
+    return;
+  }
+  if (!handle) {
+    txt.innerHTML = '공유 파일에 연결하지 않았습니다 — 기록이 <b>이 브라우저에만</b> 남습니다';
+    acts.innerHTML = '<button class="btn" id="scOpen">공유 파일 열기</button>' +
+                     '<button class="btn ghost" id="scNew">새 공유 파일 만들기</button>';
+  } else {
+    var when = state === 'saving' ? '저장하는 중…'
+             : state === 'err' ? '마지막 저장 실패' + (err ? ' — ' + esc(String(err.message || err)) : '')
+             : '마지막 저장 ' + new Date(lastMtime).toLocaleTimeString('ko-KR');
+    txt.innerHTML = '<b>' + esc(handle.name) + '</b> 에 연결됨 · ' + when +
+                    '<span class="path">이 파일이 있는 OneDrive 폴더를 팀과 공유하면 같이 보게 됩니다</span>';
+    acts.innerHTML = '<button class="btn ghost" id="scPull">지금 다시 읽기</button>' +
+                     '<button class="btn ghost" id="scOff">연결 해제</button>';
+  }
+  wireSync();
+}
+
+function wireSync() {
+  var m = {
+    scOpen: function () { connect(false); },
+    scNew:  function () { connect(true); },
+    scPull: function () { pull(false); },
+    scOff:  disconnect
+  };
+  Object.keys(m).forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.onclick = m[id];
+  });
+}
+
+/* ── 시작할 때 지난 연결 복원 ──────────────────────────────────────── */
+(async function () {
+  if (!FS_OK) { paintSync('off'); return; }
+  var h = null;
+  try { h = await idbGet('handle'); } catch (e) {}
+  if (!h) { paintSync('off'); return; }
+  var p = 'denied';
+  try { p = await h.queryPermission({ mode: 'readwrite' }); } catch (e) {}
+  if (p === 'granted') {
+    handle = h;
+    try { await pull(true); } catch (e) {}
+    paintSync('ok');
+    return;
+  }
+  /* 권한을 다시 물으려면 사용자가 눌러야 한다 — 버튼으로 내건다 */
+  paintSync('off');
+  document.getElementById('syncTxt').innerHTML =
+    '지난번 공유 파일 <b>' + esc(h.name) + '</b> 이 있습니다 — 브라우저를 다시 열면 권한을 다시 허용해야 합니다';
+  document.getElementById('syncActs').innerHTML =
+    '<button class="btn" id="scResume">연결 복원</button>' +
+    '<button class="btn ghost" id="scNew">새 공유 파일 만들기</button>';
+  document.getElementById('scResume').onclick = async function () {
+    if ((await h.requestPermission({ mode: 'readwrite' })) === 'granted') {
+      handle = h; await pull(true); paintSync('ok');
+    } else {
+      msg('warn', '권한을 허용하지 않아 연결하지 못했습니다.');
+    }
+  };
+  document.getElementById('scNew').onclick = function () { connect(true); };
+})();
+
+/* 탭으로 돌아올 때 남이 바꿨는지 확인한다 */
+document.addEventListener('visibilitychange', function () {
+  if (!document.hidden) pull(true);
+});
+window.addEventListener('focus', function () { pull(true); });
 })();
 </script>
 </body>
