@@ -1050,6 +1050,8 @@ function msalApp() {
    부르는데, 그때마다 계정 캐시를 다시 뒤지면 그중 한 번이라도 어긋나면
    연결이 통째로 끊긴다. 만료 조금 전까지는 들고 쓴다. */
 var tokCache = { v: '', exp: 0 };
+/* 동의 창은 세션당 한 번씩만. 안 그러면 수락해도 계속 다시 뜬다. */
+var askedFull = false, askedBasic = false;
 
 /* 🛑 순서가 중요하다.
 
@@ -1067,44 +1069,53 @@ async function token(interactive) {
   var acc = (app.getAllAccounts() || [])[0];
   var last = null;
 
-  function keep(res, scope, account) {
-    G.user = (account && account.username) || (res.account && res.account.username) || G.user || '';
-    G.scope = scope; saveG();
+  /* 받은 토큰에 **실제로** 들어온 권한을 기록한다. 요청한 걸 그대로 적으면
+     Azure 가 낮은 권한만 줬을 때도 성공한 줄 알고 넘어간다. */
+  function keep(res) {
+    var got = (res.scopes || []).join(' ');
+    G.user = (res.account && res.account.username) || (acc && acc.username) || G.user || '';
+    G.scope = /Files\.ReadWrite\.All/i.test(got) ? 'Files.ReadWrite.All'
+            : /Files\.ReadWrite/i.test(got) ? 'Files.ReadWrite'
+            : (got || '알 수 없음');
+    saveG();
     tokCache = { v: res.accessToken, exp: Date.now() + 9 * 60000 };
     return res.accessToken;
   }
   function cancelled(e) {
-    return e && /user_cancelled|popup_window_error/i.test(String(e.errorCode || ''));
+    return e && /user_cancelled|popup_window_error|interaction_in_progress/i
+                  .test(String(e.errorCode || ''));
   }
   async function silent(scopes) {
     if (!acc) throw new Error('계정 없음');
     return app.acquireTokenSilent({ scopes: scopes, account: acc });
   }
-  async function ask(scopes, forceConsent) {
+  async function ask(scopes) {
+    /* ⚠️ prompt:'consent' 를 매번 보내면 안 된다 — Azure 가 기존 동의를 무시하고
+       할 때마다 동의 화면을 다시 띄워서, 수락해도 끝나지 않는 것처럼 보인다.
+       MSAL 의 증분 동의에 맡기면 필요할 때만 화면이 뜬다. */
     var req = { scopes: scopes };
-    if (forceConsent) req.prompt = 'consent';        /* 새 권한 동의 화면을 반드시 띄운다 */
     if (acc) { req.account = acc; return app.acquireTokenPopup(req); }
     return app.loginPopup(req);
   }
 
   /* ① 전체 권한 — 조용히 */
-  try { return keep(await silent(SCOPES_FULL), 'Files.ReadWrite.All', acc); }
-  catch (e) { last = e; }
+  try { return keep(await silent(SCOPES_FULL)); } catch (e) { last = e; }
 
-  /* ② 전체 권한 — 동의 창을 띄워서 (기본으로 내려가기 전에) */
-  if (interactive) {
-    try { return keep(await ask(SCOPES_FULL, true), 'Files.ReadWrite.All', acc); }
+  /* ② 전체 권한 — 창을 띄워서. **세션당 한 번만** 시도한다.
+     실패했는데 계속 다시 띄우면 무한 반복이 된다. */
+  if (interactive && !askedFull) {
+    askedFull = true;
+    try { return keep(await ask(SCOPES_FULL)); }
     catch (e) { last = e; if (cancelled(e)) throw e; }
   }
 
   /* ③ 기본 권한 — 조용히 */
-  try { return keep(await silent(SCOPES_BASIC), 'Files.ReadWrite', acc); }
-  catch (e) { last = e; }
+  try { return keep(await silent(SCOPES_BASIC)); } catch (e) { last = e; }
 
-  /* ④ 기본 권한 — 물어서 */
-  if (interactive) {
-    try { return keep(await ask(SCOPES_BASIC, false), 'Files.ReadWrite', acc); }
-    catch (e) { last = e; }
+  /* ④ 기본 권한 — 물어서. 이것도 세션당 한 번. */
+  if (interactive && !askedBasic) {
+    askedBasic = true;
+    try { return keep(await ask(SCOPES_BASIC)); } catch (e) { last = e; }
   }
 
   if (!interactive) throw new Error('로그인이 필요합니다 — 「Teams 공유폴더 연결」 을 눌러 주세요');
@@ -1524,6 +1535,8 @@ function wireSync() {
       document.getElementById('log').innerHTML = '';
       try {
         b.disabled = true;
+        askedFull = false; askedBasic = false;   /* 버튼을 새로 눌렀으니 다시 물어도 된다 */
+        tokCache = { v: '', exp: 0 };
         await connectGraph(DEFAULT_CLIENT, DEFAULT_URL);
       } catch (e) {
         G.mode = ''; saveG(); failedOnce = true; paintSync('off');
