@@ -60,6 +60,9 @@ a:hover{color:var(--tool-deep)}
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:520px}
 .sync .acts{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
 .sync .btn{font-size:12px;padding:7px 12px}
+/* ⚠️ hidden 속성은 브라우저 기본 스타일의 display:none 인데, 위의
+   display:flex 가 우선순위에서 이겨 안 숨겨진다. 명시적으로 눌러 준다. */
+.sync[hidden]{display:none}
 @media(max-width:640px){ .sync .acts{margin-left:0;width:100%} }
 
 #log{margin-bottom:16px;display:flex;flex-direction:column;gap:7px}
