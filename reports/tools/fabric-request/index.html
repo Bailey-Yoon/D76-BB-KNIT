@@ -4,7 +4,7 @@
 <link rel="icon" href="/D76-BB-KNIT/favicon.svg">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>D76 · 샘플 작지 종합관리</title>
+<title>D76 · Vertical 샘플작지 관리 대시보드</title>
 <style>
 :root{--tool:#0277bd;--tool-deep:#014b7e;--tint:#eef4fa;--ink:#1d1c22;--body:#4a4954;
   --sub:#6a6a72;--muted:#6e6d77;--bg:#f3f2f6;--card:#fff;--bar:#1b1b22;--line:#e7e5ee;
@@ -77,10 +77,12 @@ a:hover{color:var(--tool-deep)}
 /* ── 표 ── */
 .tablewrap{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--sh-1);
   overflow-x:auto;overflow-y:visible}
-table{border-collapse:collapse;width:100%;min-width:1750px;font-size:12.5px}
+table{border-collapse:collapse;width:100%;min-width:1520px;font-size:12.5px}
 thead th{position:sticky;top:44px;z-index:2;background:#f7f6fa;text-align:left;
   font-size:11px;letter-spacing:.03em;color:var(--sub);font-weight:700;
-  padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:bottom}
+/* Req(Yds)·Req(Kgs)·Input(Kgs) 는 머리글이 길어 열이 넓어진다 — 두 줄로 접어 좁힌다 */
+thead th.num2{text-align:right;line-height:1.3}
 thead th.sortable{cursor:pointer;user-select:none}
 thead th.sortable:hover{color:var(--tool-deep)}
 thead th .ar{opacity:.45;font-size:9px}
@@ -93,17 +95,13 @@ tbody tr.done:hover{background:#eef4f3}
 .fab{min-width:210px;max-width:290px}
 .rem{min-width:170px;max-width:260px;color:var(--body);font-size:11.5px}
 .mono{font-family:"SF Mono",Consolas,"D2Coding",monospace;font-size:11.5px}
-.gkey{font-weight:700}
+.gkey{font-weight:700}        /* Style No — 크기는 본문과 같게, 굵기로만 구분한다 */
 .sub2{font-size:11px;color:var(--muted);display:block;margin-top:2px}
 
 .pos{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:var(--r-sm);
   background:#eceaf3;color:var(--body);white-space:nowrap}
 .pos.BODY{background:var(--tint);color:var(--tool-deep)}
 .pos.TRIM{background:#f6f3fc;color:var(--gf-deep)}
-
-.due.over{color:var(--neg);font-weight:700}
-.due.soon{color:var(--amber-deep);font-weight:700}
-.dueflag{font-size:10px;display:block;font-weight:700}
 
 td.recv{background:#fcfcfe}
 tr.done td.recv{background:#eef4f3}
@@ -140,21 +138,22 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
 <div class="topbar">
   <a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a><span class="sep">|</span>
   <a href="/D76-BB-KNIT/reports/tools/">🧰 Tools</a><span class="sep">|</span>
-  <span class="here">📋 샘플 작지 종합관리</span>
+  <span class="here">📋 Vertical 샘플작지</span>
 </div>
 
 <div class="wrap">
   <div class="hero">
-    <div class="eyebrow">TOOLS · 샘플 작지</div>
-    <h1>샘플 작지 종합관리</h1>
-    <div class="meta">샘플 의뢰서(PDF)를 올리면 원단 항목별로 펼쳐 정리합니다.
+    <div class="eyebrow">TOOLS · VERTICAL 샘플작지</div>
+    <h1>Vertical 샘플작지 관리 대시보드</h1>
+    <div class="meta">샘플 의뢰서(PDF)를 올리면 <b>원단 한 줄씩</b> 펼쳐 정리합니다.
+      의뢰서 한 장에 원단이 6개면 6줄이 됩니다.
       원단 수취 여부·수취일·특이사항을 직접 기록하고 필터로 찾아볼 수 있습니다.</div>
   </div>
 
   <div class="drop" id="drop">
     <div class="big">여기에 PDF 를 끌어다 놓으세요</div>
-    <div class="small">여러 장을 한 번에 올려도 됩니다 · 같은 의뢰번호를 다시 올리면
-      기록해 둔 수취 정보는 그대로 두고 내용만 갱신합니다</div>
+    <div class="small"><b>여러 장을 한 번에</b> 올려도 됩니다 · 이미 올린 의뢰서는 그대로 남습니다 ·
+      같은 의뢰번호를 다시 올리면 적어 둔 수취 기록은 살리고 내용만 갱신합니다</div>
     <button class="btn" id="pick">파일 선택</button>
     <input type="file" id="file" accept="application/pdf,.pdf" multiple hidden>
   </div>
@@ -177,15 +176,13 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
         <option value="">전체</option>
         <option value="no">미수취</option>
         <option value="yes">수취 완료</option>
-        <option value="over">기한 초과 · 미수취</option>
-        <option value="soon">7일 내 마감 · 미수취</option>
       </select>
     </div>
     <div class="right">
       <button class="btn ghost" id="reset">필터 해제</button>
       <button class="btn ghost" id="exp">내보내기</button>
       <button class="btn ghost" id="imp">가져오기</button>
-      <input type="file" id="impf" accept="application/json,.json" hidden>
+      <input type="file" id="impf" accept="text/csv,.csv" hidden>
     </div>
   </div>
 
@@ -199,9 +196,9 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
 </div>
 
 <footer>
-  기록은 <b>이 브라우저에만</b> 저장됩니다 (localStorage). 다른 PC·다른 브라우저에서는 보이지 않고,
-  브라우저 데이터를 지우면 함께 지워집니다. 옮기거나 백업하려면 <b>내보내기</b>로 JSON 을 받아 두세요.
-  PDF 원본은 저장하지 않습니다 — 읽어서 표로 옮기기만 합니다.
+  <b>PDF 원본은 어디에도 올라가지 않습니다</b> — 브라우저 안에서 읽어 표로 옮기기만 하고 파일은 버립니다.
+  표에 쌓인 내용과 손으로 적은 기록은 <b>보는 사람의 브라우저에 각자</b> 남습니다.
+  다른 PC 로 옮기거나 다른 사람에게 넘길 때는 <b>내보내기</b>로 CSV 를 받아 <b>가져오기</b> 하세요.
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
@@ -573,16 +570,20 @@ async function handle(fileList) {
 }
 
 /* ── 표 ─────────────────────────────────────────────────────── */
+/* 화면에 세우는 열. Section 과 Due Date 는 쓰지 않아 뺐다 (값은 그대로 저장된다).
+   Req/Input 은 머리글을 두 줄로 접어 열 폭을 줄인다. */
 var HEAD = [
   ['date',   '의뢰일',  1], ['reqNo', '의뢰번호', 1], ['style', 'Style No', 1],
   ['season', 'Season',  1], ['user',  '의뢰자',   1], ['purpose', '용도', 1],
-  ['pos',    'Pos.',    1], ['fabric', 'Fabric Info.', 1], ['section', 'Section', 0],
+  ['pos',    'Pos.',    1], ['fabric', 'Fabric Info.', 1],
   ['gsm',    'g/㎡',    1], ['width', 'Width',   1], ['color', 'Color', 1],
-  ['reqYds', 'Req(Yds)',1], ['reqKgs','Req(Kgs)',1], ['inpKgs','Input(Kgs)',1],
-  ['due',    'Due Date',1], ['supplier','Supplier',1], ['remark','비고',0],
+  ['reqYds', 'Req<br>(Yds)', 1], ['reqKgs','Req<br>(Kgs)',1], ['inpKgs','Input<br>(Kgs)',1],
+  ['supplier','Supplier',1], ['remark','비고',0],
   ['recv',   '수취',    1], ['recvDate','수취일', 1], ['note','특이사항',0], ['', '', 0]
 ];
-var sortKey = 'due', sortAsc = true;
+var sortKey = 'date', sortAsc = false;
+/* 숫자 열만 우측 정렬 — 머리글도 값도 오른쪽으로 붙는다 */
+var NUM2 = { reqYds: 1, reqKgs: 1, inpKgs: 1 };
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -593,11 +594,6 @@ function today() {
   var d = new Date(Date.now() + (9 * 60 + new Date().getTimezoneOffset()) * 60000);
   return d.toISOString().slice(0, 10);
 }
-function daysTo(due) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) return null;
-  return Math.round((new Date(due + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 86400000);
-}
-
 function filtered() {
   var q = document.getElementById('q').value.trim().toLowerCase();
   var fs = ['fStyle', 'fSeason', 'fUser', 'fPos'].map(function (id) {
@@ -611,13 +607,6 @@ function filtered() {
     if (fs[3] && r.pos !== fs[3]) return false;
     if (fr === 'no' && r.recv) return false;
     if (fr === 'yes' && !r.recv) return false;
-    if (fr === 'over' || fr === 'soon') {
-      if (r.recv) return false;
-      var d = daysTo(r.due);
-      if (d === null) return false;
-      if (fr === 'over' && d >= 0) return false;
-      if (fr === 'soon' && (d < 0 || d > 7)) return false;
-    }
     if (q) {
       var hay = [r.style, r.reqNo, r.fabric, r.color, r.remark, r.note, r.supplier,
                  r.season, r.user, r.pos, r.file].join(' ').toLowerCase();
@@ -658,28 +647,22 @@ function render() {
   });
 
   /* 지표 — 화면에 걸린 필터와 무관하게 전체 기준으로 본다 */
-  var tot = DB.length, rec = 0, over = 0, soon = 0, docs = {};
-  DB.forEach(function (r) {
-    docs[r.reqNo] = 1;
-    if (r.recv) { rec++; return; }
-    var d = daysTo(r.due);
-    if (d === null) return;
-    if (d < 0) over++; else if (d <= 7) soon++;
-  });
+  var tot = DB.length, rec = 0, docs = {};
+  DB.forEach(function (r) { docs[r.reqNo] = 1; if (r.recv) rec++; });
   document.getElementById('stats').innerHTML =
     tile('의뢰서', Object.keys(docs).length, '') +
     tile('원단 항목', tot, '') +
     tile('수취 완료', rec, 'g') +
-    tile('미수취', tot - rec, tot - rec ? 'o' : '') +
-    tile('기한 초과', over, over ? 'r' : '') +
-    tile('7일 내 마감', soon, soon ? 'o' : '');
+    tile('미수취', tot - rec, tot - rec ? 'o' : '');
 
   document.getElementById('head').innerHTML = HEAD.map(function (h) {
     if (!h[0]) return '<th></th>';
     var ar = sortKey === h[0] ? ' <span class="ar">' + (sortAsc ? '▲' : '▼') + '</span>' : '';
+    /* h[1] 은 우리가 쓴 고정 문자열이라 <br> 을 그대로 둔다 (입력값 아님) */
+    var cls = 'sortable' + (NUM2[h[0]] ? ' num2' : '');
     return h[2]
-      ? '<th class="sortable" data-k="' + h[0] + '">' + esc(h[1]) + ar + '</th>'
-      : '<th>' + esc(h[1]) + '</th>';
+      ? '<th class="' + cls + '" data-k="' + h[0] + '">' + h[1] + ar + '</th>'
+      : '<th>' + h[1] + '</th>';
   }).join('');
 
   var tb = document.getElementById('rows');
@@ -689,11 +672,6 @@ function render() {
            : 'PDF 를 올리면 여기에 원단 항목이 펼쳐집니다.') + '</div></td></tr>';
   } else {
     tb.innerHTML = rows.map(function (r) {
-      var d = daysTo(r.due), dc = '', flag = '';
-      if (!r.recv && d !== null) {
-        if (d < 0) { dc = 'over'; flag = '<span class="dueflag">' + (-d) + '일 초과</span>'; }
-        else if (d <= 7) { dc = 'soon'; flag = '<span class="dueflag">D-' + d + '</span>'; }
-      }
       var k = esc(rowKey(r));
       return '<tr class="' + (r.recv ? 'done' : '') + '" data-k="' + k + '">' +
         '<td class="nw mono">' + esc(r.date) + '</td>' +
@@ -705,14 +683,12 @@ function render() {
         '<td><span class="pos ' + esc((r.pos || '').replace(/[^A-Za-z]/g, '')) + '">' +
             esc(r.pos) + '</span></td>' +
         '<td class="fab">' + esc(r.fabric) + '</td>' +
-        '<td>' + esc(r.section) + '</td>' +
         '<td class="num">' + esc(r.gsm) + '</td>' +
         '<td class="num">' + esc(r.width) + '</td>' +
         '<td>' + esc(r.color) + '</td>' +
         '<td class="num">' + esc(r.reqYds) + '</td>' +
         '<td class="num">' + esc(r.reqKgs) + '</td>' +
         '<td class="num">' + esc(r.inpKgs) + '</td>' +
-        '<td class="nw due ' + dc + '">' + esc(r.due) + flag + '</td>' +
         '<td>' + esc(r.supplier) + '</td>' +
         '<td class="rem">' + esc(r.remark) + '</td>' +
         '<td class="recv"><label class="chk"><input type="checkbox" data-f="recv"' +
@@ -811,13 +787,60 @@ tbody.addEventListener('click', function (e) {
   save(); render();
 });
 
+/* ── CSV ─────────────────────────────────────────────────────────
+   엑셀로 바로 여는 게 목적이라 UTF-8 BOM 을 붙인다. 안 붙이면 엑셀이
+   한글을 깨뜨린다. 줄바꿈은 CRLF.
+   '행' 열은 의뢰서 안에서의 원단 순서다 — 가져오기가 수취 기록을
+   제 행에 다시 붙이려면 이 값이 필요하니 지우지 말 것. */
+var CSVCOL = [
+  ['date','의뢰일'], ['reqNo','의뢰번호'], ['idx','행'], ['style','Style No'],
+  ['season','Season'], ['user','의뢰자'], ['purpose','용도'],
+  ['pos','Pos.'], ['fabric','Fabric Info.'], ['gsm','g/㎡'], ['width','Width'],
+  ['color','Color'], ['reqYds','Req(Yds)'], ['reqKgs','Req(Kgs)'], ['inpKgs','Input(Kgs)'],
+  ['supplier','Supplier'], ['remark','비고'],
+  ['recv','수취'], ['recvDate','수취일'], ['note','특이사항']
+];
+
+function csvCell(v) {
+  var t = String(v == null ? '' : v);
+  return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+
+function toCsv(rows) {
+  var out = [CSVCOL.map(function (c) { return csvCell(c[1]); }).join(',')];
+  rows.forEach(function (r) {
+    out.push(CSVCOL.map(function (c) {
+      if (c[0] === 'recv') return r.recv ? 'Y' : '';
+      if (c[0] === 'idx') return r.idx + 1;
+      return csvCell(r[c[0]]);
+    }).join(','));
+  });
+  return '\ufeff' + out.join('\r\n') + '\r\n';
+}
+
+/* 따옴표 안의 쉼표·줄바꿈까지 처리하는 최소 파서. split(',') 로는 비고가 깨진다. */
+function fromCsv(text) {
+  var t = text.replace(/^\ufeff/, ''), rows = [], row = [], cur = '', q = false, i;
+  for (i = 0; i < t.length; i++) {
+    var ch = t[i];
+    if (q) {
+      if (ch === '"') { if (t[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+      else cur += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === ',') { row.push(cur); cur = ''; }
+    else if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+    else if (ch !== '\r') cur += ch;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(function (r) { return r.join('').trim() !== ''; });
+}
+
 document.getElementById('exp').onclick = function () {
   if (!DB.length) { alert('내보낼 내용이 없습니다.'); return; }
-  var blob = new Blob([JSON.stringify({ v: 1, saved: today(), rows: DB }, null, 1)],
-                      { type: 'application/json' });
+  var blob = new Blob([toCsv(DB)], { type: 'text/csv;charset=utf-8' });
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'fabric-request-' + today() + '.json';
+  a.download = 'Vertical_샘플작지_' + today() + '.csv';
   a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
 };
@@ -829,18 +852,37 @@ document.getElementById('impf').onchange = function (e) {
   fr.onload = function () {
     document.getElementById('log').innerHTML = '';
     try {
-      var d = JSON.parse(fr.result);
-      var rows = Array.isArray(d) ? d : d.rows;
-      if (!Array.isArray(rows)) throw new Error('형식이 다릅니다');
-      if (DB.length && !confirm('현재 ' + DB.length + '건이 있습니다.\n' +
-          '가져온 ' + rows.length + '건으로 바꿀까요? (같은 의뢰번호는 덮어씁니다)')) return;
+      var grid = fromCsv(fr.result);
+      if (grid.length < 2) throw new Error('내용이 없습니다');
+      var head = grid[0].map(function (h) { return h.trim(); });
+      var pos = {};
+      CSVCOL.forEach(function (c) { pos[c[0]] = head.indexOf(c[1]); });
+      if (pos.reqNo < 0) throw new Error('의뢰번호 열이 없습니다');
+
+      var rows = grid.slice(1).map(function (g) {
+        var r = {};
+        CSVCOL.forEach(function (c) {
+          var v = pos[c[0]] >= 0 ? (g[pos[c[0]]] || '').trim() : '';
+          if (c[0] === 'recv') r.recv = /^(Y|y|1|true|TRUE|O)$/.test(v);
+          else if (c[0] === 'idx') r.idx = Math.max(0, (parseInt(v, 10) || 1) - 1);
+          else r[c[0]] = v;
+        });
+        r.section = ''; r.due = ''; r.file = r.file || '';
+        return r;
+      }).filter(function (r) { return r.reqNo; });
+      if (!rows.length) throw new Error('읽을 행이 없습니다');
+
+      /* 전체를 갈아엎지 않는다 — 같은 의뢰번호만 덮어쓰고 나머지는 그대로 둔다. */
       var keep = {};
       rows.forEach(function (r) { keep[r.reqNo] = 1; });
+      var replaced = DB.filter(function (r) { return keep[r.reqNo]; }).length;
+      if (replaced && !confirm('같은 의뢰번호 ' + replaced + '줄을 가져온 내용으로 바꿉니다.\n' +
+          '나머지는 그대로 둡니다. 진행할까요?')) return;
       DB = DB.filter(function (r) { return !keep[r.reqNo]; }).concat(rows);
       save(); render();
-      msg('ok', rows.length + '건을 가져왔습니다.');
+      msg('ok', rows.length + '줄을 가져왔습니다' + (replaced ? ' (기존 ' + replaced + '줄 교체)' : ''));
     } catch (err) {
-      msg('err', '가져오지 못했습니다: ' + esc(String(err.message || err)));
+      msg('err', 'CSV 를 가져오지 못했습니다: ' + esc(String(err.message || err)));
     }
   };
   fr.readAsText(f);
