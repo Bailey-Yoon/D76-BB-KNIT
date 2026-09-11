@@ -1557,7 +1557,7 @@ async function connectGraph(clientId) {
    그냥 덮어쓰면 남의 기록이 조용히 사라진다.
    ════════════════════════════════════════════════════════════════════ */
 
-var KV_URL = '';        /* 예: https://d76-fabreq.xxx.workers.dev */
+var KV_URL = 'https://d76-fabreq.bailey0403.workers.dev';
 var kvVer = -1;         /* 마지막으로 읽은 버전 */
 
 function kvReady() { return !!KV_URL; }
@@ -1782,15 +1782,19 @@ function paintSync(state, err) {
   bar.className = 'sync' + (on ? ' on' : '') + (state === 'err' ? ' stale' : '');
 
   if (!on) {
-    txt.innerHTML = '아직 연결 안 됨 — 기록이 <b>이 컴퓨터에만</b> 남습니다';
-    acts.innerHTML = '<button class="btn" id="scGraph">공유 폴더 연결</button>' +
+    txt.innerHTML = '아직 연결 안 됨 — 기록이 <b>이 컴퓨터에만</b> 남습니다' +
+      '<span class="path">「공유 저장소 연결」 을 누르면 팀과 같은 표를 보게 됩니다</span>';
+    acts.innerHTML = '<button class="btn" id="scKv">공유 저장소 연결</button>' +
                      (failedOnce && FS_OK
                         ? '<button class="btn ghost" id="scOpen">대신 로컬 파일 쓰기</button>' : '');
   } else {
     var when = state === 'saving' ? '저장하는 중…'
              : state === 'err' ? '마지막 저장 실패' + (err ? ' — ' + esc(String(err.message || err)) : '')
              : state === 'ok' ? '저장됨' : '';
-    if (G.mode === 'graph') {
+    if (G.mode === 'kv') {
+      txt.innerHTML = '<b>공유 저장소</b> · ' + when +
+                      '<span class="path">Cloudflare · 팀과 같은 표를 봅니다</span>';
+    } else if (G.mode === 'graph') {
       /* 어느 폴더에 붙었는지 반드시 보여준다 — 고정 문구를 쓰면
          엉뚱한 드라이브에 붙어도 알아채지 못한다. */
       /* 파일로 바로 가는 링크를 건다. 화면 숫자가 로컬 것인지 파일 것인지
@@ -1864,6 +1868,17 @@ function wireSync() {
     scNew:   function () { connect(true); },
     scPull:  function () { pull(false); },
     scOff:   disconnect,
+    scKv: async function () {
+      var b = this;
+      document.getElementById('log').innerHTML = '';
+      try { b.disabled = true; await connectKv(); }
+      catch (e) {
+        G.mode = ''; saveG(); failedOnce = true;
+        try { localStorage.setItem('d76_fabreq_failed', '1'); } catch (e2) {}
+        paintSync('off');
+        msg('err', '공유 저장소에 연결하지 못했습니다 — ' + esc(String(e && (e.message || e))));
+      } finally { b.disabled = false; }
+    },
     /* 앱 ID 와 폴더가 박혀 있으니 누르면 바로 로그인 창이 뜬다 */
     scGraph: async function () {
       var b = this;
@@ -1899,6 +1914,16 @@ function wireSync() {
 
 /* ── 시작할 때 지난 연결 복원 ──────────────────────────────────────── */
 (async function () {
+  /* 공유 저장소를 쓰던 사람은 바로 이어 붙는다 — 로그인이 필요 없다 */
+  if (G.mode === 'kv' && kvReady()) {
+    try { await connectKv(); return; }
+    catch (e) {
+      paintSync('off');
+      msg('err', '공유 저장소를 읽지 못했습니다 — ' + esc(String(e && (e.message || e))));
+      return;
+    }
+  }
+
   /* 페이지 이동 로그인에서 막 돌아왔으면 먼저 결과를 받아 이어서 연결한다 */
   if (await finishRedirect()) {
     try {
