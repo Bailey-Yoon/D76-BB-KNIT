@@ -946,7 +946,7 @@ var failedOnce = false;
 /* 저장소 모드: '' | 'file' | 'graph' */
 var GKEY = 'd76_fabreq_graph';
 var G = { mode: '', clientId: '', url: '', driveId: '', itemId: '',
-          name: '', etag: '', user: '' };
+          name: '', etag: '', user: '', folder: '' };
 try { G = Object.assign(G, JSON.parse(localStorage.getItem(GKEY) || '{}')); } catch (e) {}
 function saveG() { try { localStorage.setItem(GKEY, JSON.stringify(G)); } catch (e) {} }
 function connected() { return G.mode === 'graph' ? !!G.itemId : !!handle; }
@@ -1013,6 +1013,17 @@ var DEFAULT_URL = 'https://saea365-my.sharepoint.com/shared?id=%2Fsites%2F' +
    로그인해서 그 폴더에 접근 권한이 있는 사람만 내용을 볼 수 있다.
    앱 등록은 단일 테넌트라 세아 계정이 아니면 로그인 자체가 안 된다. */
 var DEFAULT_CLIENT = '21d26fc2-4b0f-4f9f-9e18-40f0beca126b';
+
+/* 🛑 폴더는 **코드에 박힌 값이 정본**이다.
+   예전에 다른 폴더(개인 OneDrive 등)로 연결해 둔 기록이 localStorage 에
+   남아 있으면 그쪽으로 그대로 붙어 버린다 — 기본값을 바꿔도 아무 일이
+   안 일어나는 것처럼 보인다. 실제로 그렇게 엉뚱한 드라이브에 붙었다.
+   값이 달라졌으면 캐시된 위치를 버리고 다시 찾게 한다. */
+if (G.url !== DEFAULT_URL || G.clientId !== DEFAULT_CLIENT) {
+  G.url = DEFAULT_URL; G.clientId = DEFAULT_CLIENT;
+  G.driveId = ''; G.itemId = ''; G.etag = ''; G.name = ''; G.folder = '';
+  saveG();
+}
 var msal = null;
 
 function msalApp() {
@@ -1198,6 +1209,7 @@ async function resolveTarget(interactive) {
   }
   if (!driveId) throw new Error('폴더는 찾았는데 드라이브를 알 수 없습니다');
 
+  G.folder = it.name || '';
   if (it.folder) {
     /* 폴더면 그 안의 CSV. 없으면 처음 저장할 때 만들어진다. */
     var rr = await gfetch('/drives/' + driveId + '/items/' + it.id + ':/' +
@@ -1435,7 +1447,9 @@ function paintSync(state, err) {
              : state === 'err' ? '마지막 저장 실패' + (err ? ' — ' + esc(String(err.message || err)) : '')
              : state === 'ok' ? '저장됨' : '';
     if (G.mode === 'graph') {
-      txt.innerHTML = '<b>Teams 공유폴더</b> · ' + when +
+      /* 어느 폴더에 붙었는지 반드시 보여준다 — 고정 문구를 쓰면
+         엉뚱한 드라이브에 붙어도 알아채지 못한다. */
+      txt.innerHTML = '<b>' + esc(G.folder || '공유 폴더') + '</b> · ' + when +
                       '<span class="path">' + esc(G.user || '') + '</span>';
     } else {
       txt.innerHTML = '<b>' + esc(handle.name) + '</b> · 로컬 파일 · ' +
@@ -1459,7 +1473,7 @@ function wireSync() {
       document.getElementById('log').innerHTML = '';
       try {
         b.disabled = true;
-        await connectGraph(G.clientId || DEFAULT_CLIENT, G.url || DEFAULT_URL);
+        await connectGraph(DEFAULT_CLIENT, DEFAULT_URL);
       } catch (e) {
         G.mode = ''; saveG(); failedOnce = true; paintSync('off');
         msg('err', '연결하지 못했습니다 — ' + esc(String(e.message || e)));
