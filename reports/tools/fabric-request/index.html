@@ -1468,8 +1468,11 @@ async function connectGraph(clientId) {
   if (!used) throw last || new Error('쓸 수 있는 폴더가 없습니다');
   if (used !== FOLDERS[0] && list === FOLDERS) {
     msg('warn', '<b>' + esc(used.label) + '</b> 를 대신 씁니다. ' +
-                'Teams 공유폴더는 관리자 동의가 나오면 쓸 수 있습니다 — ' +
-                '그때는 「연결 해제」 후 다시 연결하세요.');
+                'Teams 공유폴더는 관리자 동의가 나오면 쓸 수 있습니다.');
+    /* 폴백으로 "성공" 했으므로 오류 경로를 타지 않는다. 그래도 동의가
+       났는지 확인할 길은 남겨 둬야 한다 — 안 그러면 며칠 뒤에 확인할
+       방법이 없다. */
+    if (!USE_ALL) offerFullScope();
   }
 
   var theirs = await graphRead();
@@ -1666,12 +1669,15 @@ function paintSync(state, err) {
 function offerFullScope() {
   var d = document.createElement('div');
   d.className = 'msg warn';
-  d.innerHTML = '관리자 동의가 이미 났는지 확인하려면 아래를 눌러 보세요. ' +
-    '동의가 없으면 "관리자 승인 필요" 화면이 뜹니다 — 그 경우 그냥 닫으시면 됩니다.' +
-    '<button class="btn" id="scAll" style="margin-left:8px">전체 권한으로 다시 시도</button>';
+  d.innerHTML = 'IT 가 관리자 동의를 눌렀는지 확인하려면 아래를 누르세요. ' +
+    '아직이면 "관리자 승인 필요" 화면이 뜨는데 그냥 닫으시면 되고, ' +
+    '지금 쓰고 계신 연결은 그대로입니다.' +
+    '<button class="btn" id="scAll" style="margin-left:8px">Teams 폴더로 옮기기 시도</button>';
   document.getElementById('log').appendChild(d);
   document.getElementById('scAll').onclick = async function () {
     this.disabled = true;
+    var keep = { url: G.url, driveId: G.driveId, itemId: G.itemId,
+                 etag: G.etag, name: G.name, folder: G.folder, mode: G.mode };
     USE_ALL = true;
     askedFull = false; askedBasic = false;
     tokCache = { v: '', exp: 0 };
@@ -1679,8 +1685,12 @@ function offerFullScope() {
     try {
       await connectGraph(DEFAULT_CLIENT);
     } catch (e) {
+      /* 실패하면 쓰던 연결로 되돌린다 — 확인해 보려다 지금 되는 것까지
+         잃으면 안 된다. */
       USE_ALL = false;
-      msg('err', '전체 권한으로도 안 됩니다 — ' + esc(String(e && (e.message || e))));
+      for (var k in keep) G[k] = keep[k];
+      saveG(); paintSync('ok');
+      msg('warn', '아직 관리자 동의가 없습니다. 지금 쓰던 연결은 그대로 유지됩니다.');
     } finally { this.disabled = false; }
   };
 }
