@@ -137,6 +137,25 @@ thead th{position:sticky}
   background:var(--line)}
 .rz:hover::after,.rz.on::after{background:var(--tool);width:2px;left:3px}
 body.rzing{cursor:col-resize;user-select:none}
+
+/* ── 열 고르기 ── */
+.colpick{position:relative;display:inline-block}
+.colmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:40;width:230px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--sh-2,0 8px 24px rgba(0,0,0,.14));padding:10px 0;text-align:left}
+/* ⚠️ display 를 주는 순간 UA 의 [hidden]{display:none} 을 이겨 버린다.
+   숨김 규칙을 반드시 같이 둘 것 — 예전에 동기화 막대가 이걸로 안 사라졌다. */
+.colmenu[hidden]{display:none}
+.cm-h{font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--sub);
+  padding:0 14px 8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.cm-b{max-height:min(52vh,340px);overflow:auto}
+.cm-b label{display:flex;align-items:center;gap:9px;padding:6px 14px;font-size:12.5px;
+  color:var(--ink);cursor:pointer}
+.cm-b label:hover{background:var(--tint)}
+.cm-b input{width:15px;height:15px;accent-color:var(--tool);cursor:pointer;flex:none}
+.cm-f{display:flex;gap:8px;padding:10px 14px 0;margin-top:6px;border-top:1px solid var(--line)}
+.cm-f .btn{flex:1;font-size:12px;padding:7px 6px}
+#colBtn.some{background:var(--tint);color:var(--tool-deep);border-color:var(--tool)}
 tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5;
   overflow:hidden;text-overflow:ellipsis;word-break:break-word}
 tbody tr:hover{background:#fafafd}
@@ -248,7 +267,18 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
       </select>
     </div>
     <div class="right">
-      <button class="btn" id="save">저장됨</button>
+      <button class="btn" id="save">저장하기</button>
+      <span class="colpick">
+        <button class="btn ghost" id="colBtn" aria-expanded="false" aria-haspopup="true">열 선택</button>
+        <div class="colmenu" id="colMenu" hidden role="dialog" aria-label="표에 보일 열 고르기">
+          <div class="cm-h">표에 보일 열</div>
+          <div class="cm-b" id="colList"></div>
+          <div class="cm-f">
+            <button type="button" class="btn ghost" id="colAll">전체 켜기</button>
+            <button type="button" class="btn ghost" id="colDef">기본값</button>
+          </div>
+        </div>
+      </span>
       <button class="btn ghost" id="reset">필터 해제</button>
       <button class="btn ghost" id="exp">내보내기</button>
       <button class="btn ghost" id="imp">가져오기</button>
@@ -698,26 +728,81 @@ function saveColw() {
 
 /* <colgroup> 을 다시 쓰고 표 너비를 열 너비의 합으로 맞춘다.
    합으로 잡아야 열을 좁힌 만큼 가로 스크롤이 실제로 줄어든다. */
+/* ── 어떤 열을 보일지 ──────────────────────────────────────────────
+   안 쓰는 열을 빼면 보고 싶은 열(수취 같은)이 화면 안으로 들어온다.
+   너비와 마찬가지로 표 내용이 아니라 보는 사람의 화면 취향이라
+   이 브라우저에만 남긴다.
+   맨 끝 삭제(✕) 열은 목록에 넣지 않는다 — 빼 버리면 지울 방법이 없다. */
+var COLSEL_KEY = 'd76_fabreq_colsel_v1';
+var DELCOL = HEAD.length - 1;
+var COLSEL = HEAD.map(function () { return true; });
+
+try {
+  var savedS = JSON.parse(localStorage.getItem(COLSEL_KEY) || 'null');
+  if (Array.isArray(savedS) && savedS.length === HEAD.length) {
+    COLSEL = savedS.map(function (v) { return v !== false; });
+  }
+} catch (e) {}
+COLSEL[DELCOL] = true;
+
+function saveColsel() {
+  try { localStorage.setItem(COLSEL_KEY, JSON.stringify(COLSEL)); } catch (e) {}
+}
+
+/* 숨긴 열은 셀을 display:none 으로 지운다. 그러면 표의 열 수 자체가 줄어들어
+   <col> 이 **보이는 열에만** 순서대로 붙는다 — 그래서 colgroup 도 보이는 것만
+   만들어야 너비가 밀리지 않는다.
+   빈 표 안내 칸(colspan)은 예외로 둔다. 첫 열을 숨기면 안내문까지 사라진다. */
+function colCss() {
+  var el = document.getElementById('colcss');
+  if (!el) {
+    el = document.createElement('style'); el.id = 'colcss';
+    document.head.appendChild(el);
+  }
+  var sel = [];
+  for (var i = 0; i < COLSEL.length; i++) {
+    if (COLSEL[i]) continue;
+    var n = i + 1;
+    sel.push('.tablewrap table th:nth-child(' + n + ')');
+    sel.push('.tablewrap table td:nth-child(' + n + '):not(.emptycell)');
+  }
+  el.textContent = sel.length ? sel.join(',') + '{display:none}' : '';
+}
+
 function applyColw() {
   var t = document.querySelector('.tablewrap table');
   if (!t) return;
+  colCss();
   var cg = t.querySelector('colgroup');
-  if (!cg) {
-    cg = document.createElement('colgroup');
-    COLW.forEach(function () { cg.appendChild(document.createElement('col')); });
-    t.insertBefore(cg, t.firstChild);
-  }
-  var cols = cg.children, sum = 0, i;
-  for (i = 0; i < COLW.length; i++) {
-    if (cols[i]) cols[i].style.width = COLW[i] + 'px';
+  if (cg) cg.parentNode.removeChild(cg);
+  cg = document.createElement('colgroup');
+  var sum = 0;
+  for (var i = 0; i < COLW.length; i++) {
+    if (!COLSEL[i]) continue;
+    var c = document.createElement('col');
+    c.style.width = COLW[i] + 'px';
+    cg.appendChild(c);
     sum += COLW[i];
   }
+  t.insertBefore(cg, t.firstChild);
   t.style.width = sum + 'px';
+  paintColBtn();
+}
+
+function paintColBtn() {
+  var b = document.getElementById('colBtn');
+  if (!b) return;
+  var off = 0;
+  for (var i = 0; i < DELCOL; i++) if (!COLSEL[i]) off++;
+  b.textContent = off ? '열 선택 · ' + off + '개 숨김' : '열 선택';
+  b.className = 'btn ghost' + (off ? ' some' : '');
+  b.title = off ? '숨긴 열 ' + off + '개 — 눌러서 다시 켤 수 있습니다' : '표에 보일 열을 고릅니다';
 }
 
 function resetColw() {
   COLW = COLW0.slice();
-  saveColw(); applyColw();
+  COLSEL = HEAD.map(function () { return true; });
+  saveColw(); saveColsel(); applyColw();
 }
 /* 숫자 열만 우측 정렬 — 머리글도 값도 오른쪽으로 붙는다 */
 var NUM2 = { reqYds: 1, reqKgs: 1, inpKgs: 1 };
@@ -814,7 +899,7 @@ function render() {
 
   var tb = document.getElementById('rows');
   if (!rows.length) {
-    tb.innerHTML = '<tr><td colspan="' + HEAD.length + '"><div class="empty">' +
+    tb.innerHTML = '<tr><td class="emptycell" colspan="' + HEAD.length + '"><div class="empty">' +
       (tot ? '조건에 맞는 항목이 없습니다.<br>필터를 풀어 보세요.'
            : 'PDF 를 올리면 여기에 원단 항목이 펼쳐집니다.') + '</div></td></tr>';
   } else {
@@ -977,6 +1062,59 @@ document.getElementById('reset').onclick = function () {
   });
   render();
 };
+
+/* ── 열 넣고 빼기 ────────────────────────────────────────────────── */
+(function () {
+  var btn = document.getElementById('colBtn');
+  var menu = document.getElementById('colMenu');
+  var list = document.getElementById('colList');
+
+  function build() {
+    list.innerHTML = '';
+    for (var i = 0; i < DELCOL; i++) {
+      var name = String(HEAD[i][1]).replace(/<br>/g, ' ').trim() || '(이름 없음)';
+      var lb = document.createElement('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.checked = COLSEL[i]; cb.setAttribute('data-c', i);
+      lb.appendChild(cb);
+      lb.appendChild(document.createTextNode(name));
+      list.appendChild(lb);
+    }
+  }
+
+  function open(on) {
+    menu.hidden = !on;
+    btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+    if (on) build();
+  }
+
+  btn.onclick = function (e) { e.stopPropagation(); open(menu.hidden); };
+  menu.onclick = function (e) { e.stopPropagation(); };
+  document.addEventListener('click', function () { if (!menu.hidden) open(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !menu.hidden) { open(false); btn.focus(); }
+  });
+
+  list.addEventListener('change', function (e) {
+    var cb = e.target;
+    if (!cb.getAttribute || cb.getAttribute('data-c') === null) return;
+    var i = +cb.getAttribute('data-c');
+    /* 한 열도 안 남으면 표가 사라진다 — 마지막 하나는 못 끄게 한다. */
+    var left = 0, j;
+    for (j = 0; j < DELCOL; j++) if (COLSEL[j]) left++;
+    if (!cb.checked && left <= 1) { cb.checked = true; return; }
+    COLSEL[i] = cb.checked;
+    saveColsel(); applyColw();
+  });
+
+  document.getElementById('colAll').onclick = function () {
+    for (var i = 0; i < COLSEL.length; i++) COLSEL[i] = true;
+    saveColsel(); applyColw(); build();
+  };
+  document.getElementById('colDef').onclick = function () {
+    resetColw(); build();
+  };
+})();
 
 /* ── 열 너비 끌기 ──────────────────────────────────────────────────
    포인터 이벤트로 받는다 — 마우스·터치·펜이 한 코드로 처리된다.
