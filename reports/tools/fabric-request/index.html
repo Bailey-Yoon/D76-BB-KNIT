@@ -1771,6 +1771,7 @@ async function runSync() {
 /* ── 바깥에서 바뀐 걸 알아채기 ─────────────────────────────────────── */
 async function pull(quiet) {
   if (!connected() || syncing) return;
+  if (quiet && typing()) return;        /* 입력 중에는 화면을 갈아엎지 않는다 */
   try {
     if (!(await remoteChanged())) { if (!quiet) paintSync('ok'); return; }
     var before = DB.length;
@@ -2063,7 +2064,31 @@ function wireSync() {
   document.getElementById('scNew').onclick = function () { connect(true); };
 })();
 
-/* 탭으로 돌아올 때 남이 바꿨는지 확인한다 */
+/* ── 남이 바꾼 걸 따라잡기 ─────────────────────────────────────────
+   탭을 다시 켤 때만 읽으면, 폰과 PC 를 같이 보고 있을 때 한쪽 변화가
+   안 넘어온다. 보고 있는 동안에는 주기적으로 확인한다.
+
+   10초로 잡은 이유 — Cloudflare 무료 읽기가 하루 10만 건이다.
+   다섯 명이 하루 8시간 보고 있어도 5×6×60×8 ≈ 14,400 건이라 여유가 있다.
+   그렇다고 1초로 줄이면 한도에 닿는다.
+
+   ⚠️ 칸에 입력하는 중에는 건너뛴다. 표를 다시 그리면 커서가 날아가서
+      타이핑이 끊긴다. */
+var POLL_MS = 10000;
+
+function typing() {
+  var a = document.activeElement;
+  return !!(a && a.closest && a.closest('.tablewrap') &&
+            /INPUT|TEXTAREA|SELECT/.test(a.tagName));
+}
+
+function tick() {
+  if (document.hidden || syncing || pending || typing()) return;
+  pull(true);
+}
+setInterval(tick, POLL_MS);
+
+/* 탭으로 돌아오면 기다리지 말고 바로 확인한다 */
 document.addEventListener('visibilitychange', function () {
   if (!document.hidden) pull(true);
 });
