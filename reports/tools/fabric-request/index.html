@@ -1032,6 +1032,12 @@ var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
    (로그인한 사람이 그 폴더에 접근 권한이 있어야 열린다). */
 var DEFAULT_URL = 'https://saea365-my.sharepoint.com/my?id=%2Fpersonal%2F' +
   'bailey0403%5Fsae%2Da%5Fcom%2FDocuments%2FD76%20Research%20Dashboard';
+
+/* 기본 앱 ID. SPA 의 클라이언트 ID 는 **비밀이 아니다** — 비밀 키 없이
+   Authorization Code + PKCE 로만 돌아간다. 페이지에 적혀 있어도,
+   로그인해서 그 폴더에 접근 권한이 있는 사람만 내용을 볼 수 있다.
+   앱 등록은 단일 테넌트라 세아 계정이 아니면 로그인 자체가 안 된다. */
+var DEFAULT_CLIENT = '21d26fc2-4b0f-4f9f-9e18-40f0beca126b';
 var msal = null;
 
 function msalApp() {
@@ -1050,19 +1056,28 @@ function msalApp() {
   return msal;
 }
 
+/* 방금 받은 토큰을 들고 있는다. 한 번 연결하는 동안 Graph 를 예닐곱 번
+   부르는데, 그때마다 계정 캐시를 다시 뒤지면 그중 한 번이라도 어긋나면
+   연결이 통째로 끊긴다. 만료 조금 전까지는 들고 쓴다. */
+var tokCache = { v: '', exp: 0 };
+
 async function token(interactive) {
+  if (tokCache.v && Date.now() < tokCache.exp) return tokCache.v;
   var app = msalApp();
   if (app.initialize) await app.initialize();
-  var acc = app.getAllAccounts()[0];
+  var acc = (app.getAllAccounts() || [])[0];
   if (acc) {
     try {
       var r = await app.acquireTokenSilent({ scopes: SCOPES, account: acc });
-      G.user = acc.username || ''; return r.accessToken;
+      G.user = acc.username || '';
+      tokCache = { v: r.accessToken, exp: Date.now() + 9 * 60000 };
+      return r.accessToken;
     } catch (e) { /* 조용히 실패하면 아래에서 다시 묻는다 */ }
   }
-  if (!interactive) throw new Error('로그인이 필요합니다');
+  if (!interactive) throw new Error('로그인이 필요합니다 — 「SharePoint 연결」 을 눌러 주세요');
   var res = await app.loginPopup({ scopes: SCOPES, prompt: 'select_account' });
   G.user = (res.account && res.account.username) || '';
+  tokCache = { v: res.accessToken, exp: Date.now() + 9 * 60000 };
   return res.accessToken;
 }
 
@@ -1071,7 +1086,10 @@ async function gfetch(path, opt, interactive) {
   opt = opt || {};
   opt.headers = Object.assign({ Authorization: 'Bearer ' + t }, opt.headers || {});
   var r = await fetch(path.charAt(0) === 'h' ? path : GRAPH + path, opt);
-  if (r.status === 401) throw new Error('로그인이 만료됐습니다 — 다시 연결해 주세요');
+  if (r.status === 401) {
+    tokCache = { v: '', exp: 0 };
+    throw new Error('로그인이 만료됐습니다 — 「SharePoint 연결」 을 다시 눌러 주세요');
+  }
   if (r.status === 403) {
     throw new Error('이 파일에 접근할 권한이 없습니다. 앱 등록에 Files.ReadWrite.All 을 ' +
                     '추가하고 관리자 동의를 받아야 할 수 있습니다 (SHAREPOINT_SETUP.md 참조)');
@@ -1344,6 +1362,7 @@ async function connect(create) {
 async function disconnect() {
   handle = null; lastMtime = 0;
   G.mode = ''; G.driveId = ''; G.itemId = ''; G.name = ''; G.etag = ''; saveG();
+  tokCache = { v: '', exp: 0 };
   try { await idbPut('handle', null); } catch (e) {}
   paintSync('off');
   msg('ok', '공유 연결을 끊었습니다. 기록은 이 브라우저에 그대로 있습니다.');
@@ -1358,11 +1377,13 @@ function paintSync(state, err) {
   bar.className = 'sync' + (on ? ' on' : '') + (state === 'err' ? ' stale' : '');
 
   if (!on) {
-    txt.innerHTML = '공유에 연결하지 않았습니다 — 기록이 <b>이 브라우저에만</b> 남습니다';
+    txt.innerHTML = '공유에 연결하지 않았습니다 — 기록이 <b>이 브라우저에만</b> 남습니다' +
+      '<span class="path">「SharePoint 연결」 을 누르고 회사 계정으로 로그인하면 ' +
+      'D76 Research Dashboard 폴더의 CSV 를 팀과 같이 쓰게 됩니다</span>';
     acts.innerHTML =
       '<button class="btn" id="scGraph">SharePoint 연결</button>' +
-      (FS_OK ? '<button class="btn ghost" id="scOpen">로컬 공유 파일 열기</button>' +
-               '<button class="btn ghost" id="scNew">새로 만들기</button>' : '');
+      '<button class="btn ghost" id="scSetup">설정</button>' +
+      (FS_OK ? '<button class="btn ghost" id="scOpen">로컬 파일로</button>' : '');
     if (!FS_OK) {
       txt.innerHTML += '<span class="path">로컬 파일 방식은 Chrome·Edge 에서만 됩니다 — ' +
                        'SharePoint 연결은 어느 브라우저에서나 됩니다</span>';
@@ -1386,19 +1407,35 @@ function paintSync(state, err) {
   wireSync();
 }
 
+function openSetup() {
+  var box = document.getElementById('setup');
+  box.hidden = false;
+  document.getElementById('spClient').value = G.clientId || DEFAULT_CLIENT;
+  document.getElementById('spUrl').value = G.url || DEFAULT_URL;
+  box.scrollIntoView({ block: 'nearest' });
+}
+
 function wireSync() {
   var m = {
     scOpen:  function () { connect(false); },
     scNew:   function () { connect(true); },
     scPull:  function () { pull(false); },
     scOff:   disconnect,
-    scGraph: function () {
-      var box = document.getElementById('setup');
-      box.hidden = false;
-      document.getElementById('spClient').value = G.clientId || '';
-      document.getElementById('spUrl').value = G.url || DEFAULT_URL;
-      document.getElementById('spClient').focus();
-    }
+    /* 기본값이 박혀 있으니 바로 로그인시킨다 — 설정 칸은 실패했을 때만 보여준다 */
+    scGraph: async function () {
+      var b = this;
+      document.getElementById('log').innerHTML = '';
+      try {
+        b.disabled = true;
+        await connectGraph(G.clientId || DEFAULT_CLIENT, G.url || DEFAULT_URL);
+      } catch (e) {
+        G.mode = ''; saveG(); paintSync('off');
+        msg('err', '연결하지 못했습니다: ' + esc(String(e.message || e)) +
+                   ' — 아래에서 값을 확인해 주세요.');
+        openSetup();
+      } finally { b.disabled = false; }
+    },
+    scSetup: openSetup
   };
   Object.keys(m).forEach(function (id) {
     var el = document.getElementById(id);
@@ -1467,7 +1504,7 @@ document.getElementById('spGo').onclick = async function () {
   var cid = document.getElementById('spClient').value.trim();
   var url = document.getElementById('spUrl').value.trim();
   document.getElementById('log').innerHTML = '';
-  if (!/^[0-9a-f-]{36}$/i.test(cid)) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cid)) {
     msg('warn', '앱 ID 가 형식에 맞지 않습니다 — 36자리 GUID 여야 합니다.'); return;
   }
   if (!/^https?:\/\//i.test(url)) {
