@@ -1000,10 +1000,19 @@ function idbGet(k) {
    ════════════════════════════════════════════════════════════════════ */
 
 var GRAPH = 'https://graph.microsoft.com/v1.0';
-/* 팀 사이트 문서함은 "본인 파일" 이 아니라서 Files.ReadWrite 로는 403 이다.
-   .All 을 먼저 달라고 하고, 관리자 동의가 아직이면 기본 권한으로 떨어진다
-   (그 경우 본인 OneDrive 까지만 된다). 어느 쪽을 받았는지 G.scope 에 남긴다. */
-var SCOPES_FULL  = ['User.Read', 'Files.ReadWrite.All'];
+/* 🛑 Files.ReadWrite.All 은 **요청하지 않는다.**
+   이 조직은 그 권한에 관리자 동의를 요구해서, 달라고 할 때마다
+   "관리자 승인 필요" 화면만 뜨고 끝난다. 사용자는 매번 그 벽을 보게 되고
+   실제로 얻는 것은 없다.
+
+   대신 Files.ReadWrite 로 가되, 팀 폴더는 **진짜 공유 링크**
+   (공유 → 링크 복사, `:f:/s/…`)를 Prefer: redeemSharingLink 와 함께 쓴다.
+   링크를 눌러 들어간 것과 같은 처리라 낮은 권한으로도 닿을 여지가 있다.
+
+   나중에 관리자 동의가 나오면 USE_ALL 을 true 로 바꾸면 된다. */
+var USE_ALL = false;
+var SCOPES_FULL  = USE_ALL ? ['User.Read', 'Files.ReadWrite.All']
+                           : ['User.Read', 'Files.ReadWrite'];
 var SCOPES_BASIC = ['User.Read', 'Files.ReadWrite'];
 var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
 
@@ -1291,8 +1300,8 @@ async function resolveTarget(interactive, url) {
     throw new Error('폴더를 찾지 못했습니다 [' + tried.join(', ') + '] · 받은 권한: ' +
       (G.scope || '알 수 없음') +
       (has403 && G.scope !== 'Files.ReadWrite.All'
-        ? ' — 팀 사이트 문서함은 Files.ReadWrite.All 이 있어야 합니다. 앱 등록에 그 권한을 ' +
-          '추가하고 관리자 동의를 받아 주세요.'
+        ? ' — 이 폴더는 공유 링크로도 닿지 않습니다. Files.ReadWrite.All 에 관리자 동의가 ' +
+          '있어야 합니다 (앱 ID 21d26fc2-… 로 IT 에 요청).'
         : has403
         ? ' — 권한은 맞는데 거부됐습니다. 그 폴더에 편집 권한이 있는지 확인해 주세요.'
         : ' — 폴더 주소를 확인해 주세요.'));
@@ -1355,6 +1364,49 @@ async function graphChanged() {
   if (!r.ok) return false;
   var j = await r.json();
   return (j.eTag || '') !== G.etag;
+}
+
+/* ── 페이지 이동 로그인 ──────────────────────────────────────────────
+   팝업 안에서는 MFA(문자·전화·Authenticator)가 자주 중간에 끊긴다.
+   팝업 창은 쿠키·리다이렉트 제약이 본 창과 달라서, 다단계 인증처럼
+   여러 번 왔다 갔다 하는 흐름이 깨지기 쉽다.
+   그럴 때는 본 창을 통째로 Microsoft 로 보냈다가 돌아오게 한다.
+   상태는 전부 localStorage 에 있으니 페이지가 다시 떠도 잃는 게 없다. */
+function loginByRedirect() {
+  try {
+    localStorage.setItem('d76_fabreq_redir', '1');
+    var app = msalApp();
+    var go = function () { app.loginRedirect({ scopes: SCOPES_FULL }); };
+    if (app.initialize) { app.initialize().then(go, go); } else { go(); }
+  } catch (e) {
+    msg('err', '페이지 이동 로그인을 시작하지 못했습니다: ' + esc(String(e.message || e)));
+  }
+}
+
+/* 돌아왔을 때 결과를 받아 준다. 이 호출이 없으면 로그인하고 와도
+   MSAL 이 응답을 처리하지 못해 아무 일도 안 일어난 것처럼 보인다. */
+async function finishRedirect() {
+  var want = false;
+  try { want = localStorage.getItem('d76_fabreq_redir') === '1'; } catch (e) {}
+  if (!want || !G.clientId) return false;
+  try {
+    var app = msalApp();
+    if (app.initialize) await app.initialize();
+    var res = await app.handleRedirectPromise();
+    try { localStorage.removeItem('d76_fabreq_redir'); } catch (e) {}
+    if (!res) return false;
+    tokCache = { v: res.accessToken, exp: Date.now() + 9 * 60000 };
+    G.user = (res.account && res.account.username) || G.user || '';
+    var got = (res.scopes || []).join(' ');
+    G.scope = /Files\.ReadWrite\.All/i.test(got) ? 'Files.ReadWrite.All'
+            : /Files\.ReadWrite/i.test(got) ? 'Files.ReadWrite' : (got || '알 수 없음');
+    saveG();
+    return true;
+  } catch (e) {
+    try { localStorage.removeItem('d76_fabreq_redir'); } catch (e2) {}
+    msg('err', '로그인에서 돌아왔지만 처리하지 못했습니다: ' + esc(String(e.message || e)));
+    return false;
+  }
 }
 
 async function connectGraph(clientId) {
@@ -1578,6 +1630,17 @@ function paintSync(state, err) {
   wireSync();
 }
 
+/* 인증이 꼬였을 때 페이지 이동 로그인을 권한다 */
+function offerRedirect() {
+  var d = document.createElement('div');
+  d.className = 'msg warn';
+  d.innerHTML = '로그인 창(팝업)에서 본인 확인이 막히면 <b>페이지 이동 방식</b>으로 ' +
+                '하면 되는 경우가 많습니다. ' +
+                '<button class="btn" id="scRedir" style="margin-left:8px">페이지 이동으로 로그인</button>';
+  document.getElementById('log').appendChild(d);
+  document.getElementById('scRedir').onclick = loginByRedirect;
+}
+
 function wireSync() {
   var m = {
     scOpen:  function () { connect(false); },
@@ -1605,6 +1668,7 @@ function wireSync() {
         try { localStorage.setItem('d76_fabreq_failed', '1'); } catch (e) {}
         paintSync('off');
         msg('err', '연결하지 못했습니다 — ' + esc(String(e.message || e)));
+        if (/인증|로그인|AADSTS|interaction|popup/i.test(String(e.message || e))) offerRedirect();
       } finally { b.disabled = false; }
     }
   };
@@ -1616,6 +1680,18 @@ function wireSync() {
 
 /* ── 시작할 때 지난 연결 복원 ──────────────────────────────────────── */
 (async function () {
+  /* 페이지 이동 로그인에서 막 돌아왔으면 먼저 결과를 받아 이어서 연결한다 */
+  if (await finishRedirect()) {
+    try {
+      await connectGraph(G.clientId || DEFAULT_CLIENT);
+      return;
+    } catch (e) {
+      G.mode = ''; saveG(); paintSync('off');
+      msg('err', '연결하지 못했습니다 — ' + esc(String(e && (e.message || e))));
+      return;
+    }
+  }
+
   /* SharePoint 로 쓰던 사람은 로그인 세션이 살아 있으면 그대로 이어 붙는다 */
   if (G.mode === 'graph' && G.clientId && G.itemId) {
     try {
