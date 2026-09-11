@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<link rel="icon" href="/D76-BB-KNIT/favicon.svg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>D76 · 샘플 작지 종합관리</title>
+<style>
+:root{--tool:#0277bd;--tool-deep:#014b7e;--tint:#eef4fa;--ink:#1d1c22;--body:#4a4954;
+  --sub:#6a6a72;--muted:#6e6d77;--bg:#f3f2f6;--card:#fff;--bar:#1b1b22;--line:#e7e5ee;
+  --pos:#00695c;--neg:#CC0000;--amber:#c25700;--amber-deep:#8a4b00;--amber-tint:#fff8ee;
+  --gf-deep:#4527a0;--man-deep:#00544c;
+  --r-sm:8px;--r-md:10px;--r-lg:14px;--r-xl:16px;
+  --sh-1:0 1px 2px rgba(20,18,30,.06);--sh-2:0 8px 22px rgba(20,18,30,.11)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+a{color:var(--tool);text-decoration:none}
+a:hover{color:var(--tool-deep)}
+:focus-visible{outline:2px solid var(--tool);outline-offset:2px;border-radius:var(--r-sm)}
+
+.topbar{position:sticky;top:0;z-index:100;background:var(--bar);color:#fff;font-size:13px;
+  padding:11px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.topbar a{color:#fff}
+.topbar .brand{font-weight:700}
+.topbar .sep{opacity:.3}
+.topbar .here{color:#9fd4f5}
+.wrap{max-width:1400px;margin:0 auto;padding:26px 20px 56px}
+
+.hero{background:var(--tint);border-radius:var(--r-xl);padding:22px 24px;margin-bottom:18px}
+.hero .eyebrow{font-size:11px;letter-spacing:.16em;font-weight:700;color:var(--tool-deep)}
+.hero h1{font-size:26px;line-height:1.25;letter-spacing:-.01em;margin:6px 0}
+.hero .meta{font-size:13px;color:var(--sub);line-height:1.6}
+
+/* ── 업로드 ── */
+.drop{background:var(--card);border:2px dashed var(--line);border-radius:var(--r-lg);
+  padding:26px 22px;text-align:center;margin-bottom:16px;transition:border-color .14s,background .14s}
+.drop.over{border-color:var(--tool);background:var(--tint)}
+.drop .big{font-size:15px;font-weight:700}
+.drop .small{font-size:12.5px;color:var(--sub);margin-top:6px;line-height:1.6}
+.btn{display:inline-block;border:0;font-family:inherit;font-size:13px;font-weight:700;
+  padding:9px 16px;border-radius:var(--r-md);cursor:pointer;background:var(--tool);color:#fff}
+.btn:hover{background:var(--tool-deep)}
+.btn.ghost{background:var(--card);color:var(--body);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--bg);color:var(--ink)}
+.btn.danger{background:var(--card);color:var(--neg);border:1px solid var(--line)}
+.btn.danger:hover{background:#fdf3f3}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.drop .btn{margin-top:12px}
+
+#log{margin-bottom:16px;display:flex;flex-direction:column;gap:7px}
+.msg{font-size:12.5px;line-height:1.6;padding:10px 14px;border-radius:var(--r-md);
+  background:var(--card);box-shadow:var(--sh-1)}
+.msg b{font-weight:700}
+.msg.ok{border-left:3px solid var(--pos)}
+.msg.warn{border-left:3px solid var(--amber);background:var(--amber-tint)}
+.msg.err{border-left:3px solid var(--neg);background:#fdf3f3}
+
+/* ── 지표 ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border-radius:var(--r-lg);padding:15px 17px;box-shadow:var(--sh-1)}
+.stat .l{font-size:12px;color:var(--sub);line-height:1.5}
+.stat .v{font-size:25px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2;display:block}
+.stat.g .v{color:var(--pos)} .stat.r .v{color:var(--neg)} .stat.o .v{color:var(--amber-deep)}
+
+/* ── 필터 ── */
+.filters{background:var(--card);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:16px;
+  display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;box-shadow:var(--sh-1)}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:10.5px;letter-spacing:.06em;font-weight:700;color:var(--muted)}
+.f input,.f select{font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--line);
+  border-radius:var(--r-sm);background:var(--card);color:var(--ink);min-width:120px}
+.f.grow{flex:1 1 220px}
+.f.grow input{width:100%}
+.filters .right{margin-left:auto;display:flex;gap:8px;align-items:flex-end}
+
+/* ── 표 ── */
+.tablewrap{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--sh-1);
+  overflow-x:auto;overflow-y:visible}
+table{border-collapse:collapse;width:100%;min-width:1750px;font-size:12.5px}
+thead th{position:sticky;top:44px;z-index:2;background:#f7f6fa;text-align:left;
+  font-size:11px;letter-spacing:.03em;color:var(--sub);font-weight:700;
+  padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+thead th.sortable{cursor:pointer;user-select:none}
+thead th.sortable:hover{color:var(--tool-deep)}
+thead th .ar{opacity:.45;font-size:9px}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+tbody tr:hover{background:#fafafd}
+tbody tr.done{background:#f4f8f7}
+tbody tr.done:hover{background:#eef4f3}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.nw{white-space:nowrap}
+.fab{min-width:210px;max-width:290px}
+.rem{min-width:170px;max-width:260px;color:var(--body);font-size:11.5px}
+.mono{font-family:"SF Mono",Consolas,"D2Coding",monospace;font-size:11.5px}
+.gkey{font-weight:700}
+.sub2{font-size:11px;color:var(--muted);display:block;margin-top:2px}
+
+.pos{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:var(--r-sm);
+  background:#eceaf3;color:var(--body);white-space:nowrap}
+.pos.BODY{background:var(--tint);color:var(--tool-deep)}
+.pos.TRIM{background:#f6f3fc;color:var(--gf-deep)}
+
+.due.over{color:var(--neg);font-weight:700}
+.due.soon{color:var(--amber-deep);font-weight:700}
+.dueflag{font-size:10px;display:block;font-weight:700}
+
+td.recv{background:#fcfcfe}
+tr.done td.recv{background:#eef4f3}
+td.recv input[type=date]{font-family:inherit;font-size:11.5px;padding:4px 6px;
+  border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card);color:var(--ink);width:122px}
+td.note textarea{font-family:inherit;font-size:11.5px;padding:6px 7px;border:1px solid var(--line);
+  border-radius:var(--r-sm);background:var(--card);color:var(--ink);width:180px;height:46px;
+  resize:vertical;line-height:1.45}
+.chk{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--sub);
+  cursor:pointer;white-space:nowrap}
+.chk input{width:16px;height:16px;accent-color:var(--pos);cursor:pointer}
+tr.done .chk{color:var(--pos)}
+.del{border:0;background:transparent;color:var(--muted);font-size:15px;cursor:pointer;
+  padding:3px 6px;border-radius:var(--r-sm);line-height:1}
+.del:hover{background:#fdf3f3;color:var(--neg)}
+
+.empty{padding:46px 20px;text-align:center;color:var(--sub);font-size:13.5px;line-height:1.8}
+.note-hint{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.7}
+footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color:var(--muted);line-height:1.8}
+
+@media(max-width:640px){
+  .wrap{padding:18px 14px 40px}
+  .hero{padding:18px} .hero h1{font-size:21px}
+  .stats{grid-template-columns:1fr 1fr;gap:8px}
+  .f input,.f select{min-width:0;width:100%}
+  .f,.f.grow{flex:1 1 100%}
+  .filters .right{margin-left:0;width:100%}
+  thead th{top:0}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="brand" href="/D76-BB-KNIT/">📊 D76 Hub</a><span class="sep">|</span>
+  <a href="/D76-BB-KNIT/reports/tools/">🧰 Tools</a><span class="sep">|</span>
+  <span class="here">📋 샘플 작지 종합관리</span>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">TOOLS · 샘플 작지</div>
+    <h1>샘플 작지 종합관리</h1>
+    <div class="meta">샘플 의뢰서(PDF)를 올리면 원단 항목별로 펼쳐 정리합니다.
+      원단 수취 여부·수취일·특이사항을 직접 기록하고 필터로 찾아볼 수 있습니다.</div>
+  </div>
+
+  <div class="drop" id="drop">
+    <div class="big">여기에 PDF 를 끌어다 놓으세요</div>
+    <div class="small">여러 장을 한 번에 올려도 됩니다 · 같은 의뢰번호를 다시 올리면
+      기록해 둔 수취 정보는 그대로 두고 내용만 갱신합니다</div>
+    <button class="btn" id="pick">파일 선택</button>
+    <input type="file" id="file" accept="application/pdf,.pdf" multiple hidden>
+  </div>
+
+  <div id="log"></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="filters">
+    <div class="f grow">
+      <label for="q">검색</label>
+      <input id="q" type="search" placeholder="Style · 원단 · 색상 · 의뢰번호 · 비고 · 특이사항">
+    </div>
+    <div class="f"><label for="fStyle">Style No</label><select id="fStyle"></select></div>
+    <div class="f"><label for="fSeason">Season</label><select id="fSeason"></select></div>
+    <div class="f"><label for="fUser">의뢰자</label><select id="fUser"></select></div>
+    <div class="f"><label for="fPos">Pos.</label><select id="fPos"></select></div>
+    <div class="f"><label for="fRecv">수취</label>
+      <select id="fRecv">
+        <option value="">전체</option>
+        <option value="no">미수취</option>
+        <option value="yes">수취 완료</option>
+        <option value="over">기한 초과 · 미수취</option>
+        <option value="soon">7일 내 마감 · 미수취</option>
+      </select>
+    </div>
+    <div class="right">
+      <button class="btn ghost" id="reset">필터 해제</button>
+      <button class="btn ghost" id="exp">내보내기</button>
+      <button class="btn ghost" id="imp">가져오기</button>
+      <input type="file" id="impf" accept="application/json,.json" hidden>
+    </div>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr id="head"></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="note-hint" id="hint"></div>
+</div>
+
+<footer>
+  기록은 <b>이 브라우저에만</b> 저장됩니다 (localStorage). 다른 PC·다른 브라우저에서는 보이지 않고,
+  브라우저 데이터를 지우면 함께 지워집니다. 옮기거나 백업하려면 <b>내보내기</b>로 JSON 을 받아 두세요.
+  PDF 원본은 저장하지 않습니다 — 읽어서 표로 옮기기만 합니다.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ────────────────────────────────────────────────────────────────
+   pdf.js 는 jsdelivr 에서 받는다 (cdnjs 가 아니라).
+   이 PDF 들(OZ Report Viewer 생성)에는 **ToUnicode 맵이 없고**
+   한국어 CID 인코딩 UniKS-UCS2-H 만 들어 있다. 그래서 pdf.js 가
+   글자를 풀려면 predefined CMap 파일이 필요한데, cdnjs 는 cmaps/ 를
+   올려두지 않아 403 이 난다 — 그러면 텍스트가 **조용히 0개**가 되고
+   "양식이 아닙니다" 로만 보인다. jsdelivr 에는 있다.
+   ⚠️ cMapUrl 을 빼거나 cdnjs 로 되돌리지 말 것.
+   ──────────────────────────────────────────────────────────────── */
+var CDN = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/';
+pdfjsLib.GlobalWorkerOptions.workerSrc = CDN + 'build/pdf.worker.min.js';
+var PDFOPT = { cMapUrl: CDN + 'cmaps/', cMapPacked: true,
+               standardFontDataUrl: CDN + 'standard_fonts/' };
+
+var KEY = 'd76_fabreq_v1';
+
+/* ────────────────────────────────────────────────────────────────
+   컬럼 경계 — 19개 실측 파일의 x0 군집에서 뽑았다 (2026-09-11).
+   ERP 고정 양식이라 파일이 달라도 좌표가 같다. 군집 사이 빈 구간이
+   넓어서(최소 15pt) 경계를 가운데 두면 숫자 자릿수가 늘어도 안전하다.
+   ──────────────────────────────────────────────────────────────── */
+var COLS = [
+  ['pos',      20,  45],
+  ['fabric',   45, 212],
+  ['section', 212, 224],
+  ['gsm',     224, 253],
+  ['width',   253, 282],
+  ['color',   282, 380],
+  ['reqYds',  380, 430],
+  ['reqKgs',  430, 475],
+  ['inpKgs',  475, 520],
+  ['due',     520, 600],
+  ['supplier',600, 660],
+  ['remark',  660, 860]
+];
+
+/* ────────────────────────────────────────────────────────────────
+   글자를 **연산자 스트림에서 직접** 뽑는다. getTextContent 를 쓰지 않는다.
+
+   이유: 이 PDF 는 글자마다 위치를 따로 찍는데 폰트가 신고한 글자 폭이
+   실제보다 넓다. 그러면 pdf.js 의 텍스트 레이어는 "칸이 남지 않으니
+   공백이 아니다" 라고 판단해 **공백을 버린다** — "100 COTTON" 이
+   "100COTTON" 으로 온다. 연산자 스트림의 글리프에는 그 공백이 남아 있고
+   좌표도 정확하다 (pdfplumber 와 소수점까지 일치 확인, 2026-09-11).
+   ⚠️ getTextContent 로 되돌리지 말 것.
+   ──────────────────────────────────────────────────────────────── */
+function mul(a, b) {
+  return [a[0]*b[0] + a[1]*b[2],  a[0]*b[1] + a[1]*b[3],
+          a[2]*b[0] + a[3]*b[2],  a[2]*b[1] + a[3]*b[3],
+          a[4]*b[0] + a[5]*b[2] + b[4],  a[4]*b[1] + a[5]*b[3] + b[5]];
+}
+
+function glyphs(page, ops) {
+  var O = pdfjsLib.OPS, h = page.getViewport({ scale: 1 }).height;
+  var tm = [1,0,0,1,0,0], tlm = tm.slice();
+  var fs = 0, hs = 1, cs = 0, ws = 0, lead = 0, out = [];
+
+  function show(gs) {
+    for (var j = 0; j < gs.length; j++) {
+      var g = gs[j];
+      if (typeof g === 'number') { tm[4] += -g / 1000 * fs * hs; continue; }
+      var adv = (g.width / 1000 * fs + cs + (g.isSpace ? ws : 0)) * hs;
+      out.push({ c: g.unicode, x: tm[4], y: h - tm[5], adv: adv });
+      tm[4] += adv;
+    }
+  }
+
+  for (var i = 0; i < ops.fnArray.length; i++) {
+    var f = ops.fnArray[i], a = ops.argsArray[i];
+    if (f === O.beginText)           { tm = [1,0,0,1,0,0]; tlm = tm.slice(); }
+    else if (f === O.setTextMatrix)  { tm = a.slice(0, 6); tlm = tm.slice(); }
+    else if (f === O.moveText)       { tlm = mul([1,0,0,1,a[0],a[1]], tlm); tm = tlm.slice(); }
+    else if (f === O.setLeadingMoveText) { lead = -a[1];
+                                     tlm = mul([1,0,0,1,a[0],a[1]], tlm); tm = tlm.slice(); }
+    else if (f === O.nextLine)       { tlm = mul([1,0,0,1,0,-lead], tlm); tm = tlm.slice(); }
+    else if (f === O.setLeading)     { lead = a[0]; }
+    else if (f === O.setFont)        { fs = a[1]; }
+    else if (f === O.setHScale)      { hs = a[0] / 100; }
+    else if (f === O.setCharSpacing) { cs = a[0]; }
+    else if (f === O.setWordSpacing) { ws = a[0]; }
+    else if (f === O.showText)       { show(a[0]); }
+    else if (f === O.nextLineShowText) {
+      tlm = mul([1,0,0,1,0,-lead], tlm); tm = tlm.slice(); show(a[0]);
+    }
+  }
+  return out;
+}
+
+/* y 가 비슷한 것끼리 한 줄로 묶고, 줄 안에서 **붙어 있는 조각을 런으로** 되돌린다.
+
+   이 PDF 는 글자를 하나씩 따로 내보낸다 — "2026-07-10" 이 '2','0','2','6','-',…
+   열 조각으로 온다. 컬럼을 글자마다 판정하면 오른쪽 정렬된 "230" 이
+   경계에 걸려 "23" + "0" 으로 쪼개진다. 그래서 런으로 묶은 뒤
+   **런의 시작 x** 하나로 컬럼을 정한다.
+
+   pdf.js 가 주는 item.width 는 믿을 수 없다 — 글자 하나짜리인데 폰트 크기(9)를
+   그대로 돌려줘 실제 폭(4.6)의 두 배다. 그래서 폭은 글자 수 × 폰트 × 0.55 로
+   따로 잡는다. 같은 런 안은 간격이 0 안팎이고 컬럼 사이는 8.65 이상 벌어지므로
+   6 을 기준으로 자르면 넉넉하다. */
+function lines(gs, tol) {
+  var by = [];
+  gs.slice().sort(function (a, b) { return a.y - b.y || a.x - b.x; })
+    .forEach(function (g) {
+    var last = by[by.length - 1];
+    if (last && Math.abs(g.y - last.y) <= (tol || 2.2)) { last.g.push(g); }
+    else { by.push({ y: g.y, g: [g] }); }
+  });
+  by.forEach(function (l) {
+    l.g.sort(function (a, b) { return a.x - b.x; });
+    /* 붙어 있는 글자를 런으로 묶는다. 글자를 하나씩 컬럼에 넣으면
+       오른쪽 정렬된 "230" 이 경계에 걸려 "23" + "0" 으로 쪼개진다.
+       런 안은 간격이 0 이고 칸 사이는 최소 13 이상 벌어진다. */
+    var runs = [];
+    l.g.forEach(function (g) {
+      var r = runs[runs.length - 1];
+      if (r && g.x - r.end <= 2.5) { r.s += g.c; r.end = g.x + g.adv; }
+      else { runs.push({ s: g.c, x: g.x, end: g.x + g.adv }); }
+    });
+    l.items = runs.map(function (r) {
+      return { s: r.s.replace(/\s+/g, ' ').trim(), x: r.x };
+    }).filter(function (r) { return r.s; });
+    l.text = l.items.map(function (r) { return r.s; }).join(' ')
+                    .replace(/\s+/g, ' ').trim();
+  });
+  return by.filter(function (l) { return l.text; });
+}
+
+function colOf(x) {
+  for (var i = 0; i < COLS.length; i++) {
+    if (x >= COLS[i][1] && x < COLS[i][2]) return COLS[i][0];
+  }
+  return null;
+}
+
+function grab(re, text) { var m = text.match(re); return m ? m[1].trim() : ''; }
+
+/* ────────────────────────────────────────────────────────────────
+   한 장을 읽어 의뢰서 한 건으로 만든다.
+   원단 행은 여러 줄에 걸쳐 접히고, Fabric Info 는 숫자 행 위아래로
+   걸쳐 있다. 그래서 Pos. 값이 있는 줄을 앵커로 삼고, 나머지 조각은
+   **y 가 가장 가까운 앵커**에 붙인다.
+   ──────────────────────────────────────────────────────────────── */
+function parseDoc(all, name) {
+  /* ⚠️ 페이지를 하나로 합쳐서 읽으면 안 된다 — y 좌표가 페이지마다 0 부터
+     다시 시작해서 2페이지 글자가 1페이지 행 위에 겹쳐 앉는다
+     (실제로 "주의주의", "사항사항" 처럼 두 번 겹쳐 나왔다).
+     페이지마다 따로 표를 읽고 결과만 이어 붙인다. */
+  var perPage = all.map(function (p) { return lines(p); });
+  var L = perPage[0] || [];
+  var full = perPage.map(function (pl) {
+    return pl.map(function (l) { return l.text; }).join('\n');
+  }).join('\n');
+
+  if (!/샘플\s*의뢰서/.test(full)) {
+    return { error: /결재\s*요청서/.test(full)
+      ? '샘플 의뢰서가 아니라 결재 요청서입니다'
+      : '샘플 의뢰서 양식이 아닙니다' };
+  }
+
+  var doc = {
+    file:    name,
+    reqNo:   grab(/의뢰번호\s*[:：]?\s*([0-9]{6,}-[0-9]+)/, full),
+    kind:    grab(/샘플구분\s*[:：]?\s*(\S+)/, full),
+    weight:  grab(/중량\(KG\)\s*[:：]?\s*([\d.,]+)/, full),
+    user:    grab(/의뢰자\s+(\S+)/, full),
+    div:     grab(/본부명\s+(\S+)/, full),
+    buyer:   grab(/Buyer\s+(\S+)/, full),
+    season:  grab(/Season\s+(.+?)\s*$/m, full),
+    date:    grab(/의뢰일\s+(\d{4}-\d{2}-\d{2})/, full),
+    team:    grab(/담당팀\s+(\S+)/, full),
+    /* Style No 칸에 여러 토막이 들어오는 일이 흔하다 ("WR5YZ9 0429 YD").
+       첫 토막만 집으면 서로 다른 의뢰가 같은 Style 로 뭉쳐 보인다.
+       다음 라벨(작업용도) 앞까지 통째로 가져온다. */
+    style:   grab(/Style\s*No\s+(.+?)\s+작업용도/, full) || grab(/Style\s*No\s+(\S+)/, full),
+    purpose: grab(/작업용도\s+(\S+)/, full),
+    items: []
+  };
+  doc.season = doc.season.replace(/\s*(의뢰일|담당팀|Style|작업용도).*$/, '').trim();
+
+  /* 페이지마다 표를 읽는다. 2페이지에도 같은 머리글이 다시 나온다. */
+  var anchors = [];
+  perPage.forEach(function (PL) {
+    /* 표 머리는 세 줄이다 — "Request Request Input Due" / "Pos. Fabric Info. …" /
+       "(Yds) (Kgs) (Kgs) Date". 마지막 줄까지 넘겨야 첫 원단 행에
+       "(Yds)" 같은 머리글이 섞여 들어오지 않는다. */
+    var hdr = null;
+    PL.forEach(function (l) { if (hdr === null && /(^|\s)Pos\./.test(l.text)) hdr = l.y; });
+    if (hdr !== null) {
+      PL.forEach(function (l) {
+        if (l.y > hdr && l.y < hdr + 16 && /\(\s*Yds\s*\)|\(\s*Kgs\s*\)|Date/.test(l.text)) {
+          hdr = Math.max(hdr, l.y);
+        }
+      });
+    }
+
+    /* 표가 다음 장으로 넘어가면 **머리글이 다시 나오지 않는다.** 그 페이지를
+       통째로 건너뛰면 뒷장 원단이 조용히 사라진다 (2페이지짜리 의뢰서에서
+       13건 중 3건이 이렇게 빠졌다). 머리글이 없으면 페이지 전체를 표로 보되,
+       앞장에만 있는 머리말 줄(의뢰자·의뢰일 등)은 이름으로 걸러낸다. */
+    var body = PL.filter(function (l) {
+      if (/^Printed by/.test(l.text)) return false;
+      if (hdr !== null) return l.y > hdr + 4;
+      return !/^\s*(샘플구분|의뢰번호|의뢰자|의뢰일|결재|담당|과장|부장|Pos\.|Request|\()/.test(l.text);
+    });
+
+    /* 앵커 = Pos. 칸에 값이 있는 줄.
+       표 아래 '주의사항' 상자의 라벨도 같은 x 대역에 있어 앵커로 오해하기 쉽다. */
+    var pageAnchors = [];
+    body.forEach(function (l) {
+      if (/^\s*(주의|사항)/.test(l.text)) return;
+      var p = l.items.filter(function (i) { return colOf(i.x) === 'pos'; });
+      if (p.length) pageAnchors.push({ y: l.y, cells: {} });
+    });
+    if (!pageAnchors.length) return;
+
+    body.forEach(function (l) {
+      var best = 0, bd = Infinity;
+      for (var i = 0; i < pageAnchors.length; i++) {
+        var d = Math.abs(l.y - pageAnchors[i].y);
+        if (d < bd) { bd = d; best = i; }
+      }
+      /* 접힌 셀은 제 행에서 24pt 안쪽이다. 그보다 멀면 표 밖(주의사항 상자)이다. */
+      if (bd > 24) return;
+      l.items.forEach(function (it) {
+        var c = colOf(it.x);
+        if (!c) return;
+        var cell = pageAnchors[best].cells;
+        cell[c] = cell[c] ? cell[c] + ' ' + it.s : it.s;
+      });
+    });
+    anchors = anchors.concat(pageAnchors);
+  });
+  if (!anchors.length) return { error: '원단 항목이 없습니다' };
+
+  anchors.forEach(function (a, i) {
+    var c = a.cells;
+    doc.items.push({
+      idx: i,
+      pos:      (c.pos || '').replace(/\s+/g, ' ').trim(),
+      fabric:   (c.fabric || '').replace(/\s+/g, ' ').trim(),
+      section:  (c.section || '').trim(),
+      gsm:      (c.gsm || '').trim(),
+      width:    (c.width || '').trim(),
+      color:    (c.color || '').replace(/\s+/g, ' ').trim(),
+      reqYds:   (c.reqYds || '').trim(),
+      reqKgs:   (c.reqKgs || '').trim(),
+      inpKgs:   (c.inpKgs || '').trim(),
+      due:      (c.due || '').trim(),
+      supplier: (c.supplier || '').replace(/\s+/g, ' ').trim(),
+      remark:   (c.remark || '').replace(/\s+/g, ' ').trim()
+    });
+  });
+  return doc;
+}
+
+/* ── 저장 ───────────────────────────────────────────────────── */
+var DB = load();
+
+function load() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (!raw) return [];
+    var d = JSON.parse(raw);
+    return Array.isArray(d) ? d : [];
+  } catch (e) { return []; }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(DB)); }
+  catch (e) {
+    msg('err', '저장하지 못했습니다 (저장 공간 부족이거나 브라우저가 막고 있습니다). ' +
+                '내보내기로 백업해 두세요.');
+  }
+}
+function rowKey(r) { return r.reqNo + '#' + r.idx; }
+
+/* 같은 의뢰번호를 다시 올리면 손으로 적은 것은 살리고 내용만 갱신한다. */
+function merge(doc) {
+  var kept = {};
+  DB.forEach(function (r) {
+    if (r.reqNo === doc.reqNo) kept[r.idx] = { recv: r.recv, recvDate: r.recvDate, note: r.note };
+  });
+  var had = Object.keys(kept).length > 0;
+  DB = DB.filter(function (r) { return r.reqNo !== doc.reqNo; });
+  doc.items.forEach(function (it) {
+    var k = kept[it.idx] || {};
+    DB.push({
+      reqNo: doc.reqNo, file: doc.file, kind: doc.kind, weight: doc.weight,
+      user: doc.user, div: doc.div, buyer: doc.buyer, season: doc.season,
+      date: doc.date, team: doc.team, style: doc.style, purpose: doc.purpose,
+      idx: it.idx, pos: it.pos, fabric: it.fabric, section: it.section, gsm: it.gsm,
+      width: it.width, color: it.color, reqYds: it.reqYds, reqKgs: it.reqKgs,
+      inpKgs: it.inpKgs, due: it.due, supplier: it.supplier, remark: it.remark,
+      recv: k.recv || false, recvDate: k.recvDate || '', note: k.note || ''
+    });
+  });
+  return had;
+}
+
+/* ── 업로드 ─────────────────────────────────────────────────── */
+function msg(cls, html) {
+  var d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.innerHTML = html;
+  document.getElementById('log').appendChild(d);
+}
+
+/* 한 장이 응답하지 않아도 나머지는 계속 가야 한다. */
+function within(p, ms, what) {
+  return Promise.race([p, new Promise(function (_, rj) {
+    setTimeout(function () { rj(new Error(what + ' 응답 없음 (' + (ms / 1000) + '초)')); }, ms);
+  })]);
+}
+
+async function readPdf(file) {
+  var buf = await file.arrayBuffer();
+  var opt = { data: buf };
+  for (var k in PDFOPT) opt[k] = PDFOPT[k];
+  var pdf = await within(pdfjsLib.getDocument(opt).promise, 30000, 'PDF 열기');
+  var pages = [];
+  for (var i = 1; i <= pdf.numPages; i++) {
+    var pg = await within(pdf.getPage(i), 20000, i + '쪽');
+    pages.push(glyphs(pg, await within(pg.getOperatorList(), 25000, i + '쪽 텍스트')));
+  }
+  return parseDoc(pages, file.name);
+}
+
+async function handle(fileList) {
+  /* ⚠️ FileList 를 그대로 들고 돌면 안 된다 — 살아 있는 목록이라
+     호출부에서 input.value 를 비우는 순간 길이가 0 이 되고, 그때까지
+     처리한 한 장만 남은 채 조용히 멈춘다. 배열로 떠서 쓴다. */
+  var files = Array.prototype.slice.call(fileList);
+  document.getElementById('log').innerHTML = '';
+  var ok = 0, up = 0, bad = 0;
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    if (!f || !/\.pdf$/i.test(f.name || '')) {
+      msg('warn', '<b>' + esc(f && f.name || '(이름 없음)') + '</b> — PDF 가 아니라 건너뜁니다');
+      bad++; continue;
+    }
+    try {
+      var doc = await readPdf(f);
+      if (doc.error) { msg('warn', '<b>' + esc(f.name) + '</b> — ' + esc(doc.error)); bad++; continue; }
+      if (!doc.reqNo) { msg('warn', '<b>' + esc(f.name) + '</b> — 의뢰번호를 못 찾았습니다'); bad++; continue; }
+      var had = merge(doc);
+      if (had) { up++; } else { ok++; }
+      /* 한 번에 여러 장을 올리면 성공 줄이 화면을 다 차지한다.
+         실패는 항상 보여주고, 성공은 몇 장일 때만 낱개로 보여준다. */
+      if (files.length <= 6) {
+        msg('ok', '<b>' + esc(doc.style || '(Style 없음)') + '</b> · ' + esc(doc.reqNo) +
+                  ' — 원단 ' + doc.items.length + '건 ' + (had ? '갱신' : '추가'));
+      }
+    } catch (e) {
+      msg('err', '<b>' + esc(f.name) + '</b> — 읽지 못했습니다: ' + esc(String(e.message || e)));
+      bad++;
+    }
+  }
+  if (ok + up + bad > 1) {
+    msg(bad ? 'warn' : 'ok', '<b>총 ' + files.length + '개</b> — 추가 ' + ok + ' · 갱신 ' + up +
+        (bad ? ' · <b>건너뜀 ' + bad + '</b>' : ''));
+  }
+  save(); render();
+}
+
+/* ── 표 ─────────────────────────────────────────────────────── */
+var HEAD = [
+  ['date',   '의뢰일',  1], ['reqNo', '의뢰번호', 1], ['style', 'Style No', 1],
+  ['season', 'Season',  1], ['user',  '의뢰자',   1], ['purpose', '용도', 1],
+  ['pos',    'Pos.',    1], ['fabric', 'Fabric Info.', 1], ['section', 'Section', 0],
+  ['gsm',    'g/㎡',    1], ['width', 'Width',   1], ['color', 'Color', 1],
+  ['reqYds', 'Req(Yds)',1], ['reqKgs','Req(Kgs)',1], ['inpKgs','Input(Kgs)',1],
+  ['due',    'Due Date',1], ['supplier','Supplier',1], ['remark','비고',0],
+  ['recv',   '수취',    1], ['recvDate','수취일', 1], ['note','특이사항',0], ['', '', 0]
+];
+var sortKey = 'due', sortAsc = true;
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function today() {
+  var d = new Date(Date.now() + (9 * 60 + new Date().getTimezoneOffset()) * 60000);
+  return d.toISOString().slice(0, 10);
+}
+function daysTo(due) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) return null;
+  return Math.round((new Date(due + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 86400000);
+}
+
+function filtered() {
+  var q = document.getElementById('q').value.trim().toLowerCase();
+  var fs = ['fStyle', 'fSeason', 'fUser', 'fPos'].map(function (id) {
+    return document.getElementById(id).value;
+  });
+  var fr = document.getElementById('fRecv').value;
+  return DB.filter(function (r) {
+    if (fs[0] && r.style !== fs[0]) return false;
+    if (fs[1] && r.season !== fs[1]) return false;
+    if (fs[2] && r.user !== fs[2]) return false;
+    if (fs[3] && r.pos !== fs[3]) return false;
+    if (fr === 'no' && r.recv) return false;
+    if (fr === 'yes' && !r.recv) return false;
+    if (fr === 'over' || fr === 'soon') {
+      if (r.recv) return false;
+      var d = daysTo(r.due);
+      if (d === null) return false;
+      if (fr === 'over' && d >= 0) return false;
+      if (fr === 'soon' && (d < 0 || d > 7)) return false;
+    }
+    if (q) {
+      var hay = [r.style, r.reqNo, r.fabric, r.color, r.remark, r.note, r.supplier,
+                 r.season, r.user, r.pos, r.file].join(' ').toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+}
+
+function fillSelect(id, vals, label) {
+  var el = document.getElementById(id), cur = el.value;
+  el.innerHTML = '<option value="">전체</option>' + vals.map(function (v) {
+    return '<option value="' + esc(v) + '">' + esc(v) + '</option>';
+  }).join('');
+  if (vals.indexOf(cur) >= 0) el.value = cur;
+}
+function uniq(key) {
+  var s = {};
+  DB.forEach(function (r) { if (r[key]) s[r[key]] = 1; });
+  return Object.keys(s).sort();
+}
+
+function render() {
+  fillSelect('fStyle', uniq('style'));
+  fillSelect('fSeason', uniq('season'));
+  fillSelect('fUser', uniq('user'));
+  fillSelect('fPos', uniq('pos'));
+
+  var rows = filtered().slice();
+  rows.sort(function (a, b) {
+    var x = a[sortKey] || '', y = b[sortKey] || '';
+    if (sortKey === 'recv') { x = a.recv ? 1 : 0; y = b.recv ? 1 : 0; }
+    var n = parseFloat(String(x).replace(/,/g, '')), m = parseFloat(String(y).replace(/,/g, ''));
+    var c = (!isNaN(n) && !isNaN(m) && ['gsm','width','reqYds','reqKgs','inpKgs'].indexOf(sortKey) >= 0)
+      ? n - m : String(x).localeCompare(String(y), 'ko');
+    if (c === 0) c = (a.reqNo + a.idx).localeCompare(b.reqNo + b.idx);
+    return sortAsc ? c : -c;
+  });
+
+  /* 지표 — 화면에 걸린 필터와 무관하게 전체 기준으로 본다 */
+  var tot = DB.length, rec = 0, over = 0, soon = 0, docs = {};
+  DB.forEach(function (r) {
+    docs[r.reqNo] = 1;
+    if (r.recv) { rec++; return; }
+    var d = daysTo(r.due);
+    if (d === null) return;
+    if (d < 0) over++; else if (d <= 7) soon++;
+  });
+  document.getElementById('stats').innerHTML =
+    tile('의뢰서', Object.keys(docs).length, '') +
+    tile('원단 항목', tot, '') +
+    tile('수취 완료', rec, 'g') +
+    tile('미수취', tot - rec, tot - rec ? 'o' : '') +
+    tile('기한 초과', over, over ? 'r' : '') +
+    tile('7일 내 마감', soon, soon ? 'o' : '');
+
+  document.getElementById('head').innerHTML = HEAD.map(function (h) {
+    if (!h[0]) return '<th></th>';
+    var ar = sortKey === h[0] ? ' <span class="ar">' + (sortAsc ? '▲' : '▼') + '</span>' : '';
+    return h[2]
+      ? '<th class="sortable" data-k="' + h[0] + '">' + esc(h[1]) + ar + '</th>'
+      : '<th>' + esc(h[1]) + '</th>';
+  }).join('');
+
+  var tb = document.getElementById('rows');
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="' + HEAD.length + '"><div class="empty">' +
+      (tot ? '조건에 맞는 항목이 없습니다.<br>필터를 풀어 보세요.'
+           : 'PDF 를 올리면 여기에 원단 항목이 펼쳐집니다.') + '</div></td></tr>';
+  } else {
+    tb.innerHTML = rows.map(function (r) {
+      var d = daysTo(r.due), dc = '', flag = '';
+      if (!r.recv && d !== null) {
+        if (d < 0) { dc = 'over'; flag = '<span class="dueflag">' + (-d) + '일 초과</span>'; }
+        else if (d <= 7) { dc = 'soon'; flag = '<span class="dueflag">D-' + d + '</span>'; }
+      }
+      var k = esc(rowKey(r));
+      return '<tr class="' + (r.recv ? 'done' : '') + '" data-k="' + k + '">' +
+        '<td class="nw mono">' + esc(r.date) + '</td>' +
+        '<td class="nw mono">' + esc(r.reqNo) + '</td>' +
+        '<td class="nw"><span class="gkey">' + esc(r.style) + '</span></td>' +
+        '<td class="nw">' + esc(r.season) + '</td>' +
+        '<td class="nw">' + esc(r.user) + '</td>' +
+        '<td class="nw">' + esc(r.purpose) + '</td>' +
+        '<td><span class="pos ' + esc((r.pos || '').replace(/[^A-Za-z]/g, '')) + '">' +
+            esc(r.pos) + '</span></td>' +
+        '<td class="fab">' + esc(r.fabric) + '</td>' +
+        '<td>' + esc(r.section) + '</td>' +
+        '<td class="num">' + esc(r.gsm) + '</td>' +
+        '<td class="num">' + esc(r.width) + '</td>' +
+        '<td>' + esc(r.color) + '</td>' +
+        '<td class="num">' + esc(r.reqYds) + '</td>' +
+        '<td class="num">' + esc(r.reqKgs) + '</td>' +
+        '<td class="num">' + esc(r.inpKgs) + '</td>' +
+        '<td class="nw due ' + dc + '">' + esc(r.due) + flag + '</td>' +
+        '<td>' + esc(r.supplier) + '</td>' +
+        '<td class="rem">' + esc(r.remark) + '</td>' +
+        '<td class="recv"><label class="chk"><input type="checkbox" data-f="recv"' +
+            (r.recv ? ' checked' : '') + '> ' + (r.recv ? '완료' : '대기') + '</label></td>' +
+        '<td class="recv"><input type="date" data-f="recvDate" value="' + esc(r.recvDate) + '"></td>' +
+        '<td class="note"><textarea data-f="note" placeholder="특이사항">' +
+            esc(r.note) + '</textarea></td>' +
+        '<td><button class="del" data-del="1" title="이 행 삭제">✕</button></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  document.getElementById('hint').textContent = tot
+    ? '보이는 항목 ' + rows.length + ' / 전체 ' + tot +
+      ' · 수취 체크·수취일·특이사항은 입력하는 즉시 저장됩니다.'
+    : '';
+}
+function tile(l, v, cls) {
+  return '<div class="stat ' + cls + '"><span class="l">' + l + '</span>' +
+         '<span class="v">' + v + '</span></div>';
+}
+
+/* ── 이벤트 ─────────────────────────────────────────────────── */
+var drop = document.getElementById('drop'), fileEl = document.getElementById('file');
+document.getElementById('pick').onclick = function () { fileEl.click(); };
+fileEl.onchange = function () {
+  if (!fileEl.files.length) return;
+  var picked = Array.prototype.slice.call(fileEl.files);
+  fileEl.value = '';                       /* 같은 파일을 다시 골라도 change 가 오게 */
+  handle(picked);
+};
+['dragenter', 'dragover'].forEach(function (e) {
+  drop.addEventListener(e, function (ev) { ev.preventDefault(); drop.classList.add('over'); });
+});
+['dragleave', 'drop'].forEach(function (e) {
+  drop.addEventListener(e, function (ev) { ev.preventDefault(); drop.classList.remove('over'); });
+});
+drop.addEventListener('drop', function (ev) {
+  if (ev.dataTransfer && ev.dataTransfer.files.length) {
+    handle(Array.prototype.slice.call(ev.dataTransfer.files));
+  }
+});
+
+['q', 'fStyle', 'fSeason', 'fUser', 'fPos', 'fRecv'].forEach(function (id) {
+  var el = document.getElementById(id);
+  el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', render);
+});
+document.getElementById('reset').onclick = function () {
+  ['q', 'fStyle', 'fSeason', 'fUser', 'fPos', 'fRecv'].forEach(function (id) {
+    document.getElementById(id).value = '';
+  });
+  render();
+};
+
+document.getElementById('head').addEventListener('click', function (e) {
+  var th = e.target.closest('th[data-k]');
+  if (!th) return;
+  var k = th.getAttribute('data-k');
+  if (sortKey === k) { sortAsc = !sortAsc; } else { sortKey = k; sortAsc = true; }
+  render();
+});
+
+/* 입력은 즉시 저장한다 — 따로 저장 버튼을 두면 안 누르고 닫는다. */
+var tbody = document.getElementById('rows');
+function find(k) {
+  for (var i = 0; i < DB.length; i++) if (rowKey(DB[i]) === k) return DB[i];
+  return null;
+}
+tbody.addEventListener('change', function (e) {
+  var f = e.target.getAttribute && e.target.getAttribute('data-f');
+  if (!f) return;
+  var tr = e.target.closest('tr'), r = find(tr.getAttribute('data-k'));
+  if (!r) return;
+  if (f === 'recv') {
+    r.recv = e.target.checked;
+    /* 체크하면 수취일을 비워 두지 않는다 — 비면 언제 받았는지 알 수 없다. */
+    if (r.recv && !r.recvDate) r.recvDate = today();
+    save(); render(); return;
+  }
+  r[f] = e.target.value;
+  save();
+});
+tbody.addEventListener('input', function (e) {
+  if (e.target.getAttribute && e.target.getAttribute('data-f') === 'note') {
+    var tr = e.target.closest('tr'), r = find(tr.getAttribute('data-k'));
+    if (r) { r.note = e.target.value; save(); }
+  }
+});
+tbody.addEventListener('click', function (e) {
+  if (!e.target.getAttribute || !e.target.getAttribute('data-del')) return;
+  var tr = e.target.closest('tr'), k = tr.getAttribute('data-k'), r = find(k);
+  if (!r) return;
+  if (!confirm(r.style + ' · ' + r.pos + ' · ' + (r.fabric || '').slice(0, 30) +
+               '\n이 행을 삭제할까요? 되돌릴 수 없습니다.')) return;
+  DB = DB.filter(function (x) { return rowKey(x) !== k; });
+  save(); render();
+});
+
+document.getElementById('exp').onclick = function () {
+  if (!DB.length) { alert('내보낼 내용이 없습니다.'); return; }
+  var blob = new Blob([JSON.stringify({ v: 1, saved: today(), rows: DB }, null, 1)],
+                      { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'fabric-request-' + today() + '.json';
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+};
+document.getElementById('imp').onclick = function () { document.getElementById('impf').click(); };
+document.getElementById('impf').onchange = function (e) {
+  var f = e.target.files[0];
+  if (!f) return;
+  var fr = new FileReader();
+  fr.onload = function () {
+    document.getElementById('log').innerHTML = '';
+    try {
+      var d = JSON.parse(fr.result);
+      var rows = Array.isArray(d) ? d : d.rows;
+      if (!Array.isArray(rows)) throw new Error('형식이 다릅니다');
+      if (DB.length && !confirm('현재 ' + DB.length + '건이 있습니다.\n' +
+          '가져온 ' + rows.length + '건으로 바꿀까요? (같은 의뢰번호는 덮어씁니다)')) return;
+      var keep = {};
+      rows.forEach(function (r) { keep[r.reqNo] = 1; });
+      DB = DB.filter(function (r) { return !keep[r.reqNo]; }).concat(rows);
+      save(); render();
+      msg('ok', rows.length + '건을 가져왔습니다.');
+    } catch (err) {
+      msg('err', '가져오지 못했습니다: ' + esc(String(err.message || err)));
+    }
+  };
+  fr.readAsText(f);
+  e.target.value = '';
+};
+
+render();
+})();
+</script>
+</body>
+</html>
