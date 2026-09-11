@@ -191,15 +191,16 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
   <div class="setup" id="setup" hidden>
     <div class="t">SharePoint · OneDrive 연결</div>
     <div class="d">회사 계정으로 로그인해 팀 폴더의 CSV 한 장을 같이 씁니다.
-      준비가 안 되셨으면 <b>앱 등록 안내서</b>(_Backend/2_Docs/SHAREPOINT_SETUP.md)를 먼저 보세요.</div>
-    <label for="spClient">앱 ID (클라이언트 ID)</label>
+      <b>앱 ID 한 번만</b> 넣으면 그 다음부터는 자동으로 이어집니다.</div>
+    <label for="spClient">앱 ID <span style="font-weight:400;letter-spacing:0">— 앱 등록 &gt; 개요 의
+      "애플리케이션(클라이언트) ID". <b>디렉터리(테넌트) ID 가 아닙니다</b></span></label>
     <input id="spClient" type="text" spellcheck="false"
            placeholder="00000000-0000-0000-0000-000000000000">
-    <label for="spUrl">팀 폴더 또는 파일의 주소</label>
+    <label for="spUrl">팀 폴더 주소 <span style="font-weight:400;letter-spacing:0">— 기본값이 채워져 있습니다</span></label>
     <input id="spUrl" type="url" spellcheck="false"
-           placeholder="https://saea.sharepoint.com/sites/... 또는 OneDrive 폴더 주소">
-    <div class="hint">폴더 주소를 넣으면 그 안에 <b>Vertical_샘플작지_공유.csv</b> 를 만듭니다.
-      이미 만든 CSV 가 있으면 그 파일 주소를 넣으세요.</div>
+           placeholder="OneDrive 또는 SharePoint 폴더 주소">
+    <div class="hint">그대로 두시면 <b>내 OneDrive › D76 Research Dashboard</b> 폴더를 씁니다.
+      그 안에 <b>Vertical_샘플작지_공유.csv</b> 가 자동으로 만들어집니다.</div>
     <div class="row">
       <button class="btn" id="spGo">로그인하고 연결</button>
       <button class="btn ghost" id="spCancel">취소</button>
@@ -1025,6 +1026,12 @@ function idbGet(k) {
 var GRAPH = 'https://graph.microsoft.com/v1.0';
 var SCOPES = ['User.Read', 'Files.ReadWrite'];
 var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
+
+/* 기본 공유 폴더 — 매번 주소를 붙여 넣지 않아도 되게 박아 둔다.
+   다른 폴더를 쓰려면 설정 칸에서 바꾸면 된다. 주소에는 비밀이 없다
+   (로그인한 사람이 그 폴더에 접근 권한이 있어야 열린다). */
+var DEFAULT_URL = 'https://saea365-my.sharepoint.com/my?id=%2Fpersonal%2F' +
+  'bailey0403%5Fsae%2Da%5Fcom%2FDocuments%2FD76%20Research%20Dashboard';
 var msal = null;
 
 function msalApp() {
@@ -1072,6 +1079,21 @@ async function gfetch(path, opt, interactive) {
   return r;
 }
 
+/* OneDrive 웹 화면 주소(`…/my?id=/personal/<계정>/Documents/<폴더>`)에서
+   드라이브 루트 기준 경로를 뽑는다. 이 형식은 Shares API 가 못 알아듣는
+   경우가 있어서, 본인 드라이브면 경로로 바로 붙는 편이 확실하다.
+   경로 방식은 위임 `Files.ReadWrite` 만으로 동작한다 (관리자 동의 불필요). */
+function personalPath(url) {
+  try {
+    var u = new URL(url);
+    if (!/-my\.sharepoint\.com$/i.test(u.hostname)) return null;
+    var id = u.searchParams.get('id');
+    if (!id) return null;
+    var m = decodeURIComponent(id).match(/^\/personal\/[^/]+\/Documents\/(.+)$/);
+    return m ? m[1].replace(/\/+$/, '') : null;
+  } catch (e) { return null; }
+}
+
 /* 공유 URL → 사용 가능한 토큰. base64url 로 바꾸고 앞에 u! 를 붙인다. */
 function shareToken(url) {
   var b64 = btoa(unescape(encodeURIComponent(url)));
@@ -1080,15 +1102,38 @@ function shareToken(url) {
 
 /* 주소가 폴더면 그 안의 CSV 를, 파일이면 그 파일을 쓰기 대상으로 잡는다. */
 async function resolveTarget(interactive) {
-  var r = await gfetch('/shares/' + shareToken(G.url) +
-                       '/driveItem?$select=id,name,file,folder,parentReference,eTag',
-                       {}, interactive);
-  if (!r.ok) {
-    var t = await r.text();
-    throw new Error('주소를 찾지 못했습니다 (' + r.status + ') — 폴더/파일 주소가 맞는지 확인해 주세요');
+  var it = null, driveId = '';
+
+  /* ① 본인 OneDrive 주소면 경로로 바로 찾는다 (권한이 가장 낮게 든다) */
+  var path = personalPath(G.url);
+  if (path) {
+    var pr = await gfetch('/me/drive/root:/' + encodeURI(path) +
+                          '?$select=id,name,file,folder,parentReference,eTag', {}, interactive);
+    if (pr.ok) {
+      it = await pr.json();
+      driveId = (it.parentReference && it.parentReference.driveId) || '';
+      if (!driveId) {
+        var dr = await gfetch('/me/drive?$select=id', {}, false);
+        if (dr.ok) driveId = (await dr.json()).id || '';
+      }
+    } else if (pr.status === 404) {
+      throw new Error('내 OneDrive 에서 "' + path + '" 폴더를 찾지 못했습니다 — ' +
+                      '폴더 이름이 맞는지, 내 OneDrive 에 있는지 확인해 주세요');
+    }
   }
-  var it = await r.json();
-  var driveId = (it.parentReference && it.parentReference.driveId) || '';
+
+  /* ② 아니면(또는 ①이 실패하면) 공유 주소로 찾는다 */
+  if (!it) {
+    var r = await gfetch('/shares/' + shareToken(G.url) +
+                         '/driveItem?$select=id,name,file,folder,parentReference,eTag',
+                         {}, interactive);
+    if (!r.ok) {
+      throw new Error('주소를 찾지 못했습니다 (' + r.status + ') — ' +
+                      '폴더를 브라우저에서 열고 주소창을 그대로 복사했는지 확인해 주세요');
+    }
+    it = await r.json();
+    driveId = (it.parentReference && it.parentReference.driveId) || '';
+  }
 
   if (it.folder) {
     /* 폴더면 그 안의 CSV. 없으면 처음 저장할 때 만들어진다. */
@@ -1351,7 +1396,7 @@ function wireSync() {
       var box = document.getElementById('setup');
       box.hidden = false;
       document.getElementById('spClient').value = G.clientId || '';
-      document.getElementById('spUrl').value = G.url || '';
+      document.getElementById('spUrl').value = G.url || DEFAULT_URL;
       document.getElementById('spClient').focus();
     }
   };
