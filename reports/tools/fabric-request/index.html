@@ -1241,9 +1241,31 @@ async function resolveTarget(interactive, url) {
         var dr = await gfetch('/me/drive?$select=id', {}, false);
         if (dr.ok) driveId = (await dr.json()).id || '';
       }
+    } else if (pr.status === 404 && path.indexOf('/') < 0) {
+      /* 폴더가 없으면 만든다. 여기까지 왔다는 건 팀 폴더가 막혀서 개인
+         드라이브로 떨어진 상황이라, "폴더가 없다" 고 멈춰 세우면 쓸 데가
+         아예 없어진다. 내 드라이브에 폴더 하나 만드는 건 Files.ReadWrite
+         범위 안이다. */
+      var mk = await gfetch('/me/drive/root/children', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: path, folder: {},
+                               '@microsoft.graph.conflictBehavior': 'replace' })
+      }, false);
+      if (!mk.ok) {
+        throw new Error('내 OneDrive 에 "' + path + '" 폴더를 만들지 못했습니다 (' +
+                        mk.status + ')');
+      }
+      it = await mk.json();
+      driveId = (it.parentReference && it.parentReference.driveId) || '';
+      msg('ok', '내 OneDrive 에 <b>' + esc(path) + '</b> 폴더를 새로 만들었습니다.');
+      if (!driveId) {
+        var dr0 = await gfetch('/me/drive?$select=id', {}, false);
+        if (dr0.ok) driveId = (await dr0.json()).id || '';
+      }
     } else if (pr.status === 404) {
       throw new Error('내 OneDrive 에서 "' + path + '" 폴더를 찾지 못했습니다 — ' +
-                      '폴더 이름이 맞는지, 내 OneDrive 에 있는지 확인해 주세요');
+                      '폴더 이름이 맞는지 확인해 주세요');
     }
   }
 
