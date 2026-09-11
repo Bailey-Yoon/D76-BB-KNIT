@@ -199,7 +199,8 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
     <label for="spUrl">팀 폴더 주소 <span style="font-weight:400;letter-spacing:0">— 기본값이 채워져 있습니다</span></label>
     <input id="spUrl" type="url" spellcheck="false"
            placeholder="OneDrive 또는 SharePoint 폴더 주소">
-    <div class="hint">그대로 두시면 <b>내 OneDrive › D76 Research Dashboard</b> 폴더를 씁니다.
+    <div class="hint">그대로 두시면 <b>D76CATJACKBB 사이트 › D76 Research Dashboard ›
+      Vertical Fabric Sample Request</b> 폴더를 씁니다.
       그 안에 <b>Vertical_샘플작지_공유.csv</b> 가 자동으로 만들어집니다.</div>
     <div class="row">
       <button class="btn" id="spGo">로그인하고 연결</button>
@@ -1030,8 +1031,10 @@ var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
 /* 기본 공유 폴더 — 매번 주소를 붙여 넣지 않아도 되게 박아 둔다.
    다른 폴더를 쓰려면 설정 칸에서 바꾸면 된다. 주소에는 비밀이 없다
    (로그인한 사람이 그 폴더에 접근 권한이 있어야 열린다). */
-var DEFAULT_URL = 'https://saea365-my.sharepoint.com/my?id=%2Fpersonal%2F' +
-  'bailey0403%5Fsae%2Da%5Fcom%2FDocuments%2FD76%20Research%20Dashboard';
+var DEFAULT_URL = 'https://saea365-my.sharepoint.com/shared?id=%2Fsites%2F' +
+  'D76CATJACKBB%2FShared%20Documents%2FD76%20Research%20Dashboard%2F' +
+  'Vertical%20Fabric%20Sample%20Request&listurl=https%3A%2F%2Fsaea365%2Esharepoint' +
+  '%2Ecom%2Fsites%2FD76CATJACKBB%2FShared%20Documents';
 
 /* 기본 앱 ID. SPA 의 클라이언트 ID 는 **비밀이 아니다** — 비밀 키 없이
    Authorization Code + PKCE 로만 돌아간다. 페이지에 적혀 있어도,
@@ -1090,10 +1093,8 @@ async function gfetch(path, opt, interactive) {
     tokCache = { v: '', exp: 0 };
     throw new Error('로그인이 만료됐습니다 — 「SharePoint 연결」 을 다시 눌러 주세요');
   }
-  if (r.status === 403) {
-    throw new Error('이 파일에 접근할 권한이 없습니다. 앱 등록에 Files.ReadWrite.All 을 ' +
-                    '추가하고 관리자 동의를 받아야 할 수 있습니다 (SHAREPOINT_SETUP.md 참조)');
-  }
+  /* 403 은 여기서 던지지 않는다 — 주소 후보를 여러 개 시도하는 중일 수 있다.
+     마지막까지 실패하면 부르는 쪽에서 권한 안내를 붙여 알린다. */
   return r;
 }
 
@@ -1109,6 +1110,41 @@ function personalPath(url) {
     if (!id) return null;
     var m = decodeURIComponent(id).match(/^\/personal\/[^/]+\/Documents\/(.+)$/);
     return m ? m[1].replace(/\/+$/, '') : null;
+  } catch (e) { return null; }
+}
+
+/* SharePoint 웹 화면 주소를 Graph 가 알아듣는 **정규 주소**로 바꾼다.
+
+   팀 사이트 폴더를 브라우저에서 열면 주소가 이런 모양이다:
+     https://<테넌트>-my.sharepoint.com/shared?id=/sites/<사이트>/Shared Documents/<폴더>
+                                        &listurl=https://<테넌트>.sharepoint.com/sites/<사이트>/Shared Documents
+   호스트가 `-my` 인데 실제 파일은 `-my` 가 아닌 사이트에 있다("공유 문서함" 화면이라 그렇다).
+   그래서 호스트는 **listurl 에서** 가져오고 경로는 id 를 쓴다. 이걸 안 맞추면
+   있지도 않은 개인 드라이브를 뒤지다 404 가 난다. */
+function canonicalUrl(url) {
+  try {
+    var u = new URL(url);
+    var id = u.searchParams.get('id');
+    if (!id || id.charAt(0) !== '/') return null;
+    var origin = u.origin;
+    var lu = u.searchParams.get('listurl');
+    if (lu) { try { origin = new URL(lu).origin; } catch (e) {} }
+    else if (/^\/sites\//i.test(id) && /-my\.sharepoint\.com$/i.test(u.hostname)) {
+      origin = u.origin.replace(/-my\.sharepoint\.com/i, '.sharepoint.com');
+    }
+    return origin + id.split('/').map(encodeURIComponent).join('/');
+  } catch (e) { return null; }
+}
+
+/* 정규 주소에서 사이트와 폴더를 갈라낸다 — Shares 가 막혔을 때 쓰는 마지막 길.
+   이 길은 Sites.Read.All 이 필요해 관리자 동의가 든다. */
+function siteParts(canon) {
+  try {
+    var u = new URL(canon);
+    var seg = decodeURIComponent(u.pathname).split('/').filter(Boolean);
+    if (seg[0] !== 'sites' || seg.length < 3) return null;
+    return { host: u.hostname, site: '/sites/' + seg[1],
+             folder: seg.slice(3).join('/') };      /* seg[2] = 라이브러리(Shared Documents) */
   } catch (e) { return null; }
 }
 
@@ -1140,18 +1176,55 @@ async function resolveTarget(interactive) {
     }
   }
 
-  /* ② 아니면(또는 ①이 실패하면) 공유 주소로 찾는다 */
+  /* ② 정규 주소로 Shares API — 팀 사이트 라이브러리는 이 길로 간다.
+        Shares 의 최소 권한이 Files.ReadWrite 라 관리자 동의가 필요 없다. */
+  var canon = canonicalUrl(G.url);
+  var tried = [];
   if (!it) {
-    var r = await gfetch('/shares/' + shareToken(G.url) +
-                         '/driveItem?$select=id,name,file,folder,parentReference,eTag',
-                         {}, interactive);
-    if (!r.ok) {
-      throw new Error('주소를 찾지 못했습니다 (' + r.status + ') — ' +
-                      '폴더를 브라우저에서 열고 주소창을 그대로 복사했는지 확인해 주세요');
+    var cands = [];
+    if (canon) cands.push(canon);
+    cands.push(G.url);
+    for (var ci = 0; ci < cands.length && !it; ci++) {
+      var r = await gfetch('/shares/' + shareToken(cands[ci]) +
+                           '/driveItem?$select=id,name,file,folder,parentReference,eTag',
+                           {}, interactive && ci === 0);
+      tried.push('shares:' + r.status);
+      if (r.ok) {
+        it = await r.json();
+        driveId = (it.parentReference && it.parentReference.driveId) || '';
+      }
     }
-    it = await r.json();
-    driveId = (it.parentReference && it.parentReference.driveId) || '';
   }
+
+  /* ③ 그래도 안 되면 사이트 경로로 — 여기는 Sites.Read.All 이 든다 */
+  if (!it && canon) {
+    var sp = siteParts(canon);
+    if (sp) {
+      var sr = await gfetch('/sites/' + sp.host + ':' + sp.site + '?$select=id', {}, false);
+      tried.push('site:' + sr.status);
+      if (sr.ok) {
+        var siteId = (await sr.json()).id;
+        var fr = await gfetch('/sites/' + siteId + '/drive/root:/' + encodeURI(sp.folder) +
+                              '?$select=id,name,file,folder,parentReference,eTag', {}, false);
+        tried.push('siteFolder:' + fr.status);
+        if (fr.ok) {
+          it = await fr.json();
+          driveId = (it.parentReference && it.parentReference.driveId) || '';
+          if (!driveId) {
+            var dr2 = await gfetch('/sites/' + siteId + '/drive?$select=id', {}, false);
+            if (dr2.ok) driveId = (await dr2.json()).id || '';
+          }
+        }
+      }
+    }
+  }
+
+  if (!it) {
+    throw new Error('폴더를 찾지 못했습니다 (' + tried.join(', ') + ') — ' +
+                    '폴더를 브라우저에서 열고 주소창을 그대로 복사했는지 확인해 주세요. ' +
+                    '403 이 보이면 권한을 Files.ReadWrite.All 로 올려야 합니다');
+  }
+  if (!driveId) throw new Error('폴더는 찾았는데 드라이브를 알 수 없습니다');
 
   if (it.folder) {
     /* 폴더면 그 안의 CSV. 없으면 처음 저장할 때 만들어진다. */
@@ -1178,6 +1251,8 @@ async function resolveTarget(interactive) {
 async function graphRead() {
   var r = await gfetch('/drives/' + G.driveId + '/items/' + G.itemId + '/content', {}, false);
   if (r.status === 404) return [];
+  if (r.status === 403) throw new Error('읽기 권한이 없습니다 — 앱 등록에 Files.ReadWrite.All 을 ' +
+                                        '추가하고 관리자 동의를 받아야 합니다');
   if (!r.ok) throw new Error('파일을 읽지 못했습니다 (' + r.status + ')');
   var text = await r.text();
   var m = await gfetch('/drives/' + G.driveId + '/items/' + G.itemId +
@@ -1193,6 +1268,8 @@ async function graphWrite(rows) {
   var r = await gfetch('/drives/' + G.driveId + '/items/' + G.itemId + '/content',
                        { method: 'PUT', headers: h, body: toCsv(rows) }, false);
   if (r.status === 412) return false;                 /* 충돌 — 부르는 쪽에서 병합 */
+  if (r.status === 403) throw new Error('쓰기 권한이 없습니다 — 폴더에 편집 권한이 있는지, ' +
+                                        '앱 권한이 Files.ReadWrite 이상인지 확인해 주세요');
   if (!r.ok) throw new Error('저장하지 못했습니다 (' + r.status + ')');
   var j = await r.json();
   G.etag = j.eTag || ''; saveG();
@@ -1379,7 +1456,7 @@ function paintSync(state, err) {
   if (!on) {
     txt.innerHTML = '공유에 연결하지 않았습니다 — 기록이 <b>이 브라우저에만</b> 남습니다' +
       '<span class="path">「SharePoint 연결」 을 누르고 회사 계정으로 로그인하면 ' +
-      'D76 Research Dashboard 폴더의 CSV 를 팀과 같이 쓰게 됩니다</span>';
+      'D76CATJACKBB 사이트의 Vertical Fabric Sample Request 폴더를 팀과 같이 쓰게 됩니다</span>';
     acts.innerHTML =
       '<button class="btn" id="scGraph">SharePoint 연결</button>' +
       '<button class="btn ghost" id="scSetup">설정</button>' +
