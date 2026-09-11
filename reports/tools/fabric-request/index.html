@@ -62,16 +62,6 @@ a:hover{color:var(--tool-deep)}
 .sync .btn{font-size:12px;padding:7px 12px}
 @media(max-width:640px){ .sync .acts{margin-left:0;width:100%} }
 
-.setup{background:var(--card);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:16px;
-  box-shadow:var(--sh-1);display:flex;flex-direction:column;gap:7px}
-.setup .t{font-size:15px;font-weight:700}
-.setup .d{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:6px}
-.setup label{font-size:10.5px;letter-spacing:.06em;font-weight:700;color:var(--muted);margin-top:6px}
-.setup input{font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line);
-  border-radius:var(--r-sm);background:var(--card);color:var(--ink);width:100%}
-.setup .hint{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:2px}
-.setup .row{display:flex;gap:8px;margin-top:12px}
-
 #log{margin-bottom:16px;display:flex;flex-direction:column;gap:7px}
 .msg{font-size:12.5px;line-height:1.6;padding:10px 14px;border-radius:var(--r-md);
   background:var(--card);box-shadow:var(--sh-1)}
@@ -186,26 +176,6 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
     <span class="dot"></span>
     <div class="txt" id="syncTxt">공유 파일에 연결하지 않았습니다 — 기록이 이 브라우저에만 남습니다</div>
     <div class="acts" id="syncActs"></div>
-  </div>
-
-  <div class="setup" id="setup" hidden>
-    <div class="t">SharePoint · OneDrive 연결</div>
-    <div class="d">회사 계정으로 로그인해 팀 폴더의 CSV 한 장을 같이 씁니다.
-      <b>앱 ID 한 번만</b> 넣으면 그 다음부터는 자동으로 이어집니다.</div>
-    <label for="spClient">앱 ID <span style="font-weight:400;letter-spacing:0">— 앱 등록 &gt; 개요 의
-      "애플리케이션(클라이언트) ID". <b>디렉터리(테넌트) ID 가 아닙니다</b></span></label>
-    <input id="spClient" type="text" spellcheck="false"
-           placeholder="00000000-0000-0000-0000-000000000000">
-    <label for="spUrl">팀 폴더 주소 <span style="font-weight:400;letter-spacing:0">— 기본값이 채워져 있습니다</span></label>
-    <input id="spUrl" type="url" spellcheck="false"
-           placeholder="OneDrive 또는 SharePoint 폴더 주소">
-    <div class="hint">그대로 두시면 <b>D76CATJACKBB 사이트 › D76 Research Dashboard ›
-      Vertical Fabric Sample Request</b> 폴더를 씁니다.
-      그 안에 <b>Vertical_샘플작지_공유.csv</b> 가 자동으로 만들어집니다.</div>
-    <div class="row">
-      <button class="btn" id="spGo">로그인하고 연결</button>
-      <button class="btn ghost" id="spCancel">취소</button>
-    </div>
   </div>
 
   <div id="log"></div>
@@ -970,6 +940,8 @@ var FS_OK = typeof window.showOpenFilePicker === 'function';
 var handle = null;          /* FileSystemFileHandle — 로컬 파일 모드 */
 var lastMtime = 0;          /* 로컬 파일: 마지막으로 읽은 수정시각 */
 var syncTimer = null, syncing = false, pending = false;
+/* 한 번 실패해야 "대신 로컬 파일" 을 내건다 — 평소엔 버튼 하나만 보이게 */
+var failedOnce = false;
 
 /* 저장소 모드: '' | 'file' | 'graph' */
 var GKEY = 'd76_fabreq_graph';
@@ -1454,42 +1426,25 @@ function paintSync(state, err) {
   bar.className = 'sync' + (on ? ' on' : '') + (state === 'err' ? ' stale' : '');
 
   if (!on) {
-    txt.innerHTML = '공유에 연결하지 않았습니다 — 기록이 <b>이 브라우저에만</b> 남습니다' +
-      '<span class="path">「SharePoint 연결」 을 누르고 회사 계정으로 로그인하면 ' +
-      'D76CATJACKBB 사이트의 Vertical Fabric Sample Request 폴더를 팀과 같이 쓰게 됩니다</span>';
-    acts.innerHTML =
-      '<button class="btn" id="scGraph">SharePoint 연결</button>' +
-      '<button class="btn ghost" id="scSetup">설정</button>' +
-      (FS_OK ? '<button class="btn ghost" id="scOpen">로컬 파일로</button>' : '');
-    if (!FS_OK) {
-      txt.innerHTML += '<span class="path">로컬 파일 방식은 Chrome·Edge 에서만 됩니다 — ' +
-                       'SharePoint 연결은 어느 브라우저에서나 됩니다</span>';
-    }
+    txt.innerHTML = '아직 연결 안 됨 — 기록이 <b>이 컴퓨터에만</b> 남습니다';
+    acts.innerHTML = '<button class="btn" id="scGraph">Teams 공유폴더 연결</button>' +
+                     (failedOnce && FS_OK
+                        ? '<button class="btn ghost" id="scOpen">대신 로컬 파일 쓰기</button>' : '');
   } else {
     var when = state === 'saving' ? '저장하는 중…'
              : state === 'err' ? '마지막 저장 실패' + (err ? ' — ' + esc(String(err.message || err)) : '')
              : state === 'ok' ? '저장됨' : '';
     if (G.mode === 'graph') {
-      txt.innerHTML = '<b>' + esc(G.name || SHARE_NAME) + '</b> · SharePoint · ' + when +
-        '<span class="path">' + esc(G.user || '') +
-        ' — 이 파일이 있는 폴더를 팀과 공유하면 같이 보게 됩니다</span>';
+      txt.innerHTML = '<b>Teams 공유폴더</b> · ' + when +
+                      '<span class="path">' + esc(G.user || '') + '</span>';
     } else {
-      txt.innerHTML = '<b>' + esc(handle.name) + '</b> · 로컬 공유 파일 · ' +
-        (state === 'ok' ? '마지막 저장 ' + new Date(lastMtime).toLocaleTimeString('ko-KR') : when) +
-        '<span class="path">이 파일이 있는 OneDrive 폴더를 팀과 공유하면 같이 보게 됩니다</span>';
+      txt.innerHTML = '<b>' + esc(handle.name) + '</b> · 로컬 파일 · ' +
+        (state === 'ok' ? '마지막 저장 ' + new Date(lastMtime).toLocaleTimeString('ko-KR') : when);
     }
-    acts.innerHTML = '<button class="btn ghost" id="scPull">지금 다시 읽기</button>' +
+    acts.innerHTML = '<button class="btn ghost" id="scPull">다시 읽기</button>' +
                      '<button class="btn ghost" id="scOff">연결 해제</button>';
   }
   wireSync();
-}
-
-function openSetup() {
-  var box = document.getElementById('setup');
-  box.hidden = false;
-  document.getElementById('spClient').value = G.clientId || DEFAULT_CLIENT;
-  document.getElementById('spUrl').value = G.url || DEFAULT_URL;
-  box.scrollIntoView({ block: 'nearest' });
 }
 
 function wireSync() {
@@ -1498,7 +1453,7 @@ function wireSync() {
     scNew:   function () { connect(true); },
     scPull:  function () { pull(false); },
     scOff:   disconnect,
-    /* 기본값이 박혀 있으니 바로 로그인시킨다 — 설정 칸은 실패했을 때만 보여준다 */
+    /* 앱 ID 와 폴더가 박혀 있으니 누르면 바로 로그인 창이 뜬다 */
     scGraph: async function () {
       var b = this;
       document.getElementById('log').innerHTML = '';
@@ -1506,13 +1461,10 @@ function wireSync() {
         b.disabled = true;
         await connectGraph(G.clientId || DEFAULT_CLIENT, G.url || DEFAULT_URL);
       } catch (e) {
-        G.mode = ''; saveG(); paintSync('off');
-        msg('err', '연결하지 못했습니다: ' + esc(String(e.message || e)) +
-                   ' — 아래에서 값을 확인해 주세요.');
-        openSetup();
+        G.mode = ''; saveG(); failedOnce = true; paintSync('off');
+        msg('err', '연결하지 못했습니다 — ' + esc(String(e.message || e)));
       } finally { b.disabled = false; }
-    },
-    scSetup: openSetup
+    }
   };
   Object.keys(m).forEach(function (id) {
     var el = document.getElementById(id);
@@ -1572,30 +1524,6 @@ function wireSync() {
   };
   document.getElementById('scNew').onclick = function () { connect(true); };
 })();
-
-/* ── SharePoint 설정 대화상자 ───────────────────────────────────── */
-document.getElementById('spCancel').onclick = function () {
-  document.getElementById('setup').hidden = true;
-};
-document.getElementById('spGo').onclick = async function () {
-  var cid = document.getElementById('spClient').value.trim();
-  var url = document.getElementById('spUrl').value.trim();
-  document.getElementById('log').innerHTML = '';
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cid)) {
-    msg('warn', '앱 ID 가 형식에 맞지 않습니다 — 36자리 GUID 여야 합니다.'); return;
-  }
-  if (!/^https?:\/\//i.test(url)) {
-    msg('warn', '폴더 또는 파일의 전체 주소(https://…)를 넣어 주세요.'); return;
-  }
-  this.disabled = true;
-  try {
-    await connectGraph(cid, url);
-    document.getElementById('setup').hidden = true;
-  } catch (e) {
-    G.mode = ''; saveG(); paintSync('off');
-    msg('err', '연결하지 못했습니다: ' + esc(String(e.message || e)));
-  } finally { this.disabled = false; }
-};
 
 /* 탭으로 돌아올 때 남이 바꿨는지 확인한다 */
 document.addEventListener('visibilitychange', function () {
