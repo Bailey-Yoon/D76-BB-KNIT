@@ -1293,6 +1293,11 @@ async function resolveTarget(interactive, url) {
     var cands = [];
     if (canon) cands.push(canon);
     cands.push(url);
+    /* 공유 링크의 `?e=…` 는 추적·만료 표시라 링크의 일부가 아닐 수 있다.
+       붙인 채로 인코딩하면 Graph 가 토큰을 못 알아보고 404 를 준다.
+       쿼리를 뗀 형태도 후보에 넣는다. */
+    var noq = url.split('?')[0];
+    if (noq !== url) cands.push(noq);
     for (var ci = 0; ci < cands.length && !it; ci++) {
       /* Prefer: redeemSharingLink — 주소가 **진짜 공유 링크**(공유 → 링크 복사)면
          브라우저에서 그 링크를 눌러 들어간 것과 같은 효과가 난다. 그러면 항목이
@@ -1302,7 +1307,7 @@ async function resolveTarget(interactive, url) {
                            '/driveItem?$select=id,name,file,folder,parentReference,eTag,webUrl',
                            { headers: { Prefer: 'redeemSharingLink' } },
                            interactive && ci === 0);
-      tried.push('shares:' + r.status);
+      tried.push('shares' + (ci + 1) + ':' + r.status);
       if (r.ok) {
         it = await r.json();
         driveId = (it.parentReference && it.parentReference.driveId) || '';
