@@ -1010,10 +1010,15 @@ var GRAPH = 'https://graph.microsoft.com/v1.0';
    링크를 눌러 들어간 것과 같은 처리라 낮은 권한으로도 닿을 여지가 있다.
 
    나중에 관리자 동의가 나오면 USE_ALL 을 true 로 바꾸면 된다. */
+var TENANT = '3bb9c374-b030-454d-850a-278900e574c5';   /* sae-a.com */
+
+/* 전체 권한을 요청할지. 기본은 끔 — 이 조직은 .All 에 관리자 동의를
+   요구해서 켜 두면 "관리자 승인 필요" 화면만 본다.
+   동의가 나왔는지 확인하고 싶으면 화면의 「전체 권한으로 다시 시도」 를 쓴다. */
 var USE_ALL = false;
-var SCOPES_FULL  = USE_ALL ? ['User.Read', 'Files.ReadWrite.All']
-                           : ['User.Read', 'Files.ReadWrite'];
 var SCOPES_BASIC = ['User.Read', 'Files.ReadWrite'];
+var SCOPES_ALL   = ['User.Read', 'Files.ReadWrite.All'];
+function scopesFull() { return USE_ALL ? SCOPES_ALL : SCOPES_BASIC; }
 var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
 
 /* 기본 공유 폴더 — 매번 주소를 붙여 넣지 않아도 되게 박아 둔다.
@@ -1069,7 +1074,11 @@ function msalApp() {
   msal = new window.msal.PublicClientApplication({
     auth: {
       clientId: G.clientId,
-      authority: 'https://login.microsoftonline.com/organizations',
+      /* 앱 등록이 **단일 테넌트**(이 조직 디렉터리의 계정만)라 테넌트를
+         지정한다. /organizations 는 "아무 회사 계정" 이라는 뜻이라
+         단일 테넌트 앱에는 맞지 않는다.
+         sae-a.com = 3bb9c374-b030-454d-850a-278900e574c5 */
+      authority: 'https://login.microsoftonline.com/' + TENANT,
       /* 리디렉션 주소는 지금 열려 있는 페이지 그대로. 앱 등록의 SPA 주소와
          글자 하나까지 같아야 한다 (끝의 / 포함). */
       redirectUri: location.origin + location.pathname
@@ -1132,13 +1141,13 @@ async function token(interactive) {
   }
 
   /* ① 전체 권한 — 조용히 */
-  try { return keep(await silent(SCOPES_FULL)); } catch (e) { last = e; }
+  try { return keep(await silent(scopesFull())); } catch (e) { last = e; }
 
   /* ② 전체 권한 — 창을 띄워서. **세션당 한 번만** 시도한다.
      실패했는데 계속 다시 띄우면 무한 반복이 된다. */
   if (interactive && !askedFull) {
     askedFull = true;
-    try { return keep(await ask(SCOPES_FULL)); }
+    try { return keep(await ask(scopesFull())); }
     catch (e) { last = e; if (cancelled(e)) throw e; }
   }
 
@@ -1398,7 +1407,7 @@ function loginByRedirect() {
   try {
     localStorage.setItem('d76_fabreq_redir', '1');
     var app = msalApp();
-    var go = function () { app.loginRedirect({ scopes: SCOPES_FULL }); };
+    var go = function () { app.loginRedirect({ scopes: scopesFull() }); };
     if (app.initialize) { app.initialize().then(go, go); } else { go(); }
   } catch (e) {
     msg('err', '페이지 이동 로그인을 시작하지 못했습니다: ' + esc(String(e.message || e)));
@@ -1652,6 +1661,30 @@ function paintSync(state, err) {
   wireSync();
 }
 
+/* 팀 폴더가 권한으로 막혔을 때, 관리자 동의가 났는지 그 자리에서 확인해 본다.
+   코드를 다시 배포하지 않고도 눌러 볼 수 있어야 한다. */
+function offerFullScope() {
+  var d = document.createElement('div');
+  d.className = 'msg warn';
+  d.innerHTML = '관리자 동의가 이미 났는지 확인하려면 아래를 눌러 보세요. ' +
+    '동의가 없으면 "관리자 승인 필요" 화면이 뜹니다 — 그 경우 그냥 닫으시면 됩니다.' +
+    '<button class="btn" id="scAll" style="margin-left:8px">전체 권한으로 다시 시도</button>';
+  document.getElementById('log').appendChild(d);
+  document.getElementById('scAll').onclick = async function () {
+    this.disabled = true;
+    USE_ALL = true;
+    askedFull = false; askedBasic = false;
+    tokCache = { v: '', exp: 0 };
+    G.url = ''; G.driveId = ''; G.itemId = ''; saveG();
+    try {
+      await connectGraph(DEFAULT_CLIENT);
+    } catch (e) {
+      USE_ALL = false;
+      msg('err', '전체 권한으로도 안 됩니다 — ' + esc(String(e && (e.message || e))));
+    } finally { this.disabled = false; }
+  };
+}
+
 /* 인증이 꼬였을 때 페이지 이동 로그인을 권한다 */
 function offerRedirect() {
   var d = document.createElement('div');
@@ -1679,18 +1712,20 @@ function wireSync() {
         tokCache = { v: '', exp: 0 };
         await connectGraph(DEFAULT_CLIENT);
       } catch (e) {
-        var m = String(e && (e.message || e));
-        if (/AADSTS65001|consent_required|admin|관리자/i.test(m)) {
-          m = '관리자 승인이 필요합니다 — 이 조직은 Files.ReadWrite.All 에 대한 ' +
-              '사용자 동의를 막아 두었습니다. IT 에 관리자 동의를 요청하세요. ' +
-              '그동안은 「대신 로컬 파일 쓰기」 로 같은 폴더를 쓸 수 있습니다.';
-          e = new Error(m);
+        /* 원문을 먼저 보관한다 — 문구를 바꾼 뒤에 판정하면 403 같은
+           단서가 지워져서 어떤 도움 버튼을 내걸지 알 수 없게 된다. */
+        var raw = String(e && (e.message || e));
+        var shown = raw;
+        if (/AADSTS65001|consent_required|관리자 승인/i.test(raw)) {
+          shown = '관리자 승인이 필요합니다 — 이 조직은 Files.ReadWrite.All 에 대한 ' +
+                  '사용자 동의를 막아 두었습니다. IT 에 관리자 동의를 요청하세요.';
         }
         G.mode = ''; saveG(); failedOnce = true;
-        try { localStorage.setItem('d76_fabreq_failed', '1'); } catch (e) {}
+        try { localStorage.setItem('d76_fabreq_failed', '1'); } catch (e2) {}
         paintSync('off');
-        msg('err', '연결하지 못했습니다 — ' + esc(String(e.message || e)));
-        if (/인증|로그인|AADSTS|interaction|popup/i.test(String(e.message || e))) offerRedirect();
+        msg('err', '연결하지 못했습니다 — ' + esc(shown));
+        if (/interaction|popup|AADSTS50058|user_cancelled/i.test(raw)) offerRedirect();
+        if (/403|권한|승인/.test(raw) && !USE_ALL) offerFullScope();
       } finally { b.disabled = false; }
     }
   };
