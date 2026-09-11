@@ -956,7 +956,10 @@ var G = { mode: '', clientId: '', url: '', driveId: '', itemId: '',
           webUrl: '', size: -1, mtime: '' };
 try { G = Object.assign(G, JSON.parse(localStorage.getItem(GKEY) || '{}')); } catch (e) {}
 function saveG() { try { localStorage.setItem(GKEY, JSON.stringify(G)); } catch (e) {} }
-function connected() { return G.mode === 'graph' ? !!G.itemId : !!fileHandle; }
+function connected() {
+  if (G.mode === 'kv') return kvReady();
+  return G.mode === 'graph' ? !!G.itemId : !!fileHandle;
+}
 
 /* ── 핸들 보관 (IndexedDB) ─────────────────────────────────────────── */
 function idb() {
@@ -1531,6 +1534,103 @@ async function connectGraph(clientId) {
   paintSync('ok');
 }
 
+
+/* ════════════════════════════════════════════════════════════════════
+   공유 저장소 — Upstash Redis (REST)
+
+   SharePoint 는 관리자 동의 없이는 못 쓰는 것으로 확인됐고, Supabase 는
+   무료 플랜이 7일 미사용이면 프로젝트를 정지시켜 격주로 쓰는 도구에 맞지
+   않는다. Upstash 는 30일 미사용까지 버티고(그마저도 백업 후 아카이브,
+   사전 경고 메일), REST 라 브라우저에서 바로 부를 수 있으며 CORS 가 열려 있다.
+
+   ⚠️ 토큰이 페이지에 박힌다. 주소를 아는 사람은 이 표를 읽고 **지울 수도**
+      있다. 회사 밖으로 나가도 되는 데이터라는 전제로 고른 방식이다.
+      기록은 브라우저에도 남고 CSV 로 내보낼 수 있으니 완전 소실은 아니다.
+
+   저장 형태: 키 하나에 { v: 버전, csv: "..." } 를 JSON 으로 넣는다.
+   버전을 두는 이유는 저장 직전에 남이 바꿨는지 알기 위해서다 —
+   그냥 덮어쓰면 남의 기록이 조용히 사라진다.
+   ════════════════════════════════════════════════════════════════════ */
+
+var KV_URL   = '';      /* 예: https://xxxx.upstash.io  (끝에 / 없이) */
+var KV_TOKEN = '';      /* Upstash 콘솔의 REST TOKEN */
+var KV_KEY   = 'd76:fabreq:v1';
+var kvVer = -1;         /* 마지막으로 읽은 버전 */
+
+function kvReady() { return !!(KV_URL && KV_TOKEN); }
+
+async function kvCall(path, body) {
+  var opt = { headers: { Authorization: 'Bearer ' + KV_TOKEN } };
+  if (body !== undefined) { opt.method = 'POST'; opt.body = body; }
+  var r = await fetch(KV_URL.replace(/\/+$/, '') + path, opt);
+  if (r.status === 401 || r.status === 403) {
+    throw new Error('저장소 토큰이 거부됐습니다 (' + r.status + ') — 토큰을 다시 확인해 주세요');
+  }
+  if (!r.ok) throw new Error('저장소 오류 (' + r.status + ')');
+  return r.json();
+}
+
+/* 값을 읽어 {v, csv} 로 돌려준다. 없으면 {v:0, csv:''} */
+async function kvLoad() {
+  var j = await kvCall('/get/' + encodeURIComponent(KV_KEY));
+  if (!j || j.result === null || j.result === undefined || j.result === '') {
+    return { v: 0, csv: '' };
+  }
+  try {
+    var o = JSON.parse(j.result);
+    if (o && typeof o === 'object' && typeof o.csv === 'string') {
+      return { v: +o.v || 0, csv: o.csv };
+    }
+    /* 옛 형식(문자열 CSV)도 받아 준다 */
+    return { v: 0, csv: String(j.result) };
+  } catch (e) {
+    return { v: 0, csv: String(j.result) };
+  }
+}
+
+async function kvRead() {
+  var cur = await kvLoad();
+  kvVer = cur.v;
+  return cur.csv.trim() ? csvToRows(cur.csv) : [];
+}
+
+async function kvChanged() {
+  var cur = await kvLoad();
+  return cur.v !== kvVer;
+}
+
+async function kvWrite(rows) {
+  var cur = await kvLoad();
+  if (cur.v !== kvVer) return false;          /* 그 사이 남이 저장함 — 부르는 쪽에서 병합 */
+  var next = { v: cur.v + 1, csv: toCsv(rows) };
+  await kvCall('/set/' + encodeURIComponent(KV_KEY), JSON.stringify(next));
+  kvVer = next.v;
+  return true;
+}
+
+async function connectKv() {
+  if (!kvReady()) throw new Error('공유 저장소가 설정되지 않았습니다');
+  G.mode = 'kv'; G.name = '공유 저장소'; G.folder = '공유 저장소';
+  G.user = ''; G.scope = ''; G.webUrl = ''; G.size = -1; G.mtime = '';
+  saveG();
+  var theirs = await kvRead();
+  if (theirs.length) {
+    DB = mergeRows(DB, theirs);
+    try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
+    msg('ok', '공유 저장소를 읽었습니다 — 합쳐서 ' + DB.length + '줄');
+  }
+  render();
+  if (!(await kvWrite(DB))) {          /* 충돌이면 한 번 더 합치고 쓴다 */
+    DB = mergeRows(DB, await kvRead());
+    try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}
+    render();
+    await kvWrite(DB);
+  }
+  failedOnce = false;
+  try { localStorage.removeItem('d76_fabreq_failed'); } catch (e) {}
+  paintSync('ok');
+}
+
 /* ── 줄 단위 병합 — 수정시각이 늦은 쪽을 남긴다 ────────────────────── */
 function mergeRows(mine, theirs) {
   var by = {}, i;
@@ -1570,13 +1670,18 @@ function queueSync() {
 }
 
 /* 저장소가 둘이라 읽기/쓰기/변경확인만 갈아끼운다. 병합 규칙은 공통이다. */
-function remoteRead()    { return G.mode === 'graph' ? graphRead() : readFile(); }
+function remoteRead() {
+  if (G.mode === 'kv') return kvRead();
+  return G.mode === 'graph' ? graphRead() : readFile();
+}
 async function remoteChanged() {
+  if (G.mode === 'kv') return kvChanged();
   if (G.mode === 'graph') return graphChanged();
   var f = await fileHandle.getFile();
   return f.lastModified !== lastMtime;
 }
 async function remoteWrite(rows) {
+  if (G.mode === 'kv') return kvWrite(rows);
   if (G.mode === 'graph') return graphWrite(rows);
   await writeFile(rows); return true;
 }
