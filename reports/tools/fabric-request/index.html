@@ -946,7 +946,7 @@ var failedOnce = false;
 /* 저장소 모드: '' | 'file' | 'graph' */
 var GKEY = 'd76_fabreq_graph';
 var G = { mode: '', clientId: '', url: '', driveId: '', itemId: '',
-          name: '', etag: '', user: '', folder: '' };
+          name: '', etag: '', user: '', folder: '', scope: '' };
 try { G = Object.assign(G, JSON.parse(localStorage.getItem(GKEY) || '{}')); } catch (e) {}
 function saveG() { try { localStorage.setItem(GKEY, JSON.stringify(G)); } catch (e) {} }
 function connected() { return G.mode === 'graph' ? !!G.itemId : !!handle; }
@@ -997,7 +997,11 @@ function idbGet(k) {
    ════════════════════════════════════════════════════════════════════ */
 
 var GRAPH = 'https://graph.microsoft.com/v1.0';
-var SCOPES = ['User.Read', 'Files.ReadWrite'];
+/* 팀 사이트 문서함은 "본인 파일" 이 아니라서 Files.ReadWrite 로는 403 이다.
+   .All 을 먼저 달라고 하고, 관리자 동의가 아직이면 기본 권한으로 떨어진다
+   (그 경우 본인 OneDrive 까지만 된다). 어느 쪽을 받았는지 G.scope 에 남긴다. */
+var SCOPES_FULL  = ['User.Read', 'Files.ReadWrite.All'];
+var SCOPES_BASIC = ['User.Read', 'Files.ReadWrite'];
 var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
 
 /* 기본 공유 폴더 — 매번 주소를 붙여 넣지 않아도 되게 박아 둔다.
@@ -1052,19 +1056,35 @@ async function token(interactive) {
   var app = msalApp();
   if (app.initialize) await app.initialize();
   var acc = (app.getAllAccounts() || [])[0];
+  var sets = [SCOPES_FULL, SCOPES_BASIC], i, r, last = null;
+
   if (acc) {
+    for (i = 0; i < sets.length; i++) {
+      try {
+        r = await app.acquireTokenSilent({ scopes: sets[i], account: acc });
+        G.user = acc.username || ''; G.scope = sets[i][1]; saveG();
+        tokCache = { v: r.accessToken, exp: Date.now() + 9 * 60000 };
+        return r.accessToken;
+      } catch (e) { last = e; }
+    }
+  }
+  if (!interactive) throw new Error('로그인이 필요합니다 — 「Teams 공유폴더 연결」 을 눌러 주세요');
+
+  for (i = 0; i < sets.length; i++) {
     try {
-      var r = await app.acquireTokenSilent({ scopes: SCOPES, account: acc });
-      G.user = acc.username || '';
+      r = await app.loginPopup({ scopes: sets[i],
+                                 prompt: i === 0 ? 'select_account' : undefined });
+      G.user = (r.account && r.account.username) || ''; G.scope = sets[i][1]; saveG();
       tokCache = { v: r.accessToken, exp: Date.now() + 9 * 60000 };
       return r.accessToken;
-    } catch (e) { /* 조용히 실패하면 아래에서 다시 묻는다 */ }
+    } catch (e) {
+      last = e;
+      /* 사용자가 창을 닫았으면 더 조르지 않는다 */
+      if (e && /user_cancelled|popup_window_error|BrowserAuthError/i.test(
+            String(e.errorCode || e.name || ''))) break;
+    }
   }
-  if (!interactive) throw new Error('로그인이 필요합니다 — 「SharePoint 연결」 을 눌러 주세요');
-  var res = await app.loginPopup({ scopes: SCOPES, prompt: 'select_account' });
-  G.user = (res.account && res.account.username) || '';
-  tokCache = { v: res.accessToken, exp: Date.now() + 9 * 60000 };
-  return res.accessToken;
+  throw last || new Error('로그인하지 못했습니다');
 }
 
 async function gfetch(path, opt, interactive) {
@@ -1203,9 +1223,15 @@ async function resolveTarget(interactive) {
   }
 
   if (!it) {
-    throw new Error('폴더를 찾지 못했습니다 (' + tried.join(', ') + ') — ' +
-                    '폴더를 브라우저에서 열고 주소창을 그대로 복사했는지 확인해 주세요. ' +
-                    '403 이 보이면 권한을 Files.ReadWrite.All 로 올려야 합니다');
+    var has403 = tried.join(',').indexOf('403') >= 0;
+    throw new Error('폴더를 찾지 못했습니다 [' + tried.join(', ') + '] · 받은 권한: ' +
+      (G.scope || '알 수 없음') +
+      (has403 && G.scope !== 'Files.ReadWrite.All'
+        ? ' — 팀 사이트 문서함은 Files.ReadWrite.All 이 있어야 합니다. 앱 등록에 그 권한을 ' +
+          '추가하고 관리자 동의를 받아 주세요.'
+        : has403
+        ? ' — 권한은 맞는데 거부됐습니다. 그 폴더에 편집 권한이 있는지 확인해 주세요.'
+        : ' — 폴더 주소를 확인해 주세요.'));
   }
   if (!driveId) throw new Error('폴더는 찾았는데 드라이브를 알 수 없습니다');
 
@@ -1450,7 +1476,8 @@ function paintSync(state, err) {
       /* 어느 폴더에 붙었는지 반드시 보여준다 — 고정 문구를 쓰면
          엉뚱한 드라이브에 붙어도 알아채지 못한다. */
       txt.innerHTML = '<b>' + esc(G.folder || '공유 폴더') + '</b> · ' + when +
-                      '<span class="path">' + esc(G.user || '') + '</span>';
+                      '<span class="path">' + esc(G.user || '') +
+                      (G.scope ? ' · ' + esc(G.scope) : '') + '</span>';
     } else {
       txt.innerHTML = '<b>' + esc(handle.name) + '</b> · 로컬 파일 · ' +
         (state === 'ok' ? '마지막 저장 ' + new Date(lastMtime).toLocaleTimeString('ko-KR') : when);
