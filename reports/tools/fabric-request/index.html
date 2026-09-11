@@ -156,6 +156,25 @@ body.rzing{cursor:col-resize;user-select:none}
 .cm-f{display:flex;gap:8px;padding:10px 14px 0;margin-top:6px;border-top:1px solid var(--line)}
 .cm-f .btn{flex:1;font-size:12px;padding:7px 6px}
 #colBtn.some{background:var(--tint);color:var(--tool-deep);border-color:var(--tool)}
+
+/* ── 백업 ── */
+.bakwrap{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sh-1);margin-top:14px;overflow:hidden}
+.bakwrap[hidden]{display:none}
+.bak-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px}
+.bak-h .bak-sub{color:var(--muted);font-size:11.5px;flex:1;min-width:180px}
+.bak-h .btn{padding:6px 12px;font-size:12px}
+.bak-b{max-height:300px;overflow:auto}
+.bak-r{display:flex;align-items:center;gap:12px;padding:9px 16px;font-size:12.5px;
+  border-bottom:1px solid var(--line)}
+.bak-r:last-child{border-bottom:0}
+.bak-r:hover{background:var(--tint)}
+.bak-when{min-width:168px;font-family:"SF Mono",Consolas,"D2Coding",monospace;font-size:11.5px}
+.bak-rows{min-width:78px;color:var(--body)}
+.bak-v{color:var(--muted);font-size:11px;flex:1}
+.bak-r .btn{padding:5px 11px;font-size:12px}
+.bak-empty{padding:16px;color:var(--muted);font-size:12.5px}
 tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5;
   overflow:hidden;text-overflow:ellipsis;word-break:break-word}
 tbody tr:hover{background:#fafafd}
@@ -282,6 +301,7 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
       <button class="btn ghost" id="reset">필터 해제</button>
       <button class="btn ghost" id="exp">내보내기</button>
       <button class="btn ghost" id="imp">가져오기</button>
+      <button class="btn ghost" id="bakBtn">백업</button>
       <input type="file" id="impf" accept="text/csv,.csv" hidden>
     </div>
   </div>
@@ -291,6 +311,14 @@ footer{max-width:1400px;margin:0 auto;padding:0 20px 40px;font-size:11.5px;color
       <thead><tr id="head"></tr></thead>
       <tbody id="rows"></tbody>
     </table>
+  </div>
+  <div class="bakwrap" id="bakWrap" hidden>
+    <div class="bak-h">
+      <b>백업에서 되돌리기</b>
+      <span class="bak-sub">저장할 때마다 <b>직전</b> 내용이 여기에 쌓입니다 · 30일 보관</span>
+      <button class="btn ghost" id="bakClose">닫기</button>
+    </div>
+    <div class="bak-b" id="bakList"></div>
   </div>
   <div class="note-hint" id="hint"></div>
 </div>
@@ -1062,6 +1090,90 @@ document.getElementById('reset').onclick = function () {
   });
   render();
 };
+
+/* ── 백업에서 되돌리기 ──────────────────────────────────────────────
+   워커가 저장 때마다 **덮어쓰기 직전 값**을 따로 담아 둔다 (30일).
+   되돌리기는 **화면에만** 올려 놓는다 — 바로 서버에 쓰지 않는다.
+   눈으로 확인하고 「저장하기」 를 눌러야 팀에 반영된다. 그래야 잘못
+   되돌린 것도 되돌릴 수 있다. */
+(function () {
+  var btn = document.getElementById('bakBtn');
+  var wrap = document.getElementById('bakWrap');
+  var list = document.getElementById('bakList');
+
+  function when(ms) {
+    if (!ms) return '시각 모름';
+    var d = new Date(ms);
+    return d.toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  async function load() {
+    list.innerHTML = '<div class="bak-empty">불러오는 중…</div>';
+    try {
+      var r = await fetch(KV_URL + '?list', { cache: 'no-store' });
+      var j = await r.json();
+      if (!j || !j.snaps) throw new Error('목록 형식이 아닙니다');
+      if (!j.snaps.length) {
+        list.innerHTML = '<div class="bak-empty">아직 백업이 없습니다. ' +
+          '다음에 「저장하기」 를 누를 때부터 직전 내용이 쌓입니다.</div>';
+        return;
+      }
+      list.innerHTML = '';
+      j.snaps.forEach(function (sn) {
+        var row = document.createElement('div');
+        row.className = 'bak-r';
+        row.innerHTML = '<span class="bak-when">' + esc(when(sn.at)) + '</span>' +
+          '<span class="bak-rows"><b>' + (sn.rows || 0) + '</b>줄</span>' +
+          '<span class="bak-v">저장 ' + (sn.v || 0) + '회차 직전</span>' +
+          '<button class="btn ghost" data-v="' + esc(String(sn.v)) + '">이 내용 불러오기</button>';
+        list.appendChild(row);
+      });
+    } catch (e) {
+      /* 워커를 아직 안 고쳤으면 ?list 가 그냥 현재 값을 돌려준다 */
+      list.innerHTML = '<div class="bak-empty">백업 목록을 읽지 못했습니다 — ' +
+        esc(String(e.message || e)) +
+        '<br>공유 저장소(워커) 코드가 백업을 지원하는 최신본인지 확인해 주세요.</div>';
+    }
+  }
+
+  btn.onclick = function () {
+    wrap.hidden = !wrap.hidden;
+    if (!wrap.hidden) { load(); wrap.scrollIntoView({ block: 'nearest' }); }
+  };
+  document.getElementById('bakClose').onclick = function () { wrap.hidden = true; };
+
+  list.addEventListener('click', async function (e) {
+    var b = e.target;
+    if (!b.getAttribute || !b.getAttribute('data-v')) return;
+    var v = b.getAttribute('data-v');
+    if (unsaved > 0 &&
+        !confirm('저장하지 않은 수정 ' + unsaved + '건이 있습니다.\n' +
+                 '백업 내용을 불러오면 그 수정은 사라집니다. 계속할까요?')) return;
+    b.disabled = true;
+    try {
+      var r = await fetch(KV_URL + '?snap=' + encodeURIComponent(v), { cache: 'no-store' });
+      var j = await r.json();
+      if (!j || typeof j.csv !== 'string') throw new Error(j && j.error ? j.error : '백업을 읽지 못했습니다');
+      var rows = j.csv.trim() ? csvToRows(j.csv) : [];
+      /* ⚠️ 되돌린 줄에는 **옛 수정시각**이 박혀 있다. 그대로 저장하면
+         applyMine 이 "서버 쪽이 더 최신" 이라 보고 전부 무시한다 —
+         되돌리기를 눌러도 아무 일도 안 일어난다. 지금 시각으로 다시 찍는다. */
+      rows.forEach(stamp);
+      DB = rows;
+      /* baseline 은 지금 서버 상태 그대로 둔다. 그래야 백업 이후에 생긴 줄이
+         "내가 지운 줄" 로 잡혀 실제로 사라진다 — 그게 되돌리기의 뜻이다. */
+      unsaved = Math.max(1, rows.length);
+      render(); paintSave();
+      wrap.hidden = true;
+      msg('warn', '백업(' + rows.length + '줄)을 <b>화면에만</b> 불러왔습니다 — ' +
+                  '확인하시고 <b>「저장하기」</b> 를 눌러야 팀에 반영됩니다.');
+    } catch (err) {
+      msg('err', '되돌리지 못했습니다: ' + esc(String(err.message || err)));
+    } finally {
+      b.disabled = false;
+    }
+  });
+})();
 
 /* ── 열 넣고 빼기 ────────────────────────────────────────────────── */
 (function () {
