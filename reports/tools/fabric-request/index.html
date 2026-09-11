@@ -1010,15 +1010,27 @@ var SHARE_NAME = 'Vertical_샘플작지_공유.csv';
 /* 기본 공유 폴더 — 매번 주소를 붙여 넣지 않아도 되게 박아 둔다.
    다른 폴더를 쓰려면 설정 칸에서 바꾸면 된다. 주소에는 비밀이 없다
    (로그인한 사람이 그 폴더에 접근 권한이 있어야 열린다). */
-/* 본인 OneDrive 의 폴더. 팀 사이트(D76CATJACKBB) 문서함은 Files.ReadWrite.All 이
-   필요한데 이 조직은 그 권한에 관리자 동의를 요구한다. 개인 OneDrive 는
-   Files.ReadWrite 만으로 되므로 동의 없이 오늘 바로 쓴다.
-   관리자 동의가 나오면 아래 주소를 팀 사이트 폴더로 되돌리면 된다:
-     https://saea365-my.sharepoint.com/shared?id=%2Fsites%2FD76CATJACKBB%2F
-     Shared%20Documents%2FD76%20Research%20Dashboard%2FVertical%20Fabric%20Sample%20Request
-     &listurl=https%3A%2F%2Fsaea365%2Esharepoint%2Ecom%2Fsites%2FD76CATJACKBB%2FShared%20Documents */
-var DEFAULT_URL = 'https://saea365-my.sharepoint.com/my?id=%2Fpersonal%2F' +
-  'bailey0403%5Fsae%2Da%5Fcom%2FDocuments%2FD76%20Research%20Dashboard';
+/* 쓸 폴더 후보. **순서대로** 시도해서 처음 되는 것을 쓴다.
+
+   ① Teams 공유폴더 — 팀이 같이 쓰기에 제일 맞다. 다만 SharePoint 문서함은
+      보통 Files.ReadWrite.All 이 필요하고 이 조직은 거기에 관리자 동의를
+      요구한다. 그래서 **진짜 공유 링크**(공유 → 링크 복사)를 쓴다 —
+      Prefer: redeemSharingLink 와 함께면 "나에게 공유된 항목" 으로 처리돼
+      낮은 권한으로도 닿을 여지가 있다.
+   ② 내 OneDrive — ①이 막혀도 오늘 쓸 수 있게 두는 자리. Files.ReadWrite
+      만으로 동작한다.
+
+   한 번 붙은 폴더는 G.url 에 기억해 계속 쓴다. 매번 후보를 새로 훑으면
+   어느 날은 ①, 어느 날은 ② 에 적히면서 기록이 두 파일로 갈라진다. */
+var FOLDERS = [
+  { label: 'Teams 공유폴더',
+    url: 'https://saea365.sharepoint.com/:f:/s/D76CATJACKBB/' +
+         'IgB6vqJewMkRS44CvSGMk2KNAb-BHDryY4fWiZKR2_RVzFA?e=w0HENm' },
+  { label: '내 OneDrive',
+    url: 'https://saea365-my.sharepoint.com/my?id=%2Fpersonal%2F' +
+         'bailey0403%5Fsae%2Da%5Fcom%2FDocuments%2FD76%20Research%20Dashboard' }
+];
+var DEFAULT_URL = FOLDERS[0].url;
 
 /* 기본 앱 ID. SPA 의 클라이언트 ID 는 **비밀이 아니다** — 비밀 키 없이
    Authorization Code + PKCE 로만 돌아간다. 페이지에 적혀 있어도,
@@ -1031,8 +1043,12 @@ var DEFAULT_CLIENT = '21d26fc2-4b0f-4f9f-9e18-40f0beca126b';
    남아 있으면 그쪽으로 그대로 붙어 버린다 — 기본값을 바꿔도 아무 일이
    안 일어나는 것처럼 보인다. 실제로 그렇게 엉뚱한 드라이브에 붙었다.
    값이 달라졌으면 캐시된 위치를 버리고 다시 찾게 한다. */
-if (G.url !== DEFAULT_URL || G.clientId !== DEFAULT_CLIENT) {
-  G.url = DEFAULT_URL; G.clientId = DEFAULT_CLIENT;
+function knownFolder(u) {
+  for (var i = 0; i < FOLDERS.length; i++) if (FOLDERS[i].url === u) return true;
+  return false;
+}
+if (!knownFolder(G.url) || G.clientId !== DEFAULT_CLIENT) {
+  G.url = ''; G.clientId = DEFAULT_CLIENT;
   G.driveId = ''; G.itemId = ''; G.etag = ''; G.name = ''; G.folder = '';
   saveG();
 }
@@ -1126,7 +1142,7 @@ async function token(interactive) {
     try { return keep(await ask(SCOPES_BASIC)); } catch (e) { last = e; }
   }
 
-  if (!interactive) throw new Error('로그인이 필요합니다 — 「OneDrive 폴더 연결」 을 눌러 주세요');
+  if (!interactive) throw new Error('로그인이 필요합니다 — 「공유 폴더 연결」 을 눌러 주세요');
   throw last || new Error('로그인하지 못했습니다');
 }
 
@@ -1201,11 +1217,11 @@ function shareToken(url) {
 }
 
 /* 주소가 폴더면 그 안의 CSV 를, 파일이면 그 파일을 쓰기 대상으로 잡는다. */
-async function resolveTarget(interactive) {
+async function resolveTarget(interactive, url) {
   var it = null, driveId = '';
 
   /* ① 본인 OneDrive 주소면 경로로 바로 찾는다 (권한이 가장 낮게 든다) */
-  var path = personalPath(G.url);
+  var path = personalPath(url);
   if (path) {
     var pr = await gfetch('/me/drive/root:/' + encodeURI(path) +
                           '?$select=id,name,file,folder,parentReference,eTag', {}, interactive);
@@ -1224,12 +1240,12 @@ async function resolveTarget(interactive) {
 
   /* ② 정규 주소로 Shares API — 팀 사이트 라이브러리는 이 길로 간다.
         Shares 의 최소 권한이 Files.ReadWrite 라 관리자 동의가 필요 없다. */
-  var canon = canonicalUrl(G.url);
+  var canon = canonicalUrl(url);
   var tried = [];
   if (!it) {
     var cands = [];
     if (canon) cands.push(canon);
-    cands.push(G.url);
+    cands.push(url);
     for (var ci = 0; ci < cands.length && !it; ci++) {
       /* Prefer: redeemSharingLink — 주소가 **진짜 공유 링크**(공유 → 링크 복사)면
          브라우저에서 그 링크를 눌러 들어간 것과 같은 효과가 난다. 그러면 항목이
@@ -1283,7 +1299,7 @@ async function resolveTarget(interactive) {
   }
   if (!driveId) throw new Error('폴더는 찾았는데 드라이브를 알 수 없습니다');
 
-  G.folder = it.name || '';
+  G.url = url; G.folder = it.name || '';
   if (it.folder) {
     /* 폴더면 그 안의 CSV. 없으면 처음 저장할 때 만들어진다. */
     var rr = await gfetch('/drives/' + driveId + '/items/' + it.id + ':/' +
@@ -1341,14 +1357,38 @@ async function graphChanged() {
   return (j.eTag || '') !== G.etag;
 }
 
-async function connectGraph(clientId, url) {
+async function connectGraph(clientId) {
   G.clientId = clientId.trim();
-  G.url = url.trim();
   G.mode = 'graph';
   msal = null;                              /* 앱 ID 가 바뀌었을 수 있다 */
   saveG();
   await token(true);                        /* 여기서 로그인 창이 뜬다 */
-  await resolveTarget(true);
+
+  /* 이미 붙어 본 폴더가 있으면 그것만 쓴다. 없으면 후보를 순서대로. */
+  var list = knownFolder(G.url)
+    ? [{ label: G.folder || '이전 폴더', url: G.url }]
+    : FOLDERS;
+  var last = null, used = null;
+  for (var i = 0; i < list.length; i++) {
+    try {
+      await resolveTarget(i === 0, list[i].url);
+      used = list[i];
+      break;
+    } catch (e) {
+      last = e;
+      if (i < list.length - 1) {
+        msg('warn', '<b>' + esc(list[i].label) + '</b> 에 닿지 못했습니다 — ' +
+                    esc(String(e.message || e).slice(0, 120)));
+      }
+    }
+  }
+  if (!used) throw last || new Error('쓸 수 있는 폴더가 없습니다');
+  if (used !== FOLDERS[0] && list === FOLDERS) {
+    msg('warn', '<b>' + esc(used.label) + '</b> 를 대신 씁니다. ' +
+                'Teams 공유폴더는 관리자 동의가 나오면 쓸 수 있습니다 — ' +
+                '그때는 「연결 해제」 후 다시 연결하세요.');
+  }
+
   var theirs = await graphRead();
   if (theirs.length) {
     DB = mergeRows(DB, theirs);
@@ -1515,7 +1555,7 @@ function paintSync(state, err) {
 
   if (!on) {
     txt.innerHTML = '아직 연결 안 됨 — 기록이 <b>이 컴퓨터에만</b> 남습니다';
-    acts.innerHTML = '<button class="btn" id="scGraph">OneDrive 폴더 연결</button>' +
+    acts.innerHTML = '<button class="btn" id="scGraph">공유 폴더 연결</button>' +
                      (failedOnce && FS_OK
                         ? '<button class="btn ghost" id="scOpen">대신 로컬 파일 쓰기</button>' : '');
   } else {
@@ -1552,7 +1592,7 @@ function wireSync() {
         b.disabled = true;
         askedFull = false; askedBasic = false;   /* 버튼을 새로 눌렀으니 다시 물어도 된다 */
         tokCache = { v: '', exp: 0 };
-        await connectGraph(DEFAULT_CLIENT, DEFAULT_URL);
+        await connectGraph(DEFAULT_CLIENT);
       } catch (e) {
         var m = String(e && (e.message || e));
         if (/AADSTS65001|consent_required|admin|관리자/i.test(m)) {
